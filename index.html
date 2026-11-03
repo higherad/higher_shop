@@ -714,7 +714,7 @@ $('i-go').onclick = () => busy($('i-go'), async () => {
 // 시작일 당일까지 + 정보를 넣은 슬롯 없음(한 번 넣으면 비울 수 없어 '한 번도 안 넣음'과 같음)
 const canCancel = is => !is.revokedAt && is.start >= today() && !SLOTS.some(x => x.issueNo === is.no && x.mid);
 function settleState(is) {
-  if (is.revokedAt) return is.revokedRole === 'user' ? ['취소', 'b-empty'] : is.paidAt ? ['환불 대상', 'b-end'] : ['취소', 'b-empty'];
+  if (is.revokedAt) return ['취소', 'b-empty'];
   return is.paidAt ? ['입금 완료', 'b-run'] : ['미입금', 'b-ext'];
 }
 let settleRows = [];
