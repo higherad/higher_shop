@@ -711,8 +711,8 @@ $('i-go').onclick = () => busy($('i-go'), async () => {
 
 /* ── 정산 내역 ── */
 // 취소 = 미입금 + 세팅한 슬롯 없음 + 만료 전(서버도 같은 기준)
-// 시작일 당일까지 + 정보를 넣은 슬롯 없음(한 번 넣으면 비울 수 없어 '한 번도 안 넣음'과 같음) + 미입금
-const canCancel = is => !is.revokedAt && !is.paidAt && !is.distPaidAt && is.start >= today() && !SLOTS.some(x => x.issueNo === is.no && x.mid);
+// 시작일 당일까지 + 정보를 넣은 슬롯 없음(한 번 넣으면 비울 수 없어 '한 번도 안 넣음'과 같음)
+const canCancel = is => !is.revokedAt && is.start >= today() && !SLOTS.some(x => x.issueNo === is.no && x.mid);
 function settleState(is) {
   if (is.revokedAt) return is.revokedRole === 'user' ? ['취소', 'b-empty'] : is.paidAt ? ['환불 대상', 'b-end'] : ['취소', 'b-empty'];
   return is.paidAt ? ['입금 완료', 'b-run'] : ['미입금', 'b-ext'];
@@ -742,7 +742,7 @@ function renderSettle() {
 $('settle-rows').onclick = e => {
   const btn = e.target.closest('[data-cancel]'); if (!btn) return;
   const is = ISSUES.find(x => x.no === +btn.dataset.cancel);
-  if (!confirm(`발급번호 #${is.no} 슬롯 ${is.qty}건을 취소합니다. 세팅한 정보도 함께 지워집니다.`)) return;
+  if (!confirm(`발급번호 #${is.no} 슬롯 ${is.qty}건을 취소합니다.`)) return;
   busy(btn, () => api('/shop-revoke', { issueNo: is.no }));
 };
 
