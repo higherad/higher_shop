@@ -23,7 +23,8 @@
   #login[data-theme="light"] { --bg:#faf9f5; --ink:#14201a; --mute:#5b6b62; --mute-2:#6b756e; --green-t:#0e8f5e; --line:rgba(20,32,26,.12); --surface:rgba(20,32,26,.035);
     --card-bg:rgba(255,255,255,.9); --card-border:rgba(14,143,94,.3); --card-shadow:0 24px 60px -28px rgba(20,60,30,.25); --bar-muted:rgba(20,32,26,.28); }
   .login-col { display:flex; flex-direction:column; align-items:flex-end; gap:14px; justify-self:end; width:100%; max-width:420px; }
-  .theme-toggle { width:48px; height:48px; border-radius:50%; border:1px solid var(--line); background:var(--surface); font-size:1.35rem; line-height:1; cursor:pointer;
+  .login-box { position:relative; }
+  .theme-toggle { position:absolute; top:clamp(22px,2.4vw,32px); right:clamp(22px,2.4vw,32px); width:48px; height:48px; border-radius:50%; border:1px solid var(--line); background:var(--surface); font-size:1.35rem; line-height:1; cursor:pointer;
     display:flex; align-items:center; justify-content:center; transition:border-color .2s, transform .2s; }
   .theme-toggle:hover { border-color:var(--green); transform:translateY(-1px); }
   #login::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.55;
@@ -49,11 +50,12 @@
   .btn-main { margin-top:6px; padding:14px 22px; border:none; border-radius:9px; background:var(--green); color:#04150d; font-weight:800; font-size:.95rem; cursor:pointer; transition:background .2s, transform .2s, box-shadow .2s; }
   .btn-main:hover { background:#4fe8a9; transform:translateY(-1px); box-shadow:0 0 0 6px rgba(34,217,138,.15); }
   .login-box .remember { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--mute); }
-  .hero-tasklist { display:flex; flex-wrap:wrap; gap:28px 32px; border-top:1px solid var(--line); padding-top:26px; }
+  .hero-left { width:fit-content; max-width:100%; }
+  .hero-tasklist { display:flex; flex-wrap:wrap; justify-content:center; gap:28px 32px; border-top:1px solid var(--line); padding-top:26px; }
   .task-item { display:flex; align-items:baseline; gap:10px; }
   .task-num { font-family:ui-monospace,Consolas,monospace; font-size:.78rem; color:var(--green-t); font-weight:700; }
   .task-label { font-size:1.05rem; font-weight:700; color:var(--ink); }
-  .rank-card { width:100%; max-width:380px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:22px; padding:20px 24px 16px; margin-top:28px;
+  .rank-card { width:100%; max-width:380px; margin-left:auto; margin-right:auto; background:var(--card-bg); border:1px solid var(--card-border); border-radius:22px; padding:20px 24px 16px; margin-top:28px;
     box-shadow:var(--card-shadow); overflow:hidden; }
   .rc-head { display:flex; align-items:center; gap:10px; font-size:.94rem; color:var(--mute); margin-bottom:12px; }
   .rc-live { display:flex; align-items:center; gap:6px; font-family:ui-monospace,Consolas,monospace; font-size:.8rem; color:var(--green-t); font-weight:700; }
@@ -148,15 +150,13 @@
 <div id="login">
   <div class="hero-spot" id="hero-spot"></div>
   <div class="hero-wrap">
-    <div>
+    <div class="hero-left">
       <p class="eyebrow">SHOPPING SLOT · 쇼핑슬롯</p>
       <h1 class="hero-h1">매출은, <span class="hl">순위</span>에서<br>시작됩니다.</h1>
-      <p class="hero-lead">네이버 쇼핑 순위 슬롯 접수. 슬롯을 발급받고 키워드와 상품 URL만 입력하면 접수가 끝납니다.</p>
       <div class="hero-tasklist">
         <div class="task-item"><span class="task-num">01</span><span class="task-label">슬롯 발급</span></div>
         <div class="task-item"><span class="task-num">02</span><span class="task-label">키워드·URL 세팅</span></div>
         <div class="task-item"><span class="task-num">03</span><span class="task-label">정산 확인</span></div>
-        <div class="task-item"><span class="task-num">04</span><span class="task-label">엑셀 다운로드</span></div>
       </div>
       <div class="rank-card" id="rank-card">
       <div class="rc-head"><span class="rc-live">LIVE</span><span>네이버 쇼핑 순위</span></div>
@@ -173,8 +173,8 @@
     </div>
 
     <div class="login-col">
-    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="화이트로 보기" title="화이트로 보기">☀️</button>
     <form class="login-box" id="login-form">
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="화이트로 보기" title="화이트로 보기">☀️</button>
       <div class="lb-title">로그인</div>
       <div class="lb-sub">발급받은 계정으로 로그인해 주세요.</div>
       <label class="lb" for="lg-id">아이디</label><input id="lg-id" type="text" placeholder="아이디를 입력하세요" autocomplete="username">
