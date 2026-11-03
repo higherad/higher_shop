@@ -346,12 +346,12 @@
       <ol>
         <li><b>금액 확인</b><span>발급하면 바로 정산 건이 생깁니다<br><em>결제 금액(VAT 포함)</em>을 입금해 주세요</span></li>
         <li><b>입금 완료</b><span>입금이 확인되면<br>상태가 <em>입금 완료</em>로 바뀝니다</span></li>
-        <li><b>취소</b><span>진행중으로 바뀌기 전이면 <em>취소</em> 가능<br>취소한 건은 줄이 그어진 채 남습니다</span></li>
+        <li><b>취소</b><span>진행중으로 바뀌기 전이면 <em>취소</em> 가능<br>취소한 건은 정산에서 빠집니다</span></li>
       </ol>
     </details>
     <div class="summary" id="st-cards"></div>
     <div class="bar">
-      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소</option></select>
+      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option></select>
       <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
     </div>
     <div class="tbl-wrap"><table>
@@ -428,7 +428,7 @@
     <div class="summary" id="dt-cards"></div>
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="dt-user"></select>
-      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소</option></select>
+      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option></select>
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
@@ -727,7 +727,7 @@ function renderSettle() {
     ['미입금 (VAT 포함)', Math.round(sum(unpaid) * VAT), '#b45309'],
   ].map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   const n = unpaid.length; $('nav-unpaid').textContent = n; $('nav-unpaid').style.display = n ? '' : 'none';
-  settleRows = ISSUES.concat(distOwed()).filter(is => (!st || (st === 'revoked' ? !!is.revokedAt : !is.revokedAt && (st === 'paid') === !!is.paidAt))
+  settleRows = ISSUES.concat(distOwed()).filter(is => !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)
     && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
@@ -872,7 +872,7 @@ function renderDSettle() {
     .map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   $('nav-d-unpaid').textContent = unpaid.length; $('nav-d-unpaid').style.display = unpaid.length ? '' : 'none';
   const uid = $('dt-user').value, st = $('dt-st').value;
-  const rows = all.filter(is => (!uid || is.userId === uid) && (!st || (st === 'revoked' ? !!is.revokedAt : !is.revokedAt && (st === 'paid') === !!is.paidAt))).sort((a, b) => b.no - a.no);
+  const rows = all.filter(is => (!uid || is.userId === uid) && !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)).sort((a, b) => b.no - a.no);
   $('dt-rows').innerHTML = rows.map(is => {
     const [l, c] = settleState(is), b = billOf(is), k = `${esc(is.userId)}|${is.no}`;
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}</td><td>${won(is.price)}</td>
