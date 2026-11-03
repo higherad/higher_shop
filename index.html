@@ -22,9 +22,10 @@
     --card-bg:rgba(6,8,6,.94); --card-border:rgba(34,217,138,.32); --card-shadow:0 30px 80px -24px rgba(0,0,0,.7), 0 0 60px -28px rgba(34,217,138,.4); --bar-muted:rgba(169,178,172,.55); }
   #login[data-theme="light"] { --bg:#faf9f5; --ink:#14201a; --mute:#5b6b62; --mute-2:#6b756e; --green-t:#0e8f5e; --line:rgba(20,32,26,.12); --surface:rgba(20,32,26,.035);
     --card-bg:rgba(255,255,255,.9); --card-border:rgba(14,143,94,.3); --card-shadow:0 24px 60px -28px rgba(20,60,30,.25); --bar-muted:rgba(20,32,26,.28); }
-  .theme-toggle { position:absolute; top:22px; right:clamp(24px,4.5vw,60px); z-index:3; font-family:ui-monospace,Consolas,monospace; font-size:.72rem; font-weight:700;
-    border:1px solid var(--line); background:var(--surface); color:var(--mute); padding:7px 13px; border-radius:100px; cursor:pointer; }
-  .theme-toggle:hover { border-color:var(--green); color:var(--green-t); }
+  .login-col { display:flex; flex-direction:column; align-items:flex-end; gap:14px; justify-self:end; width:100%; max-width:420px; }
+  .theme-toggle { width:48px; height:48px; border-radius:50%; border:1px solid var(--line); background:var(--surface); font-size:1.35rem; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:border-color .2s, transform .2s; }
+  .theme-toggle:hover { border-color:var(--green); transform:translateY(-1px); }
   #login::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.55;
     background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size:64px 64px; mask-image:radial-gradient(ellipse 700px 500px at 78% 15%, black, transparent 70%); -webkit-mask-image:radial-gradient(ellipse 700px 500px at 78% 15%, black, transparent 70%); }
@@ -38,10 +39,10 @@
   .hero-h1 { font-weight:800; font-size:clamp(2.6rem,5.2vw,4.8rem); line-height:1.12; margin:18px 0 22px; color:var(--ink); letter-spacing:-.01em; word-break:keep-all; }
   .hero-h1 .hl { color:var(--green-t); }
   .hero-lead { font-size:clamp(1.04rem,1.6vw,1.18rem); line-height:1.8; color:var(--mute); max-width:46ch; margin:0 0 26px; word-break:keep-all; }
-  .login-box { background:var(--card-bg); border:1px solid var(--card-border); border-radius:22px; box-shadow:var(--card-shadow); padding:clamp(28px,3vw,40px); display:flex; flex-direction:column; gap:12px; max-width:420px; width:100%; justify-self:end; }
+  .login-box { background:var(--card-bg); border:1px solid var(--card-border); border-radius:22px; box-shadow:var(--card-shadow); padding:clamp(28px,3vw,40px); display:flex; flex-direction:column; gap:12px; width:100%; }
   .lb-title { font-size:1.5rem; font-weight:800; color:var(--ink); } .lb-sub { font-size:.86rem; color:var(--mute); margin:-4px 0 10px; }
   .login-box label.lb { font-size:.8rem; font-weight:700; color:var(--mute); margin-bottom:-4px; }
-  @media (max-width:960px) { .login-box { justify-self:stretch; max-width:none; order:-1; } }  /* 모바일은 로그인 카드가 맨 위 */
+  @media (max-width:960px) { .login-col { justify-self:stretch; max-width:none; order:-1; } }  /* 모바일은 로그인 카드가 맨 위 */
   .login-box input[type=text], .login-box input[type=password] { width:100%; padding:13px 14px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); font-size:.95rem; outline:none; }
   .login-box input::placeholder { color:var(--mute-2); }
   .login-box input:focus { border-color:var(--green); }
@@ -52,15 +53,15 @@
   .task-item { display:flex; align-items:baseline; gap:10px; }
   .task-num { font-family:ui-monospace,Consolas,monospace; font-size:.78rem; color:var(--green-t); font-weight:700; }
   .task-label { font-size:1.05rem; font-weight:700; color:var(--ink); }
-  .rank-card { width:100%; max-width:520px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:22px; padding:24px 28px 20px; margin-bottom:28px;
+  .rank-card { width:100%; max-width:380px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:22px; padding:20px 24px 16px; margin-top:28px;
     box-shadow:var(--card-shadow); overflow:hidden; }
   .rc-head { display:flex; align-items:center; gap:10px; font-size:.94rem; color:var(--mute); margin-bottom:12px; }
   .rc-live { display:flex; align-items:center; gap:6px; font-family:ui-monospace,Consolas,monospace; font-size:.8rem; color:var(--green-t); font-weight:700; }
   .rc-live::before { content:''; width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px 1px rgba(34,217,138,.7); animation:rc-blink 1.8s ease-in-out infinite; }
   @keyframes rc-blink { 0%,100% { opacity:1; } 50% { opacity:.25; } }
-  .rc-value { font-family:ui-monospace,Consolas,monospace; font-size:1.7rem; font-weight:800; color:var(--mute); margin-bottom:14px; transition:opacity .28s ease; }
-  .rc-value .rc-arrow { color:var(--mute-2); margin:0 2px; } .rc-value strong { color:var(--green-t); font-size:1.9rem; }
-  .rank-card svg { width:100%; height:clamp(100px,10vw,140px); display:block; overflow:visible; }
+  .rc-value { font-family:ui-monospace,Consolas,monospace; font-size:1.4rem; font-weight:800; color:var(--mute); margin-bottom:10px; transition:opacity .28s ease; }
+  .rc-value .rc-arrow { color:var(--mute-2); margin:0 2px; } .rc-value strong { color:var(--green-t); font-size:1.6rem; }
+  .rank-card svg { width:100%; height:auto; aspect-ratio:220/90; display:block; overflow:visible; }
   .rc-bar { transition:height .55s cubic-bezier(.34,1.56,.64,1), y .55s cubic-bezier(.34,1.56,.64,1); }
   .rc-bar:nth-of-type(1) { fill:var(--bar-muted); opacity:.7; } .rc-bar:nth-of-type(2) { fill:var(--bar-muted); }
   .rc-bar:nth-of-type(3) { fill:#22d98a; opacity:.45; } .rc-bar:nth-of-type(4) { fill:#22d98a; opacity:.65; }
@@ -145,17 +146,22 @@
 
 <!-- 로그인 -->
 <div id="login">
-  <button type="button" class="theme-toggle" id="theme-toggle">☀️ 화이트로 보기</button>
   <div class="hero-spot" id="hero-spot"></div>
   <div class="hero-wrap">
     <div>
       <p class="eyebrow">SHOPPING SLOT · 쇼핑슬롯</p>
       <h1 class="hero-h1">매출은, <span class="hl">순위</span>에서<br>시작됩니다.</h1>
       <p class="hero-lead">네이버 쇼핑 순위 슬롯 접수. 슬롯을 발급받고 키워드와 상품 URL만 입력하면 접수가 끝납니다.</p>
+      <div class="hero-tasklist">
+        <div class="task-item"><span class="task-num">01</span><span class="task-label">슬롯 발급</span></div>
+        <div class="task-item"><span class="task-num">02</span><span class="task-label">키워드·URL 세팅</span></div>
+        <div class="task-item"><span class="task-num">03</span><span class="task-label">정산 확인</span></div>
+        <div class="task-item"><span class="task-num">04</span><span class="task-label">엑셀 다운로드</span></div>
+      </div>
       <div class="rank-card" id="rank-card">
       <div class="rc-head"><span class="rc-live">LIVE</span><span>네이버 쇼핑 순위</span></div>
       <div class="rc-value" id="rc-value"><span id="rc-b">47</span>위 <span class="rc-arrow">→</span> <strong><span id="rc-a">1</span>위</strong></div>
-    <svg viewBox="0 0 220 90" preserveAspectRatio="none">
+    <svg viewBox="0 0 220 90">
       <line x1="0" y1="82" x2="220" y2="82" stroke="rgba(244,246,242,.12)" stroke-width="1"/>
       <rect class="rc-bar" x="6" width="24" y="79" height="3" rx="5"/><rect class="rc-bar" x="42" width="24" y="79" height="3" rx="5"/>
       <rect class="rc-bar" x="78" width="24" y="79" height="3" rx="5"/><rect class="rc-bar" x="114" width="24" y="79" height="3" rx="5"/>
@@ -164,14 +170,10 @@
       <text class="rc-lbl" x="126" y="75"></text><text class="rc-lbl" x="162" y="75"></text><text class="rc-lbl rc-top" x="198" y="10"></text>
     </svg>
     </div>
-      <div class="hero-tasklist">
-        <div class="task-item"><span class="task-num">01</span><span class="task-label">슬롯 발급</span></div>
-        <div class="task-item"><span class="task-num">02</span><span class="task-label">키워드·URL 세팅</span></div>
-        <div class="task-item"><span class="task-num">03</span><span class="task-label">정산 확인</span></div>
-        <div class="task-item"><span class="task-num">04</span><span class="task-label">엑셀 다운로드</span></div>
-      </div>
     </div>
 
+    <div class="login-col">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="화이트로 보기" title="화이트로 보기">☀️</button>
     <form class="login-box" id="login-form">
       <div class="lb-title">로그인</div>
       <div class="lb-sub">발급받은 계정으로 로그인해 주세요.</div>
@@ -180,6 +182,7 @@
       <label class="remember"><input type="checkbox" id="lg-save"> 아이디 저장</label>
       <button class="btn-main" id="lg-btn">로그인</button>
     </form>
+    </div>
   </div>
   <script>
   // 로그인 화면 순위 그래프 — 시작 순위 → 목표 순위를 6단계 막대로(마지막 막대가 최종 순위)
@@ -217,7 +220,7 @@
   // 화이트/블랙 전환 — 선택은 브라우저에 기억
   (() => {
     const box = document.getElementById('login'), btn = document.getElementById('theme-toggle');
-    const apply = t => { box.toggleAttribute('data-theme', false); if (t === 'light') box.setAttribute('data-theme', 'light'); btn.textContent = t === 'light' ? '🌙 블랙으로 보기' : '☀️ 화이트로 보기'; };
+    const apply = t => { box.toggleAttribute('data-theme', false); if (t === 'light') box.setAttribute('data-theme', 'light'); const label = t === 'light' ? '블랙으로 보기' : '화이트로 보기'; btn.textContent = t === 'light' ? '🌙' : '☀️'; btn.title = label; btn.setAttribute('aria-label', label); };
     try { apply(localStorage.getItem('shop_login_theme')); } catch (e) {}
     btn.onclick = () => { const t = box.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; apply(t); try { localStorage.setItem('shop_login_theme', t); } catch (e) {} };
   })();
