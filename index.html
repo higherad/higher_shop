@@ -99,6 +99,8 @@
   .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
   .bar input[type=text], .bar input[type=date], .bar select { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; outline:none; }
   .bar .grow { flex:1; min-width:220px; }
+  .bar label { display:inline-flex; align-items:center; gap:5px; color:var(--text2); cursor:pointer; }
+  .bar label input { margin:0; }
   .btn { padding:7px 14px; border-radius:7px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600; font-size:12px; color:var(--text); display:inline-flex; align-items:center; gap:5px; }
   .btn svg { width:14px; height:14px; }
   .btn.pri { background:var(--acc); border-color:var(--acc); color:#fff; }
@@ -133,7 +135,7 @@
   .issue-box .f label { display:block; font-size:11px; color:var(--text2); font-weight:600; margin-bottom:5px; }
   .issue-box .f label em { color:var(--danger); font-style:normal; margin-left:4px; }
   .issue-box select, .issue-box input[type=date] { padding:8px 10px; border:1px solid var(--border); border-radius:7px; font-size:13px; }
-  /* 취소·회수된 정산 건: 줄 긋고 흐리게(오른쪽 끝 '취소' 표시는 그대로) */
+  /* 취소된 정산 건: 줄 긋고 흐리게(오른쪽 끝 '취소' 표시는 그대로) */
   tr.void td { text-decoration:line-through; color:var(--muted); } tr.void td.void-keep { text-decoration:none; }
   body:not(.in) aside, body:not(.in) main { display:none; }
   #login.hide { display:none; }
@@ -283,7 +285,7 @@
       <button class="btn" id="settle-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
     <div class="summary" id="st-cards"></div>
     <div class="bar">
-      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소·회수</option></select>
+      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소</option></select>
       <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
     </div>
     <div class="tbl-wrap"><table>
@@ -294,7 +296,7 @@
 
   <!-- 변경 이력 -->
   <section class="page" id="p-history">
-    <div class="head"><div><h2>변경 이력</h2><p>슬롯 발급·회수·정보 수정 내역입니다.</p></div></div>
+    <div class="head"><div><h2>변경 이력</h2><p>슬롯 발급·취소·정보 수정 내역입니다.</p></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>일시</th><th>구분</th><th>대상</th><th>내용</th></tr></thead>
       <tbody id="hist-rows"></tbody>
@@ -303,7 +305,7 @@
 
   <!-- 총판: 하부점 슬롯 발급 -->
   <section class="page" id="p-d-issue">
-    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 슬롯을 발급합니다. 시작 전인 발급 건은 회수할 수 있습니다.</p></div></div>
+    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 슬롯을 발급합니다. 시작 전인 발급 건은 취소할 수 있습니다.</p></div></div>
     <div class="issue-box">
       <div class="f"><label>대상 하부점</label><select id="di-user" style="width:200px"></select></div>
       <div class="f"><label>수량<em>1회 최대 500개</em></label><div class="qty"><button class="btn" data-dq="-1">-</button><input id="di-qty" type="number" value="1"><button class="btn" data-dq="1">+</button><button class="btn" data-dq="10">+10</button><button class="btn" data-dq="100">+100</button></div></div>
@@ -324,7 +326,7 @@
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="ds-user"></select>
       <input class="grow" id="ds-q" type="text" placeholder="키워드, MID 검색">
-      <label><input type="checkbox" id="ds-noend" checked> 만료 제외</label>
+      <label><input type="checkbox" id="ds-noend" checked>만료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>만료일</th><th>상태</th></tr></thead>
@@ -338,7 +340,7 @@
     <div class="summary" id="dt-cards"></div>
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="dt-user"></select>
-      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소·회수</option></select>
+      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소</option></select>
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
@@ -581,7 +583,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
   $('m-edit').classList.remove('show');
   document.querySelectorAll('.cb:checked').forEach(c => c.checked = false); selCount();
   const skip = r.bad.length + (r.locked || []).length;
-  alert(skip ? `${r.changed}개 저장, ${skip}개는 만료·회수됐거나 진행 중이라 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
+  alert(skip ? `${r.changed}개 저장, ${skip}개는 만료·취소됐거나 진행 중이라 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
 });
 
 /* 슬롯 발급 */
@@ -610,9 +612,9 @@ $('i-go').onclick = () => busy($('i-go'), async () => {
 
 /* ── 정산 내역 ── */
 // 취소 = 미입금 + 세팅한 슬롯 없음 + 만료 전(서버도 같은 기준)
-const canCancel = is => !is.revokedAt && !is.paidAt && is.end >= today() && !SLOTS.some(x => x.issueNo === is.no && x.mid);
+const canCancel = is => !is.revokedAt && !is.paidAt && !is.distPaidAt && is.end >= today() && !SLOTS.some(x => x.issueNo === is.no && x.mid);
 function settleState(is) {
-  if (is.revokedAt) return is.revokedRole === 'user' ? ['취소', 'b-empty'] : is.paidAt ? ['환불 대상', 'b-end'] : ['회수', 'b-empty'];
+  if (is.revokedAt) return is.revokedRole === 'user' ? ['취소', 'b-empty'] : is.paidAt ? ['환불 대상', 'b-end'] : ['취소', 'b-empty'];
   return is.paidAt ? ['입금 완료', 'b-run'] : ['미입금', 'b-ext'];
 }
 let settleRows = [];
@@ -633,7 +635,7 @@ function renderSettle() {
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${is.qty}</td><td>${won(is.price)}</td>
       <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td>
       <td>${md(is.start)} ~ ${md(is.end)}</td><td><span class="badge ${c}">${l}</span></td>
-      <td class="void-keep">${!is._sub && canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? '<span style="color:var(--muted);font-weight:600">취소</span>' : '-'}</td></tr>`;
+      <td class="void-keep">${!is._sub && canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
 }
 ['s-st', 's-from', 's-to'].forEach(id => $(id).onchange = renderSettle);
@@ -665,7 +667,7 @@ $('settle-xlsx').onclick = () => saveXlsx('정산내역',
 function renderHistory() {
   const ev = [];
   ISSUES.forEach(is => {
-    const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = is.revokedRole === 'user' ? '취소' : '회수';
+    const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소';
     ev.push([is.at, '<span class="badge b-run">발급</span>', `발급번호 #${is.no}`, `슬롯 ${is.qty}건 발급 / ${span}`]);
     if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge b-end">${cancel}</span>`, `발급번호 #${is.no}`, `슬롯 ${is.qty}건 ${cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
@@ -737,16 +739,16 @@ function renderDIssues() {
   const rows = subIssues().sort((a, b) => b.no - a.no), slots = subSlots();
   $('di-rows').innerHTML = rows.map(is => {
     const set = slots.filter(x => x.userId === is.userId && x.issueNo === is.no && x.mid).length;
-    const st = is.revokedAt ? (is.revokedRole === 'user' ? '하부점 취소' : '회수') : is.end < today() ? '종료' : is.start > today() ? '시작 전' : '진행 중';
+    const st = is.revokedAt ? (is.revokedRole === 'user' ? '하부점 취소' : '취소') : is.end < today() ? '종료' : is.start > today() ? '시작 전' : '진행 중';
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}개</td><td>${is.revokedAt ? '-' : `${set} / ${is.qty}`}</td>
       <td>${md(is.at)}</td><td>${md(is.start)} ~ ${md(is.end)}</td><td>${st}</td>
-      <td class="void-keep">${!is.revokedAt && is.start > today() ? `<button class="btn sm" data-revoke="${esc(is.userId)}|${is.no}" style="color:var(--danger)">회수</button>` : '-'}</td></tr>`;
+      <td class="void-keep">${!is.revokedAt && is.start > today() ? `<button class="btn sm" data-revoke="${esc(is.userId)}|${is.no}" style="color:var(--danger)">취소</button>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="8" style="height:120px;color:var(--muted)">발급 내역이 없습니다.</td></tr>';
 }
 $('di-rows').onclick = e => {
   const btn = e.target.closest('[data-revoke]'); if (!btn) return;
   const [uid, no] = btn.dataset.revoke.split('|'), is = subIssues().find(x => x.userId === uid && x.no === +no);
-  if (!confirm(`${subName(uid)} 발급번호 #${no} 슬롯 ${is.qty}건을 회수합니다.`)) return;
+  if (!confirm(`${subName(uid)} 발급번호 #${no} 슬롯 ${is.qty}건을 취소합니다.`)) return;
   busy(btn, () => api('/shop-revoke', { userId: uid, issueNo: +no }));
 };
 
@@ -776,7 +778,7 @@ function renderDSettle() {
     const [l, c] = settleState(is), b = billOf(is), k = `${esc(is.userId)}|${is.no}`;
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}</td><td>${won(is.price)}</td>
       <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td><td><span class="badge ${c}">${l}</span></td>
-      <td class="void-keep">${is.revokedAt ? '<span style="color:var(--muted);font-weight:600">취소</span>' : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
+      <td class="void-keep">${is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
   }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
 }
 ['dt-user', 'dt-st'].forEach(id => $(id).onchange = renderDSettle);
