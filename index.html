@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>쇼핑슬롯</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛍️</text></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  input[type=number] { -moz-appearance:textfield; appearance:textfield; }
+  :root { --bg:#f4f6fb; --side:#111827; --acc:#4f46e5; --acc2:#4338ca; --muted:#94a3b8; --border:#e2e8f0; --text:#1e293b; --text2:#64748b; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Pretendard',sans-serif; background:var(--bg); color:var(--text); font-size:13px; }
+  button, input, select { font-family:inherit; }
+
+  /* 로그인 — 하늘·언덕 일러스트 + 오른쪽 카드 */
+  #login { position:fixed; inset:0; z-index:50; overflow:hidden; min-width:1280px; background:linear-gradient(#7fd3f5 0%,#b9e6fa 45%,#dff3fb 60%); display:flex; align-items:center; justify-content:flex-end; padding:0 6vw; }
+  .cloud { position:absolute; background:#fff; border-radius:60px; opacity:.95; }
+  .cloud::before, .cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
+  .cloud::before { width:55%; height:150%; left:15%; top:-70%; } .cloud::after { width:40%; height:120%; right:12%; top:-45%; }
+  .hill { position:absolute; border-radius:50% 50% 0 0; }
+  .hill.h1 { left:-10%; right:30%; bottom:160px; height:300px; background:#a8dc7a; }
+  .hill.h2 { left:35%; right:-10%; bottom:150px; height:230px; background:#93d264; }
+  .hedge { position:absolute; left:0; right:0; bottom:150px; height:44px; background:radial-gradient(circle at 22px 22px,#5fae2e 21px,transparent 22px) 0 0/44px 44px repeat-x; }
+  .hedge::after { content:''; position:absolute; left:0; right:0; top:22px; bottom:0; background:#5fae2e; }
+  .ground { position:absolute; left:0; right:0; bottom:0; height:152px; background:linear-gradient(#e6c995,#d2ab6c); }
+  .hero { position:absolute; z-index:2; left:6vw; top:130px; width:560px; }
+  .hero-tag { display:inline-block; padding:8px 16px; background:rgba(255,255,255,.85); border-radius:20px; font-size:13px; font-weight:700; color:#3b7d1c; }
+  .hero-title { margin:16px 0 18px; font-size:76px; font-weight:900; letter-spacing:-2px; color:#fff; line-height:1; -webkit-text-stroke:10px #4a9c24; paint-order:stroke fill; text-shadow:0 6px 0 #2f6b13; }
+  .hero-desc { font-size:19px; font-weight:600; color:#3a3a2c; line-height:1.55; margin:0 0 20px; }
+  .pills { display:flex; gap:10px; }
+  .pill-f { display:flex; align-items:center; gap:7px; padding:7px 16px 7px 7px; background:rgba(255,255,255,.9); border-radius:22px; font-weight:700; color:#3a3a2c; font-size:13px; }
+  .pill-f i { width:28px; height:28px; border-radius:50%; background:#eaf7df; display:flex; align-items:center; justify-content:center; font-style:normal; font-size:14px; }
+  .float { position:absolute; z-index:2; background:rgba(255,255,255,.93); border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.08); padding:14px 18px; }
+  .float .t { font-size:11px; font-weight:700; color:#4a9c24; } .float .v { font-size:17px; font-weight:800; color:#2d2d22; margin-top:6px; } .float .s { font-size:11px; color:#666; margin-top:2px; }
+  .mascot { position:absolute; z-index:2; left:calc(6vw + 250px); bottom:120px; text-align:center; }
+  .mascot-tag { display:inline-block; margin-top:4px; padding:5px 14px; background:#3d4a2a; color:#fff; border-radius:14px; font-size:12px; font-weight:700; }
+  .prog { width:240px; height:16px; margin:8px auto 4px; background:#fff; border-radius:8px; padding:3px; } .prog div { height:100%; width:88%; border-radius:5px; background:linear-gradient(90deg,#ff8a3d,#ff6a2b); }
+  .prog-t { font-size:16px; font-weight:900; color:#ff5a1f; -webkit-text-stroke:4px #fff; paint-order:stroke fill; }
+  .rank-card { position:absolute; z-index:2; left:6vw; top:430px; width:300px; background:rgba(255,255,255,.94); border:1px solid rgba(14,143,94,.3); border-radius:18px; padding:20px 22px 16px; box-shadow:0 20px 50px -20px rgba(20,60,30,.35), 0 0 40px -24px rgba(34,217,138,.5); }
+  .rc-head { display:flex; align-items:center; gap:8px; font-size:12px; color:#5b6b62; margin-bottom:10px; }
+  .rc-live { display:flex; align-items:center; gap:5px; font-family:ui-monospace,Consolas,monospace; font-size:11px; font-weight:700; color:#12b872; }
+  .rc-live::before { content:''; width:7px; height:7px; border-radius:50%; background:#22d98a; box-shadow:0 0 8px 1px rgba(34,217,138,.7); animation:rc-blink 1.8s ease-in-out infinite; }
+  @keyframes rc-blink { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+  .rc-value { font-family:ui-monospace,Consolas,monospace; font-size:22px; font-weight:800; color:#5b6b62; margin-bottom:12px; transition:opacity .28s ease; }
+  .rc-value .rc-arrow { color:#9aa59e; } .rc-value strong { color:#12b872; font-size:25px; }
+  .rank-card svg { width:100%; height:110px; display:block; overflow:visible; }
+  .rc-bar { transition:height .55s cubic-bezier(.34,1.56,.64,1), y .55s cubic-bezier(.34,1.56,.64,1); }
+  .rc-bar:nth-of-type(1) { fill:rgba(20,32,26,.28); opacity:.7; } .rc-bar:nth-of-type(2) { fill:rgba(20,32,26,.28); }
+  .rc-bar:nth-of-type(3) { fill:#22d98a; opacity:.45; } .rc-bar:nth-of-type(4) { fill:#22d98a; opacity:.65; }
+  .rc-bar:nth-of-type(5) { fill:#22d98a; opacity:.85; } .rc-bar:nth-of-type(6) { fill:#22d98a; filter:drop-shadow(0 0 7px rgba(34,217,138,.75)); }
+  .rc-lbl { text-anchor:middle; font-family:ui-monospace,Consolas,monospace; font-size:9px; font-weight:700; fill:#12b872; opacity:0; transition:opacity .3s ease; }
+  .rc-lbl:nth-of-type(1), .rc-lbl:nth-of-type(2) { fill:#5b6b62; } .rc-lbl.rc-top { font-size:12px; font-weight:800; }
+  .rc-lbl.on { opacity:1; }
+  @media (prefers-reduced-motion: reduce) { .rc-live::before { animation:none; } }
+  .login-box { position:relative; z-index:3; width:440px; background:#fffdf6; border:6px solid #fff; border-radius:28px; padding:36px 38px 26px; box-shadow:0 20px 50px rgba(60,90,30,.18); }
+  .login-box::before { content:''; position:absolute; top:12px; left:60px; right:60px; height:6px; border-radius:3px; background:linear-gradient(90deg,transparent,#cfe9b4,transparent); }
+  .lb-head { display:flex; align-items:center; gap:16px; margin-bottom:22px; }
+  .lb-logo { width:62px; height:62px; border-radius:16px; background:linear-gradient(#8fd6f7 58%,#7cc74c 58%); display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:0 4px 10px rgba(0,0,0,.12); border:3px solid #fff; }
+  .lb-name { font-size:26px; font-weight:900; color:#3b8a17; } .lb-sub { font-size:10px; letter-spacing:2px; color:#a3895a; font-weight:700; margin-top:4px; }
+  .login-box label { display:block; font-size:12px; font-weight:700; color:#6b5a3a; margin:16px 0 7px; }
+  .login-box input[type=text], .login-box input[type=password] { width:100%; padding:16px 18px; border:2px solid #ecdcb8; border-radius:14px; font-size:15px; outline:none; background:#fff; }
+  .login-box input:focus { border-color:#7cc74c; }
+  .login-box .remember { display:flex; align-items:center; gap:6px; margin:12px 0 0; font-size:12px; color:#8a7a5a; font-weight:500; }
+  .btn-main { width:100%; margin-top:22px; padding:16px; border:none; border-radius:16px; background:linear-gradient(#78c94a,#4fa324); color:#fff; font-weight:800; font-size:17px; cursor:pointer; box-shadow:0 5px 0 #3b7d1c; }
+  .btn-main:active { transform:translateY(3px); box-shadow:0 2px 0 #3b7d1c; }
+  .lb-foot { text-align:center; margin-top:22px; font-size:10px; letter-spacing:2.5px; color:#b9a57c; font-weight:700; }
+
+  /* 레이아웃 */
+  aside { position:fixed; top:0; bottom:0; left:0; width:220px; background:var(--side); color:#fff; display:flex; flex-direction:column; padding:24px 14px; }
+  .brand { font-size:18px; font-weight:900; padding:0 8px 22px; border-bottom:1px solid #1f2937; margin-bottom:16px; }
+  .brand span { color:#818cf8; }
+  .nav { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:var(--muted); cursor:pointer; font-weight:500; margin-bottom:2px; }
+  .nav svg { width:16px; height:16px; }
+  .nav:hover { color:#fff; background:rgba(255,255,255,.06); }
+  .nav.active { color:#fff; background:var(--acc); }
+  .me { margin-top:auto; border-top:1px solid #1f2937; padding:16px 8px 0; }
+  .me-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .avatar { width:34px; height:34px; border-radius:50%; background:var(--acc); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
+  .me-name { font-weight:700; } .me-role { font-size:11px; color:var(--muted); }
+  .side-btn { width:100%; padding:8px; margin-top:6px; border-radius:7px; border:1px solid #374151; background:transparent; color:#cbd5e1; cursor:pointer; font-size:12px; }
+  .side-btn.out { color:#fca5a5; border-color:#7f1d1d; }
+  main { margin-left:220px; padding:30px 34px; }
+  .head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+  .head h2 { margin:0; font-size:21px; font-weight:800; }
+  .head p { margin:4px 0 0; color:var(--text2); font-size:12px; }
+
+  /* 공통 */
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .chip { padding:7px 14px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text2); }
+  .chip.on { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
+  .bar input[type=text], .bar input[type=date], .bar select { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; outline:none; }
+  .bar .grow { flex:1; min-width:220px; }
+  .btn { padding:7px 14px; border-radius:7px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600; font-size:12px; color:var(--text); display:inline-flex; align-items:center; gap:5px; }
+  .btn svg { width:14px; height:14px; }
+  .btn.pri { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .btn.sm { padding:4px 9px; font-size:11px; }
+  .tbl-wrap { background:#fff; border:1px solid var(--border); border-radius:10px; overflow:auto; }
+  table { width:100%; border-collapse:collapse; }
+  thead th { background:#1e293b; color:#fff; padding:11px 10px; font-weight:500; white-space:nowrap; font-size:12px; }
+  tbody td { padding:10px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap; }
+  tbody tr:hover { background:#f8fafc; }
+  td.l { text-align:left; }
+  .mid { color:var(--acc); font-weight:600; text-decoration:none; }
+  .pname { max-width:260px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle; }
+  .empty { color:#cbd5e1; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+  .b-run { background:#ecfdf5; color:#059669; } .b-empty { background:#f1f5f9; color:#64748b; }
+  .b-ext { background:#fffbeb; color:#b45309; } .b-req { background:#eef2ff; color:var(--acc); } .b-end { background:#fef2f2; color:var(--danger); }
+  .foot { display:flex; justify-content:flex-end; align-items:center; gap:12px; padding:10px 14px; color:var(--text2); font-size:12px; }
+  .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+  .card .k { font-size:11px; color:var(--text2); font-weight:600; } .card .v { font-size:24px; font-weight:800; margin-top:6px; }
+
+  /* 모달 */
+  .ov { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:60; }
+  .ov.show { display:flex; }
+  .box { background:#fff; border-radius:14px; padding:24px 26px; width:760px; max-height:85vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+  .box h3 { margin:0 0 4px; font-size:17px; } .box .sub { color:var(--text2); font-size:12px; margin-bottom:16px; }
+  .box table input { width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; }
+  .box .fbtns { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+  .page { display:none; } .page.show { display:block; }
+  body:not(.in) aside, body:not(.in) main { display:none; }
+  #login.hide { display:none; }
+  button:disabled { opacity:.55; cursor:default; }
+  .fgrid { display:grid; grid-template-columns:120px 1fr; gap:12px 14px; align-items:center; }
+  .fgrid label { font-weight:600; color:var(--text2); font-size:12px; } .fgrid label em { display:block; color:var(--danger); font-style:normal; font-size:10px; }
+  .fgrid input[type=date] { padding:8px 10px; border:1px solid var(--border); border-radius:7px; width:180px; }
+  .qty { display:flex; gap:4px; } .qty input { width:70px; text-align:center; border:1px solid var(--border); border-radius:7px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div id="login">
+  <div class="cloud" style="width:130px;height:46px;left:-30px;top:90px"></div>
+  <div class="cloud" style="width:110px;height:36px;left:64%;top:40px"></div>
+  <div class="cloud" style="width:120px;height:40px;left:38%;top:220px"></div>
+  <div class="hill h1"></div><div class="hill h2"></div><div class="hedge"></div><div class="ground"></div>
+
+  <div class="hero">
+    <span class="hero-tag">SHOPPING SLOT · 내 상품 순위 올리기</span>
+    <div class="hero-title">쇼핑슬롯</div>
+    <p class="hero-desc">슬롯에 상품을 담으면 순위가 쑥쑥 올라가요.<br>네이버 쇼핑 순위 관리는 여기서 한 번에.</p>
+    <div class="pills"><span class="pill-f"><i>🛒</i>슬롯 접수</span><span class="pill-f"><i>📈</i>순위 히스토리</span><span class="pill-f"><i>🔗</i>MID 자동입력</span></div>
+  </div>
+  <div class="rank-card" id="rank-card">
+    <div class="rc-head"><span class="rc-live">LIVE</span><span>네이버 쇼핑 순위</span></div>
+    <div class="rc-value" id="rc-value"><span id="rc-b">47</span>위 <span class="rc-arrow">→</span> <strong><span id="rc-a">1</span>위</strong></div>
+    <svg viewBox="0 0 220 90" preserveAspectRatio="none">
+      <line x1="0" y1="82" x2="220" y2="82" stroke="rgba(20,32,26,.12)" stroke-width="1"/>
+      <rect class="rc-bar" x="6" width="24" y="79" height="3" rx="5"/><rect class="rc-bar" x="42" width="24" y="79" height="3" rx="5"/>
+      <rect class="rc-bar" x="78" width="24" y="79" height="3" rx="5"/><rect class="rc-bar" x="114" width="24" y="79" height="3" rx="5"/>
+      <rect class="rc-bar" x="150" width="24" y="79" height="3" rx="5"/><rect class="rc-bar" x="186" width="24" y="79" height="3" rx="5"/>
+      <text class="rc-lbl" x="18" y="75"></text><text class="rc-lbl" x="54" y="75"></text><text class="rc-lbl" x="90" y="75"></text>
+      <text class="rc-lbl" x="126" y="75"></text><text class="rc-lbl" x="162" y="75"></text><text class="rc-lbl rc-top" x="198" y="10"></text>
+    </svg>
+  </div>
+  <script>
+  // 로그인 화면 순위 그래프 — 시작 순위 → 목표 순위를 6단계 막대로(마지막 막대가 최종 순위)
+  (() => {
+    const DATA = [[47, 1], [23, 12], [61, 3], [38, 5], [52, 7], [19, 1], [44, 9]];
+    const bars = [...document.querySelectorAll('#rank-card .rc-bar')], lbls = [...document.querySelectorAll('#rank-card .rc-lbl')];
+    const BASE = 82, MIN_H = 3, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const yFor = r => 16 + Math.min(Math.max((r - 1) / 69, 0), 1) * (BASE - 16);
+    function show([b, a], animate) {
+      document.getElementById('rc-b').textContent = b; document.getElementById('rc-a').textContent = a;
+      const steps = bars.map((_, i) => { const rank = Math.max(1, Math.round(b + (a - b) * Math.pow(i / (bars.length - 1), 3))); return [rank, Math.max(BASE - yFor(rank), MIN_H)]; });
+      const apply = i => { const [rank, h] = steps[i]; bars[i].setAttribute('y', (BASE - h).toFixed(1)); bars[i].setAttribute('height', h.toFixed(1)); lbls[i].textContent = rank + '위'; lbls[i].setAttribute('y', (BASE - h - 6).toFixed(1)); };
+      if (!animate) { bars.forEach((bar, i) => { bar.style.transition = 'none'; apply(i); lbls[i].classList.add('on'); }); return; }
+      bars.forEach((bar, i) => { bar.style.transition = 'none'; bar.setAttribute('y', BASE - MIN_H); bar.setAttribute('height', MIN_H); lbls[i].classList.remove('on'); });
+      bars[0].getBoundingClientRect();
+      bars.forEach((bar, i) => setTimeout(() => { bar.style.transition = ''; apply(i); setTimeout(() => lbls[i].classList.add('on'), 250); }, 70 * i));
+    }
+    show(DATA[0], !reduced);
+    if (reduced) return;
+    let k = 0; const val = document.getElementById('rc-value');
+    setInterval(() => { val.style.opacity = 0; setTimeout(() => { k = (k + 1) % DATA.length; show(DATA[k], true); val.style.opacity = 1; }, 260); }, 4200);
+  })();
+  </script>
+  <div class="float" style="left:calc(6vw + 600px);top:460px"><div class="t">간편 접수</div><div class="v">키워드 + URL</div><div class="s">입력하면 접수 끝</div></div>
+
+  <div class="mascot">
+    <svg width="200" height="210" viewBox="0 0 200 210">
+      <ellipse cx="100" cy="196" rx="92" ry="13" fill="#c9a46a"/>
+      <path d="M70 62 Q70 20 100 20 Q130 20 130 62" fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round"/>
+      <path d="M70 62 Q70 20 100 20 Q130 20 130 62" fill="none" stroke="#4a9c24" stroke-width="7" stroke-linecap="round"/>
+      <rect x="32" y="56" width="136" height="136" rx="24" fill="#fff"/>
+      <rect x="40" y="64" width="120" height="120" rx="18" fill="#ff8a3d"/>
+      <circle cx="78" cy="112" r="7" fill="#3a2a1a"/><circle cx="122" cy="112" r="7" fill="#3a2a1a"/>
+      <circle cx="80" cy="109" r="2.2" fill="#fff"/><circle cx="124" cy="109" r="2.2" fill="#fff"/>
+      <ellipse cx="64" cy="130" rx="9" ry="5" fill="#ff5f6d" opacity=".55"/><ellipse cx="136" cy="130" rx="9" ry="5" fill="#ff5f6d" opacity=".55"/>
+      <path d="M86 132 Q100 146 114 132" fill="none" stroke="#3a2a1a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M152 30 l6 12 13 2 -10 9 3 13 -12 -6 -12 6 3 -13 -10 -9 13 -2z" fill="#ffd23f" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+    <div><span class="mascot-tag">내 상품 · 1위 프로젝트</span></div>
+    <div class="prog"><div></div></div>
+    <div class="prog-t">1위까지 88.2%!</div>
+  </div>
+
+  <form class="login-box" id="login-form">
+    <div class="lb-head"><div class="lb-logo">🛍️</div><div><div class="lb-name">쇼핑슬롯</div><div class="lb-sub">SHOPPING · RANK CONSOLE</div></div></div>
+    <label>아이디</label><input id="lg-id" type="text" placeholder="아이디를 입력하세요" autocomplete="username">
+    <label>비밀번호</label><input id="lg-pw" type="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+    <label class="remember"><input type="checkbox" id="lg-save"> 아이디 저장</label>
+    <button class="btn-main" id="lg-btn">로그인</button>
+    <div class="lb-foot">SHOPPING SLOT · RANK OPERATIONS</div>
+  </form>
+</div>
+
+
+<aside>
+  <div class="brand">SHOPPING <span>SLOT</span></div>
+  <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 슬롯 관리</div>
+  <div class="nav" data-p="settle"><i data-lucide="receipt"></i> 정산 내역 <span id="nav-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
+  <div class="nav" data-p="history"><i data-lucide="history"></i> 변경 이력</div>
+  <div class="me">
+    <div class="me-row"><div class="avatar" id="me-av"></div><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
+    <button class="side-btn" id="pw-open">비밀번호 변경</button>
+    <button class="side-btn out" id="logout">로그아웃</button>
+  </div>
+</aside>
+
+<main>
+  <!-- 내 슬롯 관리 -->
+  <section class="page show" id="p-slots">
+    <div class="head">
+      <div><h2>내 슬롯 관리</h2><p>슬롯을 발급받고, 선택한 슬롯에 순위 키워드와 상품 URL을 세팅합니다.</p></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn pri" id="issue-open"><i data-lucide="plus"></i>슬롯 발급</button>
+        <button class="btn" id="edit-open"><i data-lucide="pencil"></i>일괄 정보 수정 <span id="sel-cnt"></span></button>
+      </div>
+    </div>
+    <div class="chips" id="st-chips"></div>
+    <div class="bar">
+      <input class="grow" id="q" type="text" placeholder="키워드, MID 검색">
+      <span style="color:var(--text2)">시작일</span><input id="d-from" type="date"> ~ <input id="d-to" type="date">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>만료일</th><th>남은 일</th><th>상태</th></tr></thead>
+        <tbody id="slot-rows"><tr><td colspan="9" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
+      </table>
+      <div class="foot"><span id="slot-count"></span></div>
+    </div>
+  </section>
+
+  <!-- 정산 내역 -->
+  <section class="page" id="p-settle">
+    <div class="head"><div><h2>정산 내역</h2><p>슬롯 발급 건별 정산 금액과 입금 상태입니다.</p></div></div>
+    <div class="summary" id="st-cards"></div>
+    <div class="bar">
+      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">회수</option></select>
+      <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th>입금 확인일시</th></tr></thead>
+      <tbody id="settle-rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- 변경 이력 -->
+  <section class="page" id="p-history">
+    <div class="head"><div><h2>변경 이력</h2><p>슬롯 발급·회수·정보 수정 내역입니다.</p></div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>일시</th><th>구분</th><th>대상</th><th>내용</th></tr></thead>
+      <tbody id="hist-rows"></tbody>
+    </table></div>
+  </section>
+</main>
+
+<!-- 일괄 정보 수정 -->
+<div class="ov" id="m-edit"><div class="box" style="width:900px">
+  <h3>일괄 정보 수정 (<span id="ed-n"></span>개)</h3>
+  <div class="sub">네이버 상품 URL(스마트스토어·브랜드스토어·가격비교) 또는 MID를 넣으면 MID를 자동으로 찾습니다. 둘 다 비우면 정보가 지워집니다.</div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th style="width:60px">번호</th><th style="width:70px">시작일</th><th style="width:70px">만료일</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th style="width:150px">검증 (MID)</th></tr></thead>
+    <tbody id="ed-rows"></tbody>
+  </table></div>
+  <div class="fbtns">
+    <button class="btn" style="margin-right:auto" id="ed-clear">입력 초기화</button>
+    <button class="btn" data-close="m-edit">취소</button><button class="btn pri" id="ed-save">수정 사항 적용하기</button>
+  </div>
+</div></div>
+
+<!-- 슬롯 발급 -->
+<div class="ov" id="m-issue"><div class="box" style="width:520px">
+  <h3>슬롯 발급</h3>
+  <div class="sub">발급 즉시 빈 슬롯이 생기고, 금액은 정산 내역에서 확인 후 입금해 주세요.</div>
+  <div class="fgrid">
+    <label>수량 <em>1회 최대 500개</em></label>
+    <div class="qty"><button class="btn" data-q="-1">-</button><input id="iq" type="number" value="1"><button class="btn" data-q="1">+</button><button class="btn" data-q="10">+10</button><button class="btn" data-q="100">+100</button></div>
+    <label>시작일 <em>당일 22시 마감</em></label><input id="i-start" type="date">
+    <label>만료 예정일 <em>7일</em></label><input id="i-end" type="date" disabled>
+    <label>슬롯 단가</label><div id="i-price"></div>
+    <label>결제 금액</label><div><b id="i-amt" style="font-size:18px"></b> <span style="color:var(--text2);font-size:12px" id="i-vat"></span></div>
+  </div>
+  <div class="fbtns"><button class="btn" data-close="m-issue">취소</button><button class="btn pri" id="i-go">발급하기</button></div>
+</div></div>
+
+<!-- 비밀번호 변경 -->
+<div class="ov" id="m-pw"><div class="box" style="width:400px">
+  <h3>비밀번호 변경</h3>
+  <div class="fgrid" style="margin-top:16px">
+    <label>현재 비밀번호</label><input id="pw-old" type="password" autocomplete="current-password" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+    <label>새 비밀번호</label><input id="pw-new" type="password" autocomplete="new-password" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+    <label>새 비밀번호 확인</label><input id="pw-new2" type="password" autocomplete="new-password" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+  </div>
+  <div class="fbtns"><button class="btn" data-close="m-pw">취소</button><button class="btn pri" id="pw-go">변경</button></div>
+</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+import { getAuth, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+// 웹 apiKey는 공개 키(보안은 RTDB 규칙 + 서버)
+const app = initializeApp({
+  apiKey: "AIzaSyAF-Rn7tzIjQeyUDJKnvKTRNccsXUVsIjo",
+  authDomain: "higherad-b9d62.firebaseapp.com",
+  databaseURL: "https://higherad-b9d62-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "higherad-b9d62",
+  appId: "1:938928195180:web:8209b1e02a8caabe643a49",
+});
+const db = getDatabase(app), auth = getAuth(app);
+const API = 'https://higherad-shop-938928195180.asia-northeast3.run.app';
+
+const TERM_DAYS = 7, MAX_QTY = 500, CUTOFF_HOUR = 22, VAT = 1.1;
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const won = n => (n || 0).toLocaleString('ko-KR');
+const pad = n => String(n).padStart(2, '0');
+// 날짜는 한국 시간 기준(마감·시작일 판정은 서버가 다시 함)
+const kstNow = () => new Date(Date.now() + 9 * 3600e3);
+const today = () => kstNow().toISOString().slice(0, 10);
+const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5);
+const minStart = () => kstNow().getUTCHours() >= CUTOFF_HOUR ? addDays(today(), 1) : today();
+const endOf = s => addDays(s, TERM_DAYS - 1);
+const md = s => (s || '').slice(5);
+const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
+function parseMid(v) {
+  v = (v || '').trim();
+  if (/^\d{6,}$/.test(v)) return v;
+  if (!safeUrl(v)) return '';
+  const m = v.match(/(?:products|catalog)\/(\d{6,})/) || v.match(/[?&](?:nvMid|nv_mid)=(\d{6,})/);
+  return m ? m[1] : '';
+}
+const STATE = { run: ['사용 중', 'b-run'], wait: ['시작 전', 'b-req'], empty: ['빈 슬롯', 'b-empty'], end: ['만료', 'b-end'] };
+function slotState(sl) {
+  const t = today();
+  if (sl.end < t) return 'end';
+  if (!sl.mid) return 'empty';
+  if (sl.start > t) return 'wait';
+  return 'run';
+}
+const billOf = is => is.qty * is.price;
+
+async function api(path, data) {
+  const res = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(auth.currentUser ? { Authorization: `Bearer ${await auth.currentUser.getIdToken()}` } : {}) },
+    body: JSON.stringify(data || {}),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok || j.ok === false) throw new Error(j.error || `서버 오류 (${res.status})`);
+  return j;
+}
+async function busy(btn, fn) {
+  btn.disabled = true;
+  try { await fn(); } catch (e) { alert(e.message); } finally { btn.disabled = false; }
+}
+
+let ME = null, USER = {}, ISSUES = [], SLOTS = [], filter = '', editing = [], unsubs = [];
+
+/* ── 로그인 ── */
+$('lg-id').value = localStorage.getItem('shop_saved_id') || '';
+$('lg-save').checked = !!$('lg-id').value;
+$('login-form').onsubmit = e => {
+  e.preventDefault();
+  busy($('lg-btn'), async () => {
+    const id = $('lg-id').value.trim(), pw = $('lg-pw').value;
+    if (!id || !pw) throw new Error('아이디와 비밀번호를 입력해 주세요.');
+    const r = await api('/shop-login', { id, pw });
+    if ($('lg-save').checked) localStorage.setItem('shop_saved_id', id); else localStorage.removeItem('shop_saved_id');
+    await signInWithCustomToken(auth, r.token);
+    $('lg-pw').value = '';
+  });
+};
+$('logout').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  unsubs.forEach(u => u()); unsubs = [];
+  ME = user && user.uid.startsWith('shop_') ? user.uid.slice(5) : null;
+  document.body.classList.toggle('in', !!ME);
+  $('login').classList.toggle('hide', !!ME);
+  if (!ME) { if (user) signOut(auth); return; }
+  const fail = e => { console.error(e); alert('데이터를 불러오지 못했습니다. 다시 로그인해 주세요.'); signOut(auth); };
+  unsubs.push(onValue(ref(db, `shop/users/${ME}`), s => {
+    USER = s.val() || {};
+    if (USER.blocked) { alert('이용이 제한된 계정입니다. 관리자에게 문의해 주세요.'); signOut(auth); return; }
+    $('me-av').textContent = (USER.company || ME).slice(0, 2);
+    $('me-id').textContent = ME;
+    $('me-role').textContent = `${USER.company || ''} · 사용자`;
+  }, fail));
+  unsubs.push(onValue(ref(db, `shop/issues/${ME}`), s => { ISSUES = Object.values(s.val() || {}); render(); }, fail));
+  unsubs.push(onValue(ref(db, `shop/slots/${ME}`), s => { SLOTS = Object.values(s.val() || {}); render(); }, fail));
+});
+
+/* ── 내 슬롯 관리 ── */
+function render() {
+  if (!ME) return;
+  const cnt = k => SLOTS.filter(x => slotState(x) === k).length;
+  $('st-chips').innerHTML = [['', `전체 (${SLOTS.length})`], ...Object.entries(STATE).map(([k, [n]]) => [k, `${n} (${cnt(k)})`])]
+    .map(([k, l]) => `<span class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${l}</span>`).join('');
+  const q = $('q').value.trim(), from = $('d-from').value, to = $('d-to').value;
+  const rows = SLOTS.filter(x => (!filter || slotState(x) === filter) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q))
+    && (!from || x.start >= from) && (!to || x.start <= to)).sort((a, b) => b.no - a.no);
+  const dash = '<span class="empty">미입력</span>';
+  const checked = new Set([...document.querySelectorAll('.cb:checked')].map(c => +c.value));
+  $('slot-rows').innerHTML = rows.map(x => {
+    const st = slotState(x), left = Math.max(0, daysBetween(today(), x.end) + 1);
+    return `<tr><td><input type="checkbox" class="cb" value="${x.no}" ${st === 'end' ? 'disabled' : checked.has(x.no) ? 'checked' : ''}></td><td><b>${x.no}</b></td>
+      <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+      <td class="l"><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
+      <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${st === 'end' ? '-' : left + '일'}</td>
+      <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="9" style="height:160px;color:var(--muted)">슬롯이 없습니다. 오른쪽 위 \'슬롯 발급\'으로 발급받으세요.</td></tr>';
+  $('slot-count').textContent = `총 ${rows.length}개`;
+  selCount(); renderSettle(); renderHistory();
+}
+function selCount() { const n = document.querySelectorAll('.cb:checked').length; $('sel-cnt').textContent = n ? `(${n})` : ''; }
+$('st-chips').onclick = e => { const f = e.target.dataset.f; if (f !== undefined) { filter = f; render(); } };
+['q', 'd-from', 'd-to'].forEach(id => $(id).oninput = render);
+$('cb-all').onclick = e => { document.querySelectorAll('.cb:not(:disabled)').forEach(c => c.checked = e.target.checked); selCount(); };
+$('slot-rows').onchange = selCount;
+
+/* 일괄 정보 수정 */
+$('edit-open').onclick = () => {
+  const nos = new Set([...document.querySelectorAll('.cb:checked')].map(c => +c.value));
+  if (!nos.size) return alert('수정할 슬롯을 선택해 주세요.');
+  editing = SLOTS.filter(x => nos.has(x.no)).sort((a, b) => b.no - a.no);
+  $('ed-n').textContent = editing.length;
+  $('ed-rows').innerHTML = editing.map(x => `<tr><td><b>${x.no}</b></td><td>${md(x.start)}</td><td>${md(x.end)}</td>
+    <td><input class="ed-kw" maxlength="50" value="${esc(x.kw)}" placeholder="키워드"></td>
+    <td><input class="ed-url" maxlength="500" value="${esc(x.url)}" placeholder="상품 URL 또는 MID"></td><td class="l ed-chk"></td></tr>`).join('');
+  document.querySelectorAll('.ed-url').forEach(verify);
+  $('m-edit').classList.add('show');
+};
+function verify(inp) {
+  const cell = inp.closest('tr').querySelector('.ed-chk'), v = inp.value.trim(), mid = parseMid(v);
+  cell.innerHTML = !v ? '<span class="empty">-</span>' : mid ? `<span style="color:#059669;font-weight:700">✔ MID ${mid}</span>` : '<span style="color:var(--danger);font-weight:700">URL 확인 필요</span>';
+}
+$('ed-rows').oninput = e => { if (e.target.classList.contains('ed-url')) verify(e.target); };
+$('ed-clear').onclick = () => document.querySelectorAll('#ed-rows input').forEach(i => { i.value = ''; if (i.classList.contains('ed-url')) verify(i); });
+$('ed-save').onclick = () => busy($('ed-save'), async () => {
+  const items = [...document.querySelectorAll('#ed-rows tr')].map((tr, i) => ({
+    no: editing[i].no, kw: tr.querySelector('.ed-kw').value.trim(), url: tr.querySelector('.ed-url').value.trim() }));
+  for (const it of items) {
+    if (!it.kw && !it.url) continue;
+    if (!it.kw || !it.url) throw new Error(`${it.no}번: 키워드와 상품 URL을 모두 입력해 주세요.`);
+    if (!parseMid(it.url)) throw new Error(`${it.no}번: 네이버 상품 URL 또는 MID를 확인해 주세요.`);
+  }
+  const r = await api('/shop-slots', { items });
+  $('m-edit').classList.remove('show');
+  document.querySelectorAll('.cb:checked').forEach(c => c.checked = false); selCount();
+  alert(r.bad.length ? `${r.changed}개 저장, ${r.bad.length}개는 만료·회수되어 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
+});
+
+/* 슬롯 발급 */
+$('issue-open').onclick = () => {
+  if (!(USER.price > 0)) return alert('슬롯 단가가 설정되지 않았습니다. 관리자에게 문의해 주세요.');
+  $('iq').value = 1; $('i-start').value = minStart();
+  $('i-price').textContent = `${won(USER.price)}원 / 1슬롯 · ${TERM_DAYS}일 (VAT 별도)`;
+  iSync(); $('m-issue').classList.add('show');
+};
+function iSync() {
+  const q = $('iq'); q.value = Math.min(MAX_QTY, Math.max(1, parseInt(q.value) || 1));
+  const st = $('i-start'); if (!st.value || st.value < minStart()) st.value = minStart();
+  $('i-end').value = endOf(st.value);
+  const amt = USER.price * +q.value;
+  $('i-amt').textContent = `${won(amt)}원`; $('i-vat').textContent = `(VAT 포함 ${won(Math.round(amt * VAT))}원)`;
+}
+document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { $('iq').value = (parseInt($('iq').value) || 0) + +b.dataset.q; iSync(); });
+$('iq').onchange = iSync; $('i-start').onchange = iSync;
+$('i-go').onclick = () => busy($('i-go'), async () => {
+  iSync();
+  const qty = +$('iq').value, start = $('i-start').value;
+  if (!confirm(`슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start)}, VAT 포함 ${won(Math.round(USER.price * qty * VAT))}원)`)) return;
+  await api('/shop-issue', { qty, start, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
+  $('m-issue').classList.remove('show'); filter = 'empty'; render();
+});
+
+/* ── 정산 내역 ── */
+function settleState(is) {
+  if (is.revokedAt) return is.paidAt ? ['환불 대상', 'b-end'] : ['회수 (정산 제외)', 'b-empty'];
+  return is.paidAt ? ['입금 완료', 'b-run'] : ['미입금', 'b-ext'];
+}
+function renderSettle() {
+  const st = $('s-st').value, from = $('s-from').value, to = $('s-to').value;
+  const all = ISSUES, live = all.filter(is => !is.revokedAt);
+  const sum = (arr, f) => arr.reduce((a, is) => a + f(is), 0);
+  const unpaid = live.filter(is => !is.paidAt);
+  $('st-cards').innerHTML = [
+    ['정산 금액 (VAT 포함)', Math.round(sum(live, billOf) * VAT), ''],
+    ['입금 완료 (VAT 포함)', Math.round(sum(live.filter(is => is.paidAt), billOf) * VAT), '#059669'],
+    ['미입금 (VAT 포함)', Math.round(sum(unpaid, billOf) * VAT), '#b45309'],
+    ['회수 환불 (VAT 포함)', Math.round(sum(all.filter(is => is.revokedAt && is.paidAt), billOf) * VAT), 'var(--danger)'],
+  ].map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
+  const n = unpaid.length; $('nav-unpaid').textContent = n; $('nav-unpaid').style.display = n ? '' : 'none';
+  const rows = all.filter(is => (!st || (st === 'revoked' ? !!is.revokedAt : !is.revokedAt && (st === 'paid') === !!is.paidAt))
+    && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
+  $('settle-rows').innerHTML = rows.map(is => {
+    const [l, c] = settleState(is), b = billOf(is);
+    return `<tr><td>${md(is.at)}</td><td>#${is.no}</td><td>${is.qty}</td><td style="text-align:right">${won(is.price)}</td>
+      <td style="text-align:right">${won(b)}</td><td style="text-align:right"><b>${won(Math.round(b * VAT))}</b></td>
+      <td>${md(is.start)} ~ ${md(is.end)}</td><td><span class="badge ${c}">${l}</span></td><td>${is.paidAt ? md(is.paidAt) : '-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
+}
+['s-st', 's-from', 's-to'].forEach(id => $(id).onchange = renderSettle);
+
+/* ── 변경 이력 ── */
+function renderHistory() {
+  const ev = [];
+  ISSUES.forEach(is => {
+    ev.push([is.at, '<span class="badge b-run">발급</span>', `발급번호 #${is.no}`, `${is.qty}개 · ${is.start} ~ ${is.end}`]);
+    if (is.revokedAt) ev.push([is.revokedAt, '<span class="badge b-end">회수</span>', `발급번호 #${is.no}`, `${is.qty}개 회수`]);
+    if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
+  });
+  SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-req">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  ev.sort((a, b) => b[0].localeCompare(a[0]));
+  $('hist-rows').innerHTML = ev.map(([at, t, tg, c]) => `<tr><td>${md(at)}</td><td>${t}</td><td>${tg}</td><td class="l">${c}</td></tr>`).join('')
+    || '<tr><td colspan="4" style="height:120px;color:var(--muted)">이력이 없습니다.</td></tr>';
+}
+
+/* ── 비밀번호 변경 ── */
+$('pw-open').onclick = () => { ['pw-old', 'pw-new', 'pw-new2'].forEach(id => $(id).value = ''); $('m-pw').classList.add('show'); };
+$('pw-go').onclick = () => busy($('pw-go'), async () => {
+  if ($('pw-new').value !== $('pw-new2').value) throw new Error('새 비밀번호가 서로 다릅니다.');
+  await api('/shop-password', { old: $('pw-old').value, new: $('pw-new').value });
+  $('m-pw').classList.remove('show'); alert('비밀번호가 변경되었습니다.');
+});
+
+/* ── 공통 ── */
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => $(b.dataset.close).classList.remove('show'));
+document.querySelectorAll('.nav').forEach(n => n.onclick = () => {
+  document.querySelectorAll('.nav').forEach(x => x.classList.toggle('active', x === n));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('show', p.id === 'p-' + n.dataset.p));
+});
+setInterval(render, 60e3);  // 자정이 지나면 상태(시작 전→사용 중→만료) 갱신
+lucide.createIcons();
+</script>
+</body>
+</html>
