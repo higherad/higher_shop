@@ -124,6 +124,8 @@
   .box table input { width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; }
   .box .fbtns { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
   .page { display:none; } .page.show { display:block; }
+  /* 취소·회수된 정산 건: 줄 긋고 흐리게(오른쪽 끝 '취소' 표시는 그대로) */
+  tr.void td { text-decoration:line-through; color:var(--muted); } tr.void td.void-keep { text-decoration:none; }
   body:not(.in) aside, body:not(.in) main { display:none; }
   #login.hide { display:none; }
   button:disabled { opacity:.55; cursor:default; }
@@ -270,7 +272,7 @@
       <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th>취소</th></tr></thead>
+      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th></th></tr></thead>
       <tbody id="settle-rows"></tbody>
     </table></div>
   </section>
@@ -538,10 +540,10 @@ function renderSettle() {
     && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
-    return `<tr><td>${md(is.at)}</td><td>#${is.no}</td><td>${is.qty}</td><td>${won(is.price)}</td>
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}</td><td>${is.qty}</td><td>${won(is.price)}</td>
       <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td>
       <td>${md(is.start)} ~ ${md(is.end)}</td><td><span class="badge ${c}">${l}</span></td>
-      <td>${canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : '-'}</td></tr>`;
+      <td class="void-keep">${canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? '<span style="color:var(--muted);font-weight:600">취소</span>' : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
 }
 ['s-st', 's-from', 's-to'].forEach(id => $(id).onchange = renderSettle);
