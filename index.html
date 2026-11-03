@@ -301,7 +301,7 @@
   <!-- 내 슬롯 관리 -->
   <section class="page show" id="p-slots">
     <div class="head">
-      <div><h2>내 슬롯 관리</h2><p>슬롯을 발급받고, 선택한 슬롯에 순위 키워드와 상품 URL을 세팅합니다.</p></div>
+      <div><h2>내 슬롯 관리</h2><p>슬롯을 발급받은 뒤, 슬롯마다 키워드와 상품 URL을 입력하면 접수가 끝납니다.</p></div>
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="issue-open"><i data-lucide="plus"></i>슬롯 발급</button>
         <button class="btn" id="edit-open"><i data-lucide="pencil"></i>일괄 정보 수정 <span id="sel-cnt"></span></button>
@@ -324,7 +324,7 @@
 
   <!-- 정산 내역 -->
   <section class="page" id="p-settle">
-    <div class="head"><div><h2>정산 내역</h2><p>슬롯 발급 건별 정산 금액과 입금 상태입니다. 세팅 전·입금 전인 건은 취소할 수 있습니다.</p></div>
+    <div class="head"><div><h2>정산 내역</h2><p>발급한 슬롯의 금액과 입금 상태입니다. 입금 전이고 키워드를 아직 입력하지 않은 건은 취소할 수 있습니다.</p></div>
       <button class="btn" id="settle-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
     <div class="summary" id="st-cards"></div>
     <div class="bar">
@@ -339,7 +339,7 @@
 
   <!-- 변경 이력 -->
   <section class="page" id="p-history">
-    <div class="head"><div><h2>변경 이력</h2><p>슬롯 발급·취소·정보 수정 내역입니다.</p></div></div>
+    <div class="head"><div><h2>변경 이력</h2><p>슬롯 발급·취소·수정 기록입니다.</p></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>일시</th><th>구분</th><th>대상</th><th>내용</th></tr></thead>
       <tbody id="hist-rows"></tbody>
@@ -348,7 +348,7 @@
 
   <!-- 총판: 하부점 슬롯 발급 -->
   <section class="page" id="p-d-issue">
-    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 슬롯을 발급합니다. 시작 전인 발급 건은 취소할 수 있습니다.</p></div></div>
+    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 슬롯을 발급합니다. 시작일 전이면 취소할 수 있습니다.</p></div></div>
     <div class="issue-box">
       <div class="f"><label>대상 하부점</label><select id="di-user" style="width:200px"></select></div>
       <div class="f"><label>수량<em>1회 최대 500개</em></label><div class="qty"><button class="btn" data-dq="-1">-</button><input id="di-qty" type="number" value="1"><button class="btn" data-dq="1">+</button><button class="btn" data-dq="10">+10</button><button class="btn" data-dq="100">+100</button></div></div>
@@ -365,7 +365,7 @@
 
   <!-- 총판: 하부점 접수 현황 -->
   <section class="page" id="p-d-slots">
-    <div class="head"><div><h2>하부점 접수 현황</h2><p>하부점이 세팅한 키워드와 상품입니다.</p></div></div>
+    <div class="head"><div><h2>하부점 접수 현황</h2><p>하부점이 입력한 키워드와 상품입니다.</p></div></div>
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="ds-user"></select>
       <input class="grow" id="ds-q" type="text" placeholder="키워드, MID 검색">
@@ -379,7 +379,7 @@
 
   <!-- 총판: 하부점 정산 -->
   <section class="page" id="p-d-settle">
-    <div class="head"><div><h2>하부점 정산</h2><p>하부점이 총판에 입금할 금액입니다(하부점 단가 기준). 입금을 받으면 입금 확인을 눌러 주세요.</p></div></div>
+    <div class="head"><div><h2>하부점 정산</h2><p>하부점에게 받을 금액입니다. 입금을 받으면 '입금 확인'을 눌러 주세요.</p></div></div>
     <div class="summary" id="dt-cards"></div>
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="dt-user"></select>
@@ -393,7 +393,7 @@
 
   <!-- 총판: 하부점 관리 -->
   <section class="page" id="p-d-users">
-    <div class="head"><div><h2>하부점 관리</h2><p>내 하부점 계정을 만들고 단가를 정합니다.</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
+    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 슬롯 단가를 정합니다.</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>슬롯 단가(원)</th><th>보유 슬롯</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="du-rows"></tbody>
