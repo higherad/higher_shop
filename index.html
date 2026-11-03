@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>쇼핑슬롯</title>
+<script>
+  // 로그인했던 브라우저면 세션 복원이 끝날 때까지 로그인 화면을 그리지 않음(새로고침 때 로그인 화면이 깜빡이는 것 방지)
+  try { if (localStorage.getItem('shop_signed_in') === '1') document.documentElement.classList.add('boot'); } catch (e) {}
+  setTimeout(() => document.documentElement.classList.remove('boot'), 5000);  // 복원이 안 끝나면(네트워크 등) 로그인 화면이라도 보이게
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛍️</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -175,7 +180,7 @@
     #m-edit td.ed-hide { display:none; }
     #m-edit input { padding:10px !important; font-size:14px !important; }
   }
-  #login.hide { display:none; }
+  #login.hide, html.boot #login { display:none; }
   button:disabled { opacity:.55; cursor:default; }
   .fgrid { display:grid; grid-template-columns:120px 1fr; gap:12px 14px; align-items:center; }
   .fgrid label { font-weight:600; color:var(--text2); font-size:12px; } .fgrid label em { display:block; color:var(--danger); font-style:normal; font-size:10px; }
@@ -534,6 +539,8 @@ onAuthStateChanged(auth, user => {
   if (distUnsub) { distUnsub(); distUnsub = null; SUBS = []; SUB_ISSUES = {}; SUB_SLOTS = {}; }
   ME = user && user.uid.startsWith('shop_') ? user.uid.slice(5) : null;
   document.body.classList.toggle('in', !!ME);
+  document.documentElement.classList.remove('boot');
+  try { ME ? localStorage.setItem('shop_signed_in', '1') : localStorage.removeItem('shop_signed_in'); } catch (e) {}
   $('login').classList.toggle('hide', !!ME);
   if (!ME) { if (user) signOut(auth); return; }
   const fail = e => { console.error(e); alert('데이터를 불러오지 못했습니다. 다시 로그인해 주세요.'); signOut(auth); };
