@@ -124,6 +124,11 @@
   .box table input { width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; }
   .box .fbtns { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
   .page { display:none; } .page.show { display:block; }
+  .nav-label { font-size:10px; color:var(--muted); letter-spacing:1.5px; padding:16px 12px 6px; }
+  .issue-box { background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:14px; display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; }
+  .issue-box .f label { display:block; font-size:11px; color:var(--text2); font-weight:600; margin-bottom:5px; }
+  .issue-box .f label em { color:var(--danger); font-style:normal; margin-left:4px; }
+  .issue-box select, .issue-box input[type=date] { padding:8px 10px; border:1px solid var(--border); border-radius:7px; font-size:13px; }
   /* 취소·회수된 정산 건: 줄 긋고 흐리게(오른쪽 끝 '취소' 표시는 그대로) */
   tr.void td { text-decoration:line-through; color:var(--muted); } tr.void td.void-keep { text-decoration:none; }
   body:not(.in) aside, body:not(.in) main { display:none; }
@@ -230,6 +235,13 @@
   <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 슬롯 관리</div>
   <div class="nav" data-p="settle"><i data-lucide="receipt"></i> 정산 내역 <span id="nav-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
   <div class="nav" data-p="history"><i data-lucide="history"></i> 변경 이력</div>
+  <div id="dist-nav" style="display:none">
+    <div class="nav-label">총판 관리</div>
+    <div class="nav" data-p="d-issue"><i data-lucide="plus-square"></i> 하부점 슬롯 발급</div>
+    <div class="nav" data-p="d-slots"><i data-lucide="layout-list"></i> 하부점 접수 현황</div>
+    <div class="nav" data-p="d-settle"><i data-lucide="wallet"></i> 하부점 정산 <span id="nav-d-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
+    <div class="nav" data-p="d-users"><i data-lucide="users-round"></i> 하부점 관리</div>
+  </div>
   <div class="me">
     <div class="me-row"><div class="avatar" id="me-av"></div><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
     <button class="side-btn" id="pw-open">비밀번호 변경</button>
@@ -285,7 +297,74 @@
       <tbody id="hist-rows"></tbody>
     </table></div>
   </section>
+
+  <!-- 총판: 하부점 슬롯 발급 -->
+  <section class="page" id="p-d-issue">
+    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 슬롯을 발급합니다. 시작 전인 발급 건은 회수할 수 있습니다.</p></div></div>
+    <div class="issue-box">
+      <div class="f"><label>대상 하부점</label><select id="di-user" style="width:200px"></select></div>
+      <div class="f"><label>수량<em>1회 최대 500개</em></label><div class="qty"><button class="btn" data-dq="-1">-</button><input id="di-qty" type="number" value="1"><button class="btn" data-dq="1">+</button><button class="btn" data-dq="10">+10</button><button class="btn" data-dq="100">+100</button></div></div>
+      <div class="f"><label>시작일<em>당일 22시 마감</em></label><input id="di-start" type="date"></div>
+      <div class="f"><label>만료 예정일<em>7일</em></label><input id="di-end" type="date" disabled></div>
+      <div class="f"><label>하부점 금액<em>VAT 별도</em></label><div id="di-amt" style="padding:8px 0;font-weight:800;font-size:15px">-</div></div>
+      <button class="btn pri" id="di-go" style="padding:9px 18px">슬롯 발급</button>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>발급번호</th><th>하부점</th><th>수량</th><th>세팅 완료</th><th>발급일시</th><th>기간</th><th>상태</th><th>관리</th></tr></thead>
+      <tbody id="di-rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- 총판: 하부점 접수 현황 -->
+  <section class="page" id="p-d-slots">
+    <div class="head"><div><h2>하부점 접수 현황</h2><p>하부점이 세팅한 키워드와 상품입니다.</p></div></div>
+    <div class="bar">
+      <span style="color:var(--text2)">하부점</span><select id="ds-user"></select>
+      <input class="grow" id="ds-q" type="text" placeholder="키워드, MID 검색">
+      <label><input type="checkbox" id="ds-noend" checked> 만료 제외</label>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>만료일</th><th>상태</th></tr></thead>
+      <tbody id="ds-rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- 총판: 하부점 정산 -->
+  <section class="page" id="p-d-settle">
+    <div class="head"><div><h2>하부점 정산</h2><p>하부점이 총판에 입금할 금액입니다(하부점 단가 기준). 입금을 받으면 입금 확인을 눌러 주세요.</p></div></div>
+    <div class="summary" id="dt-cards"></div>
+    <div class="bar">
+      <span style="color:var(--text2)">하부점</span><select id="dt-user"></select>
+      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option><option value="revoked">취소·회수</option></select>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
+      <tbody id="dt-rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- 총판: 하부점 관리 -->
+  <section class="page" id="p-d-users">
+    <div class="head"><div><h2>하부점 관리</h2><p>내 하부점 계정을 만들고 단가를 정합니다.</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>슬롯 단가(원)</th><th>보유 슬롯</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
+      <tbody id="du-rows"></tbody>
+    </table></div>
+  </section>
 </main>
+
+<!-- 하부점 추가/수정 -->
+<div class="ov" id="m-sub"><div class="box" style="width:440px">
+  <h3 id="sub-title">하부점 추가</h3>
+  <div class="fgrid" style="margin-top:16px">
+    <label>업체명 <em>필수</em></label><input id="sub-company" maxlength="30" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+    <label>아이디 <em>필수</em></label><input id="sub-id" maxlength="20" placeholder="영문+숫자 3~20자" autocomplete="off" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+    <label id="sub-pw-l">비밀번호 <em>필수</em></label><input id="sub-pw" maxlength="64" autocomplete="new-password" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+    <label>슬롯 단가 <em>원, VAT 별도</em></label><input id="sub-price" type="number" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px;text-align:center">
+    <label>메모</label><input id="sub-memo" maxlength="200" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
+  </div>
+  <div class="fbtns"><button class="btn" data-close="m-sub">취소</button><button class="btn pri" id="sub-save">저장</button></div>
+</div></div>
 
 <!-- 일괄 정보 수정 -->
 <div class="ov" id="m-edit"><div class="box" style="width:900px">
@@ -327,7 +406,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+import { getDatabase, ref, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 import { getAuth, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
 // 웹 apiKey는 공개 키(보안은 RTDB 규칙 + 서버)
@@ -388,6 +467,8 @@ async function busy(btn, fn) {
 }
 
 let ME = null, USER = {}, ISSUES = [], SLOTS = [], filter = '', editing = [], unsubs = [];
+// 총판 전용: 하부점 목록과 하부점별 발급·슬롯
+let SUBS = [], SUB_ISSUES = {}, SUB_SLOTS = {}, distUnsub = null, subEditId = null;
 
 /* ── 로그인 ── */
 $('lg-id').value = localStorage.getItem('shop_saved_id') || '';
@@ -407,6 +488,7 @@ $('logout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, user => {
   unsubs.forEach(u => u()); unsubs = [];
+  if (distUnsub) { distUnsub(); distUnsub = null; SUBS = []; SUB_ISSUES = {}; SUB_SLOTS = {}; }
   ME = user && user.uid.startsWith('shop_') ? user.uid.slice(5) : null;
   document.body.classList.toggle('in', !!ME);
   $('login').classList.toggle('hide', !!ME);
@@ -417,7 +499,11 @@ onAuthStateChanged(auth, user => {
     if (USER.blocked) { alert('이용이 제한된 계정입니다. 관리자에게 문의해 주세요.'); signOut(auth); return; }
     $('me-av').textContent = (USER.company || ME).slice(0, 2);
     $('me-id').textContent = ME;
-    $('me-role').textContent = `${USER.company || ''} · 사용자`;
+    $('me-role').textContent = `${USER.company || ''} · ${USER.role === 'dist' ? '총판' : '사용자'}`;
+    const isDist = USER.role === 'dist';
+    $('dist-nav').style.display = isDist ? '' : 'none';
+    if (isDist && !distUnsub) distUnsub = watchSubs(fail);
+    if (!isDist && distUnsub) { distUnsub(); distUnsub = null; SUBS = []; SUB_ISSUES = {}; SUB_SLOTS = {}; }
   }, fail));
   unsubs.push(onValue(ref(db, `shop/issues/${ME}`), s => { ISSUES = Object.values(s.val() || {}); render(); }, fail));
   unsubs.push(onValue(ref(db, `shop/slots/${ME}`), s => { SLOTS = Object.values(s.val() || {}); render(); }, fail));
@@ -529,7 +615,7 @@ function settleState(is) {
 let settleRows = [];
 function renderSettle() {
   const st = $('s-st').value, from = $('s-from').value, to = $('s-to').value;
-  const live = ISSUES.filter(is => !is.revokedAt), unpaid = live.filter(is => !is.paidAt);
+  const live = ISSUES.concat(distOwed()).filter(is => !is.revokedAt), unpaid = live.filter(is => !is.paidAt);
   const sum = arr => arr.reduce((a, is) => a + billOf(is), 0);
   $('st-cards').innerHTML = [
     ['정산 금액 (VAT 포함)', Math.round(sum(live) * VAT), ''],
@@ -537,14 +623,14 @@ function renderSettle() {
     ['미입금 (VAT 포함)', Math.round(sum(unpaid) * VAT), '#b45309'],
   ].map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   const n = unpaid.length; $('nav-unpaid').textContent = n; $('nav-unpaid').style.display = n ? '' : 'none';
-  settleRows = ISSUES.filter(is => (!st || (st === 'revoked' ? !!is.revokedAt : !is.revokedAt && (st === 'paid') === !!is.paidAt))
+  settleRows = ISSUES.concat(distOwed()).filter(is => (!st || (st === 'revoked' ? !!is.revokedAt : !is.revokedAt && (st === 'paid') === !!is.paidAt))
     && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
-    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}</td><td>${is.qty}</td><td>${won(is.price)}</td>
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${is.qty}</td><td>${won(is.price)}</td>
       <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td>
       <td>${md(is.start)} ~ ${md(is.end)}</td><td><span class="badge ${c}">${l}</span></td>
-      <td class="void-keep">${canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? '<span style="color:var(--muted);font-weight:600">취소</span>' : '-'}</td></tr>`;
+      <td class="void-keep">${!is._sub && canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? '<span style="color:var(--muted);font-weight:600">취소</span>' : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
 }
 ['s-st', 's-from', 's-to'].forEach(id => $(id).onchange = renderSettle);
@@ -595,6 +681,146 @@ $('pw-go').onclick = () => busy($('pw-go'), async () => {
   if ($('pw-new').value !== $('pw-new2').value) throw new Error('새 비밀번호가 서로 다릅니다.');
   await api('/shop-password', { old: $('pw-old').value, new: $('pw-new').value });
   $('m-pw').classList.remove('show'); alert('비밀번호가 변경되었습니다.');
+});
+
+/* ── 총판 ── */
+// 하부점 발급분 = 총판이 하이어에 낼 돈(총판 단가·distPaidAt) — 내 정산 내역에 합침
+const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, paidAt: is.distPaidAt || '' }))) : [];
+const subName = id => (SUBS.find(u => u.id === id) || {}).company || id;
+const subIssues = () => Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, userId: u })));
+const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => ({ ...x, userId: u })));
+function watchSubs(fail) {
+  const per = {};
+  const stopAll = onValue(query(ref(db, 'shop/users'), orderByChild('parent'), equalTo(ME)), s => {
+    SUBS = Object.entries(s.val() || {}).map(([id, u]) => ({ id, ...u })).sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+    const ids = new Set(SUBS.map(u => u.id));
+    for (const id of Object.keys(per)) if (!ids.has(id)) { per[id](); delete per[id]; delete SUB_ISSUES[id]; delete SUB_SLOTS[id]; }
+    for (const id of ids) if (!per[id]) {
+      const a = onValue(ref(db, `shop/issues/${id}`), x => { SUB_ISSUES[id] = Object.values(x.val() || {}); renderDist(); render(); }, fail);
+      const b = onValue(ref(db, `shop/slots/${id}`), x => { SUB_SLOTS[id] = Object.values(x.val() || {}); renderDist(); }, fail);
+      per[id] = () => { a(); b(); };
+    }
+    renderDist();
+  }, fail);
+  return () => { stopAll(); Object.values(per).forEach(f => f()); };
+}
+function renderDist() {
+  if (USER.role !== 'dist') return;
+  const opts = all => (all ? `<option value="">${all}</option>` : '') + SUBS.map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
+  const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.selectedIndex < 0) el.selectedIndex = 0; };
+  keep('di-user', '<option value="">-- 하부점 선택 --</option>' + SUBS.filter(u => !u.blocked).map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join(''));
+  keep('ds-user', opts('전체 하부점')); keep('dt-user', opts('전체 하부점'));
+  diSync(); renderDIssues(); renderDSlots(); renderDSettle(); renderDUsers();
+}
+
+/* 하부점 슬롯 발급 */
+function diSync() {
+  const q = $('di-qty'); q.value = Math.min(MAX_QTY, Math.max(1, parseInt(q.value) || 1));
+  const st = $('di-start'); if (!st.value || st.value < minStart()) st.value = minStart();
+  $('di-end').value = endOf(st.value);
+  const u = SUBS.find(x => x.id === $('di-user').value);
+  $('di-amt').textContent = u ? `${won(u.price * +q.value)}원` : '-';
+}
+document.querySelectorAll('[data-dq]').forEach(b => b.onclick = () => { $('di-qty').value = (parseInt($('di-qty').value) || 0) + +b.dataset.dq; diSync(); });
+['di-qty', 'di-start', 'di-user'].forEach(id => $(id).onchange = diSync);
+$('di-go').onclick = () => busy($('di-go'), async () => {
+  diSync();
+  const u = SUBS.find(x => x.id === $('di-user').value), qty = +$('di-qty').value, start = $('di-start').value;
+  if (!u) throw new Error('대상 하부점을 선택해 주세요.');
+  if (!confirm(`${u.company}에 슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start)}, 하부점 금액 ${won(u.price * qty)}원 / 총판 정산 ${won(USER.price * qty)}원, VAT 별도)`)) return;
+  await api('/shop-issue', { userId: u.id, qty, start, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
+});
+function renderDIssues() {
+  const rows = subIssues().sort((a, b) => b.no - a.no), slots = subSlots();
+  $('di-rows').innerHTML = rows.map(is => {
+    const set = slots.filter(x => x.userId === is.userId && x.issueNo === is.no && x.mid).length;
+    const st = is.revokedAt ? (is.revokedRole === 'user' ? '하부점 취소' : '회수') : is.end < today() ? '종료' : is.start > today() ? '시작 전' : '진행 중';
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}개</td><td>${is.revokedAt ? '-' : `${set} / ${is.qty}`}</td>
+      <td>${md(is.at)}</td><td>${md(is.start)} ~ ${md(is.end)}</td><td>${st}</td>
+      <td class="void-keep">${!is.revokedAt && is.start > today() ? `<button class="btn sm" data-revoke="${esc(is.userId)}|${is.no}" style="color:var(--danger)">회수</button>` : '-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="8" style="height:120px;color:var(--muted)">발급 내역이 없습니다.</td></tr>';
+}
+$('di-rows').onclick = e => {
+  const btn = e.target.closest('[data-revoke]'); if (!btn) return;
+  const [uid, no] = btn.dataset.revoke.split('|'), is = subIssues().find(x => x.userId === uid && x.no === +no);
+  if (!confirm(`${subName(uid)} 발급번호 #${no} 슬롯 ${is.qty}건을 회수합니다.`)) return;
+  busy(btn, () => api('/shop-revoke', { userId: uid, issueNo: +no }));
+};
+
+/* 하부점 접수 현황 */
+function renderDSlots() {
+  const uid = $('ds-user').value, q = $('ds-q').value.trim(), noEnd = $('ds-noend').checked, dash = '<span class="empty">미세팅</span>';
+  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && slotState(x) === 'end')).sort((a, b) => b.no - a.no);
+  $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
+    const st = slotState(x);
+    return `<tr><td><b>${x.no}</b></td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+      <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
+      <td>${md(x.setAt) || '-'}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">조회된 슬롯이 없습니다.</td></tr>';
+}
+['ds-user', 'ds-q', 'ds-noend'].forEach(id => { $(id).oninput = renderDSlots; $(id).onchange = renderDSlots; });
+
+/* 하부점 정산(하부점 → 총판, 하부점 단가) */
+function renderDSettle() {
+  const all = subIssues(), live = all.filter(is => !is.revokedAt), unpaid = live.filter(is => !is.paidAt);
+  const sum = arr => arr.reduce((a, is) => a + billOf(is), 0);
+  $('dt-cards').innerHTML = [['정산 금액 (VAT 포함)', Math.round(sum(live) * VAT), ''], ['입금 완료 (VAT 포함)', Math.round(sum(live.filter(is => is.paidAt)) * VAT), '#059669'], ['미입금 (VAT 포함)', Math.round(sum(unpaid) * VAT), '#b45309']]
+    .map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
+  $('nav-d-unpaid').textContent = unpaid.length; $('nav-d-unpaid').style.display = unpaid.length ? '' : 'none';
+  const uid = $('dt-user').value, st = $('dt-st').value;
+  const rows = all.filter(is => (!uid || is.userId === uid) && (!st || (st === 'revoked' ? !!is.revokedAt : !is.revokedAt && (st === 'paid') === !!is.paidAt))).sort((a, b) => b.no - a.no);
+  $('dt-rows').innerHTML = rows.map(is => {
+    const [l, c] = settleState(is), b = billOf(is), k = `${esc(is.userId)}|${is.no}`;
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}</td><td>${won(is.price)}</td>
+      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td><td><span class="badge ${c}">${l}</span></td>
+      <td class="void-keep">${is.revokedAt ? '<span style="color:var(--muted);font-weight:600">취소</span>' : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
+  }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
+}
+['dt-user', 'dt-st'].forEach(id => $(id).onchange = renderDSettle);
+$('dt-rows').onclick = e => {
+  const btn = e.target.closest('[data-paid]'); if (!btn) return;
+  const [uid, no, on] = btn.dataset.paid.split('|'), is = subIssues().find(x => x.userId === uid && x.no === +no);
+  if (!confirm(on === '1' ? `${subName(uid)} #${no} ${won(Math.round(billOf(is) * VAT))}원 입금 확인 처리합니다.` : `#${no} 입금 확인을 취소합니다.`)) return;
+  busy(btn, () => api('/shop-paid', { userId: uid, issueNo: +no, paid: on === '1' }));
+};
+
+/* 하부점 관리 */
+function renderDUsers() {
+  const iss = subIssues(), slots = subSlots();
+  $('du-rows').innerHTML = SUBS.map((u, i) => {
+    const own = slots.filter(x => x.userId === u.id && slotState(x) !== 'end').length;
+    const unpaid = iss.filter(x => x.userId === u.id && !x.revokedAt && !x.paidAt).reduce((a, x) => a + billOf(x), 0);
+    return `<tr><td>${i + 1}</td><td>${esc(u.createdAt)}</td><td><b>${esc(u.company)}</b></td><td>${esc(u.id)}</td><td>${won(u.price)}</td><td>${own}</td>
+      <td style="color:${unpaid ? '#b45309' : 'inherit'}">${won(Math.round(unpaid * VAT))}</td><td>${esc(u.memo)}</td>
+      <td><span class="badge ${u.blocked ? 'b-end' : 'b-run'}">${u.blocked ? '차단' : '사용'}</span></td>
+      <td><button class="btn sm" data-sedit="${esc(u.id)}">수정</button> <button class="btn sm" data-sblock="${esc(u.id)}" style="color:${u.blocked ? '#059669' : 'var(--danger)'}">${u.blocked ? '해제' : '차단'}</button></td></tr>`;
+  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">하부점이 없습니다. 오른쪽 위 \'하부점 추가\'로 만드세요.</td></tr>';
+}
+function openSub(id) {
+  subEditId = id || null;
+  const u = SUBS.find(x => x.id === id) || { company: '', id: '', price: '', memo: '' };
+  $('sub-title').textContent = id ? '하부점 정보 수정' : '하부점 추가';
+  $('sub-pw-l').innerHTML = id ? '비밀번호 <em style="color:var(--muted)">바꿀 때만</em>' : '비밀번호 <em>필수</em>';
+  $('sub-company').value = u.company; $('sub-id').value = u.id; $('sub-id').disabled = !!id;
+  $('sub-pw').value = ''; $('sub-price').value = u.price; $('sub-memo').value = u.memo || '';
+  $('m-sub').classList.add('show');
+}
+$('du-add').onclick = () => openSub(null);
+$('du-rows').onclick = e => {
+  const ed = e.target.closest('[data-sedit]'), bl = e.target.closest('[data-sblock]');
+  if (ed) openSub(ed.dataset.sedit);
+  if (bl) {
+    const u = SUBS.find(x => x.id === bl.dataset.sblock);
+    if (!confirm(`${u.company} 계정을 ${u.blocked ? '차단 해제' : '차단'}합니다.`)) return;
+    busy(bl, () => api('/shop-block', { id: u.id, blocked: !u.blocked }));
+  }
+};
+$('sub-save').onclick = () => busy($('sub-save'), async () => {
+  const d = { isNew: !subEditId, id: $('sub-id').value.trim(), company: $('sub-company').value.trim(), pw: $('sub-pw').value,
+    price: parseInt($('sub-price').value), memo: $('sub-memo').value.trim() };
+  if (!d.company || !d.id || !(d.price > 0) || (!subEditId && !d.pw)) throw new Error('필수 항목을 입력해 주세요.');
+  await api('/shop-user', d);
+  $('m-sub').classList.remove('show');
 });
 
 /* ── 공통 ── */
