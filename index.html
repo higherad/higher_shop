@@ -581,7 +581,9 @@ function renderHistory() {
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
   SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-req">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
-  ev.sort((a, b) => b[0].localeCompare(a[0]));
+  // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
+  ev.forEach((e, i) => e.push(i));
+  ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
   $('hist-rows').innerHTML = ev.map(([at, t, tg, c]) => `<tr><td>${md(at)}</td><td>${t}</td><td>${tg}</td><td>${c}</td></tr>`).join('')
     || '<tr><td colspan="4" style="height:120px;color:var(--muted)">이력이 없습니다.</td></tr>';
 }
