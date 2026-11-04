@@ -1,10 +1,10 @@
 """쇼핑 접수 엑셀 → 확장(키워드 추출 · 캠페인 등록) 업로드 → 1 정보 불러오기 → 2 유효키워드 추출 → 3 캠페인 등록.
 
   python run.py --setup                          전용 크롬 처음 띄우기(확장 설치·설정·영업점 선택은 사람이 1회)
-  python run.py --grade 등급명 [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
+  python run.py [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
 
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
-영업점 = 확장 상단에서 골라 둔 영업점 이름을 모든 행에 넣음.
+영업점·등급은 AGENCY·GRADE 고정(확장 상단 영업점도 자동 선택).
 """
 import argparse, csv, glob, os, subprocess, sys, tempfile, time
 import openpyxl
@@ -19,6 +19,7 @@ PORT = 9223
 PROFILE = os.path.join(os.environ['LOCALAPPDATA'], 'shop-ext-chrome')
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
 STEP_TIMEOUT = 60 * 60  # 단계별 최대 대기(초)
+AGENCY, GRADE = '[SR]하이어애드', '스모키'
 HEAD = ['영업점', '등급', '상품URL', '순위키워드', '당일 진행 여부', '일수', '일목표']
 
 
@@ -106,7 +107,7 @@ def save_result(page, src):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('xlsx', nargs='?')
-    ap.add_argument('--grade', help='NS트래픽 등급 이름(확장 등급 칸과 같은 글자)')
+    ap.add_argument('--grade', default=GRADE, help=f'NS트래픽 등급 이름(기본 {GRADE})')
     ap.add_argument('--target', type=int, default=100, help='엑셀 일목표가 빈 행에 넣을 값(기본 100)')
     ap.add_argument('--setup', action='store_true')
     a = ap.parse_args()
@@ -138,9 +139,15 @@ def main():
         page.wait_for_selector('#btn-crawl'); time.sleep(1)
         if bulk(page).get('running'):
             sys.exit('확장에서 이미 작업이 진행 중입니다.')
+        # 확장 상단 영업점 = AGENCY로 맞춤(과금 대상, 확장이 저장값 partnerKeyIdx로 기억)
+        idx = page.evaluate("n => chrome.storage.local.get('partnerKeys').then(s => (s.partnerKeys || []).findIndex(k => k.name === n))", AGENCY)
+        if idx < 0:
+            sys.exit(f'확장 설정에 영업점 {AGENCY} 이 없습니다.')
+        page.evaluate("i => chrome.storage.local.set({ partnerKeyIdx: i })", idx)
+        page.reload(); page.wait_for_selector('#btn-crawl'); time.sleep(1)
         agency = page.inner_text('#agency-current').strip()
-        if agency in ('', '선택해주세요', '영업점 없음'):
-            sys.exit('확장 화면 상단에서 등록할 영업점을 먼저 선택해 주세요.')
+        if agency != AGENCY:
+            sys.exit(f'영업점 선택 실패(화면: {agency})')
         up, n = build_upload(src, agency, a.grade, a.target)
         print(f'영업점 {agency} · 등급 {a.grade} · {n}행 업로드')
         close_alert(page)
