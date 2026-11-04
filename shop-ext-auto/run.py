@@ -1,15 +1,25 @@
 """쇼핑 접수 엑셀 → 확장(키워드 추출 · 캠페인 등록) 업로드 → 1 정보 불러오기 → 2 유효키워드 추출 → 3 캠페인 등록.
 
-  python run.py --setup                          전용 크롬 처음 띄우기(확장 설치·설정·영업점 선택은 사람이 1회)
   python run.py [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
+  python run.py --check  설정 점검·설치만
+
+새 PC는 이 파일만 복사해 실행하면 빠진 것을 설치하거나 안내함: 파이썬 패키지·크롬(자동 설치), 전용 크롬 확장(웹스토어 열고 대기),
+확장 설정(파트너키·프록시 — 안내), 크롤 창 프로그램·브릿지(확장 폴더에서 자동 설치), 크롤 창 구성·네이버 계정 파일(안내).
 
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
 영업점·등급은 어드민 엑셀 값 그대로(영업점 = 총판 회사명, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
 """
-import argparse, csv, glob, json, os, subprocess, sys, time, urllib.request
-import openpyxl
-from playwright.sync_api import sync_playwright
+import argparse, csv, glob, gzip, json, os, shutil, subprocess, sys, time, urllib.request, winreg
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True); sys.stderr.reconfigure(encoding="utf-8")  # 파이프 실행에서도 바로 출력
+try:
+    import openpyxl
+    from playwright.sync_api import sync_playwright
+except ImportError:  # 새 PC — 필요한 파이썬 패키지 설치(크롬은 PC에 깔린 것을 써서 playwright install 불필요)
+    print('[점검] 파이썬 패키지(playwright·openpyxl) 설치 중…')
+    if subprocess.call([sys.executable, '-m', 'pip', 'install', '-q', 'playwright', 'openpyxl']):
+        sys.exit('✖ 패키지 설치 실패 — 인터넷 연결 확인 후 다시 실행하거나 직접 설치: python -m pip install playwright openpyxl')
+    import openpyxl
+    from playwright.sync_api import sync_playwright
 
 EXT_ID = 'kljeaomfnpdlaphobfapgcjkoaaphapo'
 EXT_URL = f'chrome-extension://{EXT_ID}/popup.html?view=full'
@@ -24,10 +34,108 @@ CRAWL_CDP = 'http://127.0.0.1:9333'  # 크롤 창 크롬
 # 크롤 창 번호별 네이버 계정 {"1": ["아이디", "비번"], ...} — 저장소 밖(공개 저장소라 비번 커밋 금지)
 ACCOUNTS_FILE = os.path.join(PROFILE, 'naver_accounts.json')
 LOGIN_TIMEOUT = 10 * 60
+CHROME_INSTALLER = 'https://dl.google.com/chrome/install/latest/chrome_installer.exe'
+# 확장이 쓰는 로컬 프로그램(크롬 native messaging) — 실행파일은 설치된 확장 폴더 안에 gz로 들어 있음
+NATIVE = {'launcher': 'biz.apihub.launcher', 'bridge': 'biz.apihub.bridge'}
 
 
 def start_chrome(url):
     subprocess.Popen([CHROME, f'--remote-debugging-port={PORT}', f'--user-data-dir={PROFILE}', url])
+
+
+def check_chrome():
+    if os.path.exists(CHROME):
+        return
+    print('[점검] 크롬이 설치돼 있지 않아 설치 프로그램을 받습니다…')
+    path = os.path.join(os.environ['TEMP'], 'chrome_installer.exe')
+    urllib.request.urlretrieve(CHROME_INSTALLER, path)
+    subprocess.Popen([path])
+    sys.exit('크롬 설치 창이 열렸습니다. 설치가 끝나면 다시 실행해 주세요.')
+
+
+def wait_extension(page):
+    """전용 크롬에 확장이 없으면 웹스토어를 열고 설치될 때까지 대기."""
+    try:
+        page.goto(EXT_URL); return
+    except Exception:
+        pass
+    print(f'[점검] 전용 크롬에 확장이 없습니다 — 열린 웹스토어 화면에서 「Chrome에 추가」를 눌러 주세요. (최대 10분 대기)')
+    page.goto(STORE_URL)
+    t0 = time.time()
+    while time.time() - t0 < 600:
+        time.sleep(3)
+        if glob.glob(os.path.join(PROFILE, 'Default', 'Extensions', EXT_ID, '*', 'manifest.json')):
+            time.sleep(2)
+            try:
+                page.goto(EXT_URL); print('✔ 확장 설치 확인'); return
+            except Exception:
+                pass
+    sys.exit('✖ 확장 설치가 확인되지 않았습니다. 설치 후 다시 실행해 주세요.')
+
+
+def check_ext_settings(page):
+    s = page.evaluate("chrome.storage.local.get(['partnerKeys', 'proxyCfg'])")
+    miss = [n for n, ok in (('파트너키(영업점)', s.get('partnerKeys')), ('프록시 서버', s.get('proxyCfg'))) if not ok]
+    if miss:
+        sys.exit(f"✖ 확장 설정이 비어 있습니다: {', '.join(miss)}\n"
+                 '  전용 크롬의 확장 화면 ⚙️ 설정에서 입력해 주세요.\n'
+                 '  (평소 쓰는 크롬에 이미 설정돼 있으면: 전용 크롬을 끄고 그 크롬 프로필의 '
+                 f'Local Extension Settings\\{EXT_ID} 폴더를 {PROFILE}\\Default\\Local Extension Settings\\ 에 복사(LOCK 제외))')
+
+
+def install_native():
+    """크롤 창 프로그램(launcher)·브릿지(bridge)가 없으면 확장 폴더의 실행파일로 설치 — 확장 설치 파일(install-win.bat)과 같은 결과."""
+    ext = sorted(glob.glob(os.path.join(PROFILE, 'Default', 'Extensions', EXT_ID, '*')))[-1]
+    me = f'chrome-extension://{EXT_ID}/'
+    for key, name in NATIVE.items():
+        d = os.path.join(os.environ['LOCALAPPDATA'], f'apihub-{key}')
+        exe, js = os.path.join(d, f'apihub-{key}.exe'), os.path.join(d, f'{name}.json')
+        reg = rf'Software\Google\Chrome\NativeMessagingHosts\{name}'
+        try:
+            winreg.CloseKey(winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg)); registered = True
+        except OSError:
+            registered = False
+        origins = json.load(open(js, encoding='utf-8')).get('allowed_origins', []) if os.path.exists(js) else []
+        if os.path.exists(exe) and registered and me in origins:
+            continue
+        print(f'[점검] apihub-{key} 설치 중…')
+        os.makedirs(d, exist_ok=True)
+        if not os.path.exists(exe):
+            with gzip.open(os.path.join(ext, f'apihub-{key}', 'bin', f'apihub-{key}-windows-amd64.exe.gz')) as src, open(exe, 'wb') as dst:
+                shutil.copyfileobj(src, dst)
+        # 다른 확장이 같이 쓰므로 allowed_origins는 병합, BOM 없는 UTF-8(크롬이 BOM 파일을 못 읽음)
+        manifest = {'name': name, 'description': f'apihub {key}', 'path': exe, 'type': 'stdio',
+                    'allowed_origins': [me] + [o for o in origins if o != me]}
+        with open(js, 'w', encoding='utf-8') as f:
+            json.dump(manifest, f, indent=2)
+        k = winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg)
+        winreg.SetValue(k, '', winreg.REG_SZ, js); winreg.CloseKey(k)
+        print(f'✔ apihub-{key} 설치 완료')
+
+
+def check_launcher():
+    """크롤 창 프로그램이 꺼져 있으면 켜고, 크롤 창 구성이 있는지 확인."""
+    try:
+        st = launcher('/status', timeout=5)
+    except Exception:
+        print('[점검] 크롤 창 프로그램 시작…')
+        subprocess.Popen([os.path.join(os.environ['LOCALAPPDATA'], 'apihub-launcher', 'apihub-launcher.exe'), '--serve'],
+                         creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+        for _ in range(20):
+            time.sleep(1)
+            try:
+                st = launcher('/status', timeout=5); break
+            except Exception:
+                pass
+        else:
+            sys.exit('✖ 크롤 창 프로그램(apihub-launcher)이 응답하지 않습니다.')
+    if not st.get('windows'):
+        sys.exit('✖ 크롤 창이 아직 구성되지 않았습니다.\n'
+                 '  전용 크롬 확장 화면 ⚙️ 설정 > 프록시 서버 > 크롤 창(CDP) > 「크롤 창 열기」를 한 번 눌러 주세요.')
+    if not os.path.exists(ACCOUNTS_FILE) and not any(w.get('loggedIn') for w in st['windows']):
+        sys.exit(f'✖ 로그인된 크롤 창이 없고 네이버 계정 파일도 없습니다.\n'
+                 f'  {ACCOUNTS_FILE} 를 만들어 주세요 — 형식: {{"1": ["아이디", "비번"], "2": ["아이디", "비번"]}} (창 번호마다 계정 1개)\n'
+                 '  또는 크롤 창마다 네이버에 직접 로그인해 주세요.')
 
 
 def read_upload(src):
@@ -205,34 +313,40 @@ def save_result(page, src):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('xlsx', nargs='?')
-    ap.add_argument('--setup', action='store_true')
+    ap.add_argument('--check', action='store_true', help='설정 점검·설치만 하고 끝냄')
     a = ap.parse_args()
-    if a.setup:
-        start_chrome(STORE_URL)
-        print('전용 크롬에서: 확장 설치 → 설정(파트너키·프록시) → 확장 화면 상단 영업점 선택. 한 번만 하면 됩니다.')
-        return
-    src = a.xlsx or max(glob.glob(os.path.join(os.environ['USERPROFILE'], 'Downloads', '쇼핑접수_*.xlsx')),
-                        key=os.path.getmtime, default=None)
-    if not src:
-        sys.exit('엑셀 파일이 없습니다. 어드민 접수 현황에서 엑셀 다운로드 후 실행하세요.')
-    print('엑셀:', src)
-    agencies, n = read_upload(src)
-    print(f'{n}행 · 영업점 {", ".join(agencies)}')
+    check_chrome()
 
     with sync_playwright() as p:
-        try:
-            br = p.chromium.connect_over_cdp(f'http://127.0.0.1:{PORT}')
-        except Exception:
-            start_chrome('about:blank'); time.sleep(4)
-            br = p.chromium.connect_over_cdp(f'http://127.0.0.1:{PORT}')
+        br = None
+        for k in range(15):  # 전용 크롬 연결(꺼져 있으면 띄움 — 처음엔 프로필을 만드느라 느림)
+            try:
+                br = p.chromium.connect_over_cdp(f'http://127.0.0.1:{PORT}'); break
+            except Exception:
+                if k == 0:
+                    start_chrome('about:blank')
+                time.sleep(2)
+        if not br:
+            sys.exit('✖ 전용 크롬에 연결하지 못했습니다. 크롬 창을 모두 닫고 다시 실행해 주세요.')
         ctx = br.contexts[0]
         page = next((pg for pg in ctx.pages if pg.url.startswith(f'chrome-extension://{EXT_ID}/popup.html')), None) or ctx.new_page()
         page.on('dialog', lambda d: d.accept())  # '시트 내용 교체' 확인(과금 무관)
-        try:
-            page.goto(EXT_URL)
-        except Exception:
-            sys.exit('전용 크롬에 확장이 설치돼 있지 않습니다. python run.py --setup 으로 설치·설정부터 해 주세요.')
+        wait_extension(page)
         page.wait_for_selector('#btn-crawl'); time.sleep(1)
+        check_ext_settings(page)
+        install_native()
+        check_launcher()
+        print('✔ 설정 점검 완료')
+        if a.check:
+            return
+
+        src = a.xlsx or max(glob.glob(os.path.join(os.environ['USERPROFILE'], 'Downloads', '쇼핑접수_*.xlsx')),
+                            key=os.path.getmtime, default=None)
+        if not src:
+            sys.exit('엑셀 파일이 없습니다. 어드민 접수 현황에서 엑셀 다운로드 후 실행하세요.')
+        print('엑셀:', src)
+        agencies, n = read_upload(src)
+        print(f'{n}행 · 영업점 {", ".join(agencies)}')
         if bulk(page).get('running'):
             sys.exit('확장에서 이미 작업이 진행 중입니다.')
         check_agencies(page, agencies)  # 시작 전에 확인(중간에 멈추지 않게)
