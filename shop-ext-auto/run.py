@@ -9,6 +9,7 @@
 import argparse, csv, glob, os, subprocess, sys, tempfile, time
 import openpyxl
 from playwright.sync_api import sync_playwright
+sys.stdout.reconfigure(encoding="utf-8"); sys.stderr.reconfigure(encoding="utf-8")
 
 EXT_ID = 'kljeaomfnpdlaphobfapgcjkoaaphapo'
 EXT_URL = f'chrome-extension://{EXT_ID}/popup.html?view=full'
