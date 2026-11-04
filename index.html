@@ -129,6 +129,7 @@
   .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
   .b-run { background:#ecfdf5; color:#059669; } .b-empty { background:#f1f5f9; color:#64748b; }
   .b-ext { background:#fffbeb; color:#b45309; } .b-req { background:#eef2ff; color:var(--acc); } .b-end { background:#fef2f2; color:var(--danger); }
+  .st-g { color:#059669; font-weight:600; } .st-n { color:#64748b; font-weight:600; } .st-r { color:var(--danger); font-weight:600; }
   .foot { display:flex; justify-content:flex-end; align-items:center; gap:12px; padding:10px 14px; color:var(--text2); font-size:12px; }
   .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
   .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
@@ -330,7 +331,7 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>만료일</th><th>남은 일</th><th>상태</th><th>수정</th></tr></thead>
+        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>종료일</th><th>남은 일</th><th>상태</th><th>수정</th></tr></thead>
         <tbody id="slot-rows"><tr><td colspan="9" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
@@ -384,7 +385,7 @@
       <div class="f"><label>대상 하부점</label><select id="di-user" style="width:200px"></select></div>
       <div class="f"><label>수량<em>1회 최대 500개</em></label><div class="qty"><button class="btn" data-dq="-1">-</button><input id="di-qty" type="number" value="1"><button class="btn" data-dq="1">+</button><button class="btn" data-dq="10">+10</button><button class="btn" data-dq="100">+100</button></div></div>
       <div class="f"><label>시작일<em>당일 22시 마감</em></label><input id="di-start" type="date"></div>
-      <div class="f"><label>만료 예정일<em>7일</em></label><input id="di-end" type="date" disabled></div>
+      <div class="f"><label>종료 예정일<em>7일</em></label><input id="di-end" type="date" disabled></div>
       <div class="f"><label>하부점 금액<em>VAT 별도</em></label><div id="di-amt" style="padding:8px 0;font-weight:800;font-size:15px">-</div></div>
       <button class="btn pri" id="di-go" style="padding:9px 18px">슬롯 발급</button>
     </div>
@@ -407,10 +408,10 @@
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="ds-user"></select>
       <input class="grow" id="ds-q" type="text" placeholder="키워드, MID 검색">
-      <label><input type="checkbox" id="ds-noend" checked>만료 제외</label>
+      <label><input type="checkbox" id="ds-noend" checked>종료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>만료일</th><th>상태</th></tr></thead>
+      <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>종료일</th><th>상태</th></tr></thead>
       <tbody id="ds-rows"></tbody>
     </table></div>
   </section>
@@ -471,7 +472,7 @@
 <div class="ov" id="m-edit"><div class="box" style="width:900px">
   <h3>일괄 정보 수정 (<span id="ed-n"></span>개)</h3>
   <div class="tbl-wrap"><table>
-    <thead><tr><th style="width:60px">번호</th><th style="width:70px">시작일</th><th style="width:70px">만료일</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th style="width:150px">검증 (MID)</th></tr></thead>
+    <thead><tr><th style="width:60px">번호</th><th style="width:70px">시작일</th><th style="width:70px">종료일</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th style="width:150px">검증 (MID)</th></tr></thead>
     <tbody id="ed-rows"></tbody>
   </table></div>
   <div class="fbtns">
@@ -487,7 +488,7 @@
     <label>수량 <em>1회 최대 500개</em></label>
     <div class="qty"><button class="btn" data-q="-1">-</button><input id="iq" type="number" value="1"><button class="btn" data-q="1">+</button><button class="btn" data-q="10">+10</button><button class="btn" data-q="100">+100</button></div>
     <label>시작일 <em>당일 22시 마감</em></label><input id="i-start" type="date">
-    <label>만료 예정일 <em>7일</em></label><input id="i-end" type="date" disabled>
+    <label>종료 예정일 <em>7일</em></label><input id="i-end" type="date" disabled>
     <label>슬롯 단가</label><div id="i-price"></div>
     <label>결제 금액</label><div><b id="i-amt" style="font-size:18px"></b> <span style="color:var(--text2);font-size:12px" id="i-vat"></span></div>
   </div>
@@ -544,7 +545,7 @@ function parseMid(v) {
   return m ? m[1] : '';
 }
 // 진행중 = 하이어 직원이 접수 현황에서 전환(runAt). 시작일이 지나도 자동으로 바뀌지 않음
-const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-req'], empty: ['빈 슬롯', 'b-empty'], end: ['만료', 'b-end'] };
+const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-req'], empty: ['빈 슬롯', 'b-empty'], end: ['종료', 'b-empty'] };
 function slotState(sl) {
   if (sl.end < today()) return 'end';
   if (!sl.mid) return 'empty';
@@ -681,7 +682,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
   $('m-edit').classList.remove('show');
   document.querySelectorAll('.cb:checked').forEach(c => c.checked = false); selCount();
   const skip = r.bad.length + (r.locked || []).length;
-  alert(skip ? `${r.changed}개 저장, ${skip}개는 만료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
+  alert(skip ? `${r.changed}개 저장, ${skip}개는 종료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
 });
 
 /* 슬롯 발급 */
@@ -709,7 +710,7 @@ $('i-go').onclick = () => busy($('i-go'), async () => {
 });
 
 /* ── 정산 내역 ── */
-// 취소 = 진행중 슬롯 없음 + 만료 전(서버 can_cancel과 같음, 입금·정보 입력 무관)
+// 취소 = 진행중 슬롯 없음 + 종료 전(서버 can_cancel과 같음, 입금·정보 입력 무관)
 const runningIn = (slots, is) => slots.some(x => x.userId === is.userId && x.issueNo === is.no && x.runAt);
 const canCancel = is => !is.revokedAt && is.end >= today() && !SLOTS.some(x => x.issueNo === is.no && x.runAt);
 function settleState(is) {
@@ -754,11 +755,11 @@ function saveXlsx(name, header, rows, widths) {
   XLSX.writeFile(wb, `쇼핑슬롯_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
 $('slot-xlsx').onclick = () => saveXlsx('내슬롯',
-  ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '만료일', '남은 일', '상태'],
+  ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '종료일', '남은 일', '상태'],
   visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, st === 'end' ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
   [8, 18, 14, 50, 12, 12, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
-  ['발급일시', '발급번호', '수량', '단가(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '시작일', '만료일', '상태'],
+  ['발급일시', '발급번호', '수량', '단가(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '시작일', '종료일', '상태'],
   settleRows.map(is => [is.at, is.no, is.qty, is.price, billOf(is), Math.round(billOf(is) * VAT), is.start, is.end, settleState(is)[0]]),
   [18, 10, 8, 10, 18, 18, 12, 12, 12]);
 
@@ -838,7 +839,7 @@ function renderDIssues() {
   const rows = subIssues().sort((a, b) => b.no - a.no), slots = subSlots();
   $('di-rows').innerHTML = rows.map(is => {
     const set = slots.filter(x => x.userId === is.userId && x.issueNo === is.no && x.mid).length;
-    const run = runningIn(slots, is), st = is.revokedAt ? (is.revokedRole === 'user' ? '하부점 취소' : '취소') : is.end < today() ? '종료' : run ? '진행중' : '접수';
+    const run = runningIn(slots, is), st = is.revokedAt ? `<span class="st-r">${is.revokedRole === 'user' ? '하부점 취소' : '취소'}</span>` : is.end < today() ? '<span class="st-n">종료</span>' : run ? '<span class="st-g">진행중</span>' : '접수';
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}개</td><td>${is.revokedAt ? '-' : `${set} / ${is.qty}`}</td>
       <td>${md(is.at)}</td><td>${md(is.start)} ~ ${md(is.end)}</td><td>${st}</td>
       <td class="void-keep">${!is.revokedAt && is.end >= today() && !run ? `<button class="btn sm" data-revoke="${esc(is.userId)}|${is.no}" style="color:var(--danger)">취소</button>` : '-'}</td></tr>`;
@@ -936,7 +937,7 @@ document.querySelectorAll('.nav').forEach(n => n.onclick = () => {
   document.querySelectorAll('.nav').forEach(x => x.classList.toggle('active', x === n));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('show', p.id === 'p-' + n.dataset.p));
 });
-setInterval(render, 60e3);  // 자정이 지나면 만료 상태 갱신
+setInterval(render, 60e3);  // 자정이 지나면 종료 상태 갱신
 lucide.createIcons();
 </script>
 </body>
