@@ -6,7 +6,7 @@
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
 영업점·등급은 어드민 엑셀 값 그대로(영업점 = 총판 회사명, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
 """
-import argparse, csv, glob, json, os, subprocess, sys, tempfile, time, urllib.request
+import argparse, csv, glob, json, os, subprocess, sys, time, urllib.request
 import openpyxl
 from playwright.sync_api import sync_playwright
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True); sys.stderr.reconfigure(encoding="utf-8")  # 파이프 실행에서도 바로 출력
@@ -31,27 +31,31 @@ def start_chrome(url):
 
 
 def read_upload(src):
-    """어드민 엑셀(영업점·등급·상품URL… 확장 양식 그대로) → (업로드할 파일, 영업점 목록, 행 수).
-    영업점 빈 행(총판 없는 광고주)이 하나라도 있으면 확장이 등록 전체를 막아서 그 행은 빼고 올림."""
-    wb = openpyxl.load_workbook(src)
-    ws = wb.active
-    col = {str(c.value or '').split('\n')[0].strip(): c.column for c in ws[1]}
+    """어드민 엑셀(확장 양식 그대로) → (영업점 목록, 행 수). 영업점 빈 행이 있으면 안내하고 중단
+    (확장은 빈 행 하나만 있어도 등록 전체를 막음)."""
+    ws = openpyxl.load_workbook(src, read_only=True).active
+    rows = list(ws.iter_rows(values_only=True))
+    col = {str(h or '').split('\n')[0].strip(): i for i, h in enumerate(rows[0])}
     if '영업점' not in col or '상품URL' not in col:
         sys.exit('엑셀에 영업점·상품URL 열이 없습니다. 어드민 접수 현황에서 다시 다운로드해 주세요.')
-    val = lambda r, k: str(ws.cell(r, col[k]).value or '').strip()
-    rows = [r for r in range(2, ws.max_row + 1) if val(r, '상품URL')]
-    drop = [r for r in rows if not val(r, '영업점')]
-    if not rows or len(drop) == len(rows):
-        sys.exit('영업점이 들어간 행이 없습니다.')
-    agencies = list(dict.fromkeys(val(r, '영업점') for r in rows if r not in drop))
-    if not drop:
-        return src, agencies, len(rows)
-    print(f'  ⚠ 영업점 빈 행 {len(drop)}개(총판 없는 광고주) 제외: ' + ', '.join(val(r, '상품URL') for r in drop))
-    for r in reversed(drop):
-        ws.delete_rows(r)
-    path = os.path.join(tempfile.gettempdir(), 'shop_ext_upload.xlsx')
-    wb.save(path)
-    return path, agencies, len(rows) - len(drop)
+    val = lambda r, k: str(r[col[k]] or '').strip() if col[k] < len(r) else ''
+    data = [(i, r) for i, r in enumerate(rows[1:], 2) if val(r, '상품URL')]
+    if not data:
+        sys.exit('엑셀에 상품URL이 있는 행이 없습니다.')
+    blank = [f"  {i}행 {val(r, '상품URL')}" for i, r in data if not val(r, '영업점')]
+    if blank:
+        sys.exit(f'✖ 영업점이 빈 행이 {len(blank)}개 있습니다 — 영업점을 등록해 주세요.\n' + '\n'.join(blank)
+                 + '\n  (총판 없는 광고주 슬롯은 총판을 지정하거나, 엑셀 영업점 칸에 확장에 등록된 영업점 이름을 넣어 주세요)')
+    return list(dict.fromkeys(val(r, '영업점') for _, r in data)), len(data)
+
+
+def check_agencies(page, agencies):
+    """엑셀 영업점이 확장 영업점 목록(설정 > 파트너키)에 다 있는지 — 없으면 안내하고 중단."""
+    names = page.evaluate("chrome.storage.local.get('partnerKeys').then(s => (s.partnerKeys || []).map(k => k.name))")
+    miss = [a for a in agencies if a not in names]
+    if miss:
+        sys.exit(f"✖ 확장 영업점 목록에 없는 영업점: {', '.join(miss)} — 확장 설정(파트너키)에 영업점을 등록해 주세요."
+                 f"\n  (지금 목록: {', '.join(names) or '없음'} / 총판 회사명과 영업점 이름이 글자까지 같아야 함)")
 
 
 def select_agency(page, name):
@@ -212,7 +216,7 @@ def main():
     if not src:
         sys.exit('엑셀 파일이 없습니다. 어드민 접수 현황에서 엑셀 다운로드 후 실행하세요.')
     print('엑셀:', src)
-    up, agencies, n = read_upload(src)
+    agencies, n = read_upload(src)
     print(f'{n}행 · 영업점 {", ".join(agencies)}')
 
     with sync_playwright() as p:
@@ -231,10 +235,9 @@ def main():
         page.wait_for_selector('#btn-crawl'); time.sleep(1)
         if bulk(page).get('running'):
             sys.exit('확장에서 이미 작업이 진행 중입니다.')
-        for ag in agencies:  # 시작 전에 전부 확인(중간에 멈추지 않게)
-            select_agency(page, ag)
+        check_agencies(page, agencies)  # 시작 전에 확인(중간에 멈추지 않게)
         close_alert(page)
-        page.set_input_files('#excel-file', up)
+        page.set_input_files('#excel-file', src)
         print('엑셀 업로드')
         time.sleep(3)
         ensure_logins(p)
