@@ -4,7 +4,7 @@
   python run.py [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
 
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
-영업점·등급은 AGENCY·GRADE 고정(확장 상단 영업점도 자동 선택).
+영업점·등급은 어드민 엑셀 값 그대로(영업점 = 총판 회사명, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
 """
 import argparse, csv, glob, json, os, subprocess, sys, tempfile, time, urllib.request
 import openpyxl
@@ -19,39 +19,50 @@ PORT = 9223
 PROFILE = os.path.join(os.environ['LOCALAPPDATA'], 'shop-ext-chrome')
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
 STEP_TIMEOUT = 60 * 60  # 단계별 최대 대기(초)
-AGENCY, GRADE = '[SR]하이어애드', '스모키'
 LAUNCHER = 'http://127.0.0.1:9334'  # apihub-launcher(크롤 창 컨트롤러)
 CRAWL_CDP = 'http://127.0.0.1:9333'  # 크롤 창 크롬
 # 크롤 창 번호별 네이버 계정 {"1": ["아이디", "비번"], ...} — 저장소 밖(공개 저장소라 비번 커밋 금지)
 ACCOUNTS_FILE = os.path.join(PROFILE, 'naver_accounts.json')
 LOGIN_TIMEOUT = 10 * 60
-HEAD = ['영업점', '등급', '상품URL', '순위키워드', '당일 진행 여부', '일수', '일목표']
 
 
 def start_chrome(url):
     subprocess.Popen([CHROME, f'--remote-debugging-port={PORT}', f'--user-data-dir={PROFILE}', url])
 
 
-def build_upload(src, agency, grade, target):
-    """어드민 양식(상품URL·순위키워드·당일 진행 여부·일수·일목표) → 확장 업로드 양식."""
-    ws = openpyxl.load_workbook(src, read_only=True).active
-    rows = list(ws.iter_rows(values_only=True))
-    col = {str(h or '').split('\n')[0].strip(): i for i, h in enumerate(rows[0])}
-    out = []
-    for r in rows[1:]:
-        get = lambda k: r[col[k]] if k in col and col[k] < len(r) and r[col[k]] is not None else ''
-        if not get('상품URL'):
-            continue
-        out.append([agency, grade, get('상품URL'), get('순위키워드'), get('당일 진행 여부') or '익일진행',
-                    get('일수'), get('일목표') or target])
-    if not out:
-        sys.exit('엑셀에 상품URL이 있는 행이 없습니다.')
-    wb = openpyxl.Workbook(); wb.active.append(HEAD)
-    for r in out:
-        wb.active.append(r)
+def read_upload(src):
+    """어드민 엑셀(영업점·등급·상품URL… 확장 양식 그대로) → (업로드할 파일, 영업점 목록, 행 수).
+    영업점 빈 행(총판 없는 광고주)이 하나라도 있으면 확장이 등록 전체를 막아서 그 행은 빼고 올림."""
+    wb = openpyxl.load_workbook(src)
+    ws = wb.active
+    col = {str(c.value or '').split('\n')[0].strip(): c.column for c in ws[1]}
+    if '영업점' not in col or '상품URL' not in col:
+        sys.exit('엑셀에 영업점·상품URL 열이 없습니다. 어드민 접수 현황에서 다시 다운로드해 주세요.')
+    val = lambda r, k: str(ws.cell(r, col[k]).value or '').strip()
+    rows = [r for r in range(2, ws.max_row + 1) if val(r, '상품URL')]
+    drop = [r for r in rows if not val(r, '영업점')]
+    if not rows or len(drop) == len(rows):
+        sys.exit('영업점이 들어간 행이 없습니다.')
+    agencies = list(dict.fromkeys(val(r, '영업점') for r in rows if r not in drop))
+    if not drop:
+        return src, agencies, len(rows)
+    print(f'  ⚠ 영업점 빈 행 {len(drop)}개(총판 없는 광고주) 제외: ' + ', '.join(val(r, '상품URL') for r in drop))
+    for r in reversed(drop):
+        ws.delete_rows(r)
     path = os.path.join(tempfile.gettempdir(), 'shop_ext_upload.xlsx')
     wb.save(path)
-    return path, len(out)
+    return path, agencies, len(rows) - len(drop)
+
+
+def select_agency(page, name):
+    """확장 상단 영업점(과금 대상) 선택 — 확장이 저장값 partnerKeyIdx로 기억, 화면은 새로고침해야 반영."""
+    idx = page.evaluate("n => chrome.storage.local.get('partnerKeys').then(s => (s.partnerKeys || []).findIndex(k => k.name === n))", name)
+    if idx < 0:
+        sys.exit(f'확장 설정에 영업점 {name} 이 없습니다(총판 회사명과 파트너키 이름이 같아야 함).')
+    page.evaluate("i => chrome.storage.local.set({ partnerKeyIdx: i })", idx)
+    page.reload(); page.wait_for_selector('#btn-crawl'); time.sleep(1)
+    if page.inner_text('#agency-current').strip() != name:
+        sys.exit(f'영업점 {name} 선택 실패')
 
 
 def bulk(page):
@@ -72,6 +83,8 @@ def run_step(page, btn, name, human=False):
     print(f'▶ {name} 시작')
     t0 = time.time()
     while not bulk(page).get('running'):  # 시작 대기
+        if page.is_visible('#result-overlay') and not page.is_visible('#result-cancel'):  # 시작 못 한 안내창
+            sys.exit(f"✖ {name} 시작 안 됨: {page.inner_text('#result-body').strip()}")
         if human and page.is_visible('#result-cancel'):
             print('  ⏸ 브라우저 확인창에서 금액 확인 후 「등록하기」를 눌러 주세요.')
             while page.is_visible('#result-cancel'):
@@ -188,21 +201,19 @@ def save_result(page, src):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('xlsx', nargs='?')
-    ap.add_argument('--grade', default=GRADE, help=f'NS트래픽 등급 이름(기본 {GRADE})')
-    ap.add_argument('--target', type=int, default=100, help='엑셀 일목표가 빈 행에 넣을 값(기본 100)')
     ap.add_argument('--setup', action='store_true')
     a = ap.parse_args()
     if a.setup:
         start_chrome(STORE_URL)
         print('전용 크롬에서: 확장 설치 → 설정(파트너키·프록시) → 확장 화면 상단 영업점 선택. 한 번만 하면 됩니다.')
         return
-    if not a.grade or not a.target or a.target < 10:
-        sys.exit('--grade 와 --target(10 이상)을 넣어 주세요.')
     src = a.xlsx or max(glob.glob(os.path.join(os.environ['USERPROFILE'], 'Downloads', '쇼핑접수_*.xlsx')),
                         key=os.path.getmtime, default=None)
     if not src:
         sys.exit('엑셀 파일이 없습니다. 어드민 접수 현황에서 엑셀 다운로드 후 실행하세요.')
     print('엑셀:', src)
+    up, agencies, n = read_upload(src)
+    print(f'{n}행 · 영업점 {", ".join(agencies)}')
 
     with sync_playwright() as p:
         try:
@@ -220,24 +231,18 @@ def main():
         page.wait_for_selector('#btn-crawl'); time.sleep(1)
         if bulk(page).get('running'):
             sys.exit('확장에서 이미 작업이 진행 중입니다.')
-        # 확장 상단 영업점 = AGENCY로 맞춤(과금 대상, 확장이 저장값 partnerKeyIdx로 기억)
-        idx = page.evaluate("n => chrome.storage.local.get('partnerKeys').then(s => (s.partnerKeys || []).findIndex(k => k.name === n))", AGENCY)
-        if idx < 0:
-            sys.exit(f'확장 설정에 영업점 {AGENCY} 이 없습니다.')
-        page.evaluate("i => chrome.storage.local.set({ partnerKeyIdx: i })", idx)
-        page.reload(); page.wait_for_selector('#btn-crawl'); time.sleep(1)
-        agency = page.inner_text('#agency-current').strip()
-        if agency != AGENCY:
-            sys.exit(f'영업점 선택 실패(화면: {agency})')
-        up, n = build_upload(src, agency, a.grade, a.target)
-        print(f'영업점 {agency} · 등급 {a.grade} · {n}행 업로드')
+        for ag in agencies:  # 시작 전에 전부 확인(중간에 멈추지 않게)
+            select_agency(page, ag)
         close_alert(page)
         page.set_input_files('#excel-file', up)
+        print('엑셀 업로드')
         time.sleep(3)
         ensure_logins(p)
         crawl_with_retry(page)
         run_step(page, '#btn-extract', '2. 유효키워드 추출')
-        run_step(page, '#btn-register', '3. 캠페인 등록', human=True)
+        for ag in agencies:  # 확장은 상단 영업점과 같은 행만 등록 → 영업점마다 선택 후 등록(이미 등록된 행은 확장이 건너뜀)
+            select_agency(page, ag)
+            run_step(page, '#btn-register', f'3. 캠페인 등록({ag})', human=True)
         close_alert(page)
         save_result(page, src)
 
