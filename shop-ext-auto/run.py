@@ -1,0 +1,152 @@
+"""쇼핑 접수 엑셀 → 확장(키워드 추출 · 캠페인 등록) 업로드 → 1 정보 불러오기 → 2 유효키워드 추출 → 3 캠페인 등록.
+
+  python run.py --setup                          전용 크롬 처음 띄우기(확장 설치·설정·영업점 선택은 사람이 1회)
+  python run.py --grade 등급명 --target 10 [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
+
+3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
+영업점 = 확장 상단에서 골라 둔 영업점 이름을 모든 행에 넣음.
+"""
+import argparse, csv, glob, os, subprocess, sys, tempfile, time
+import openpyxl
+from playwright.sync_api import sync_playwright
+
+EXT_ID = 'kljeaomfnpdlaphobfapgcjkoaaphapo'
+EXT_URL = f'chrome-extension://{EXT_ID}/popup.html?view=full'
+STORE_URL = f'https://chromewebstore.google.com/detail/{EXT_ID}'
+PORT = 9223
+# 크롬은 기본 사용자 폴더에 원격 조종을 막아서 전용 폴더를 씀
+PROFILE = os.path.join(os.environ['LOCALAPPDATA'], 'shop-ext-chrome')
+CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
+STEP_TIMEOUT = 60 * 60  # 단계별 최대 대기(초)
+HEAD = ['영업점', '등급', '상품URL', '순위키워드', '당일 진행 여부', '일수', '일목표']
+
+
+def start_chrome(url):
+    subprocess.Popen([CHROME, f'--remote-debugging-port={PORT}', f'--user-data-dir={PROFILE}', url])
+
+
+def build_upload(src, agency, grade, target):
+    """어드민 양식(상품URL·순위키워드·당일 진행 여부·일수·일목표) → 확장 업로드 양식."""
+    ws = openpyxl.load_workbook(src, read_only=True).active
+    rows = list(ws.iter_rows(values_only=True))
+    col = {str(h or '').split('\n')[0].strip(): i for i, h in enumerate(rows[0])}
+    out = []
+    for r in rows[1:]:
+        get = lambda k: r[col[k]] if k in col and col[k] < len(r) and r[col[k]] is not None else ''
+        if not get('상품URL'):
+            continue
+        out.append([agency, grade, get('상품URL'), get('순위키워드'), get('당일 진행 여부') or '익일진행',
+                    get('일수'), get('일목표') or target])
+    if not out:
+        sys.exit('엑셀에 상품URL이 있는 행이 없습니다.')
+    wb = openpyxl.Workbook(); wb.active.append(HEAD)
+    for r in out:
+        wb.active.append(r)
+    path = os.path.join(tempfile.gettempdir(), 'shop_ext_upload.xlsx')
+    wb.save(path)
+    return path, len(out)
+
+
+def bulk(page):
+    return page.evaluate("chrome.storage.session.get('bulk').then(o => o.bulk || {})")
+
+
+def close_alert(page):
+    """안내창만 닫음. 취소 버튼이 보이는 확인창(등록 과금 확인)은 절대 누르지 않음."""
+    if page.is_visible('#notice-later'):
+        page.click('#notice-later')
+    if page.is_visible('#result-overlay') and not page.is_visible('#result-cancel'):
+        page.click('#result-ok')
+
+
+def run_step(page, btn, name, human=False):
+    close_alert(page)
+    page.click(btn)
+    print(f'▶ {name} 시작')
+    t0 = time.time()
+    while not bulk(page).get('running'):  # 시작 대기
+        if human and page.is_visible('#result-cancel'):
+            print('  ⏸ 브라우저 확인창에서 금액 확인 후 「등록하기」를 눌러 주세요.')
+            while page.is_visible('#result-cancel'):
+                time.sleep(1)
+            continue
+        if time.time() - t0 > (600 if human else 20):
+            msg = page.inner_text('#result-body') if page.is_visible('#result-overlay') else page.inner_text('#status')
+            sys.exit(f'✖ {name} 시작 안 됨: {msg.strip()}')
+        time.sleep(1)
+    warned = False
+    while (b := bulk(page)).get('running'):
+        if page.is_visible('#busy-challenge') and not warned:
+            print('  ⚠ 네이버 보안확인이 떴습니다 — 브라우저에서 풀어 주세요.'); warned = True
+        p = b.get('progress') or {}
+        print(f"\r  {p.get('done', 0)}/{p.get('total', '?')}", end='', flush=True)
+        if time.time() - t0 > STEP_TIMEOUT:
+            sys.exit(f'\n✖ {name} {STEP_TIMEOUT // 60}분 초과')
+        time.sleep(2)
+    print(f"\n✔ {name} 끝: {b.get('summary', '')}")
+
+
+def save_result(page, src):
+    rows = page.evaluate("""Promise.all([chrome.storage.local.get('gridRows'), chrome.storage.session.get('bulk')])
+      .then(([g, s]) => (g.gridRows || []).map((r, i) => ({ ...r, ...((s.bulk || {}).rows || [])[i] || {} })))""")
+    out = os.path.splitext(src)[0] + '_결과.csv'
+    with open(out, 'w', newline='', encoding='utf-8-sig') as f:
+        w = csv.writer(f)
+        w.writerow(['상품URL', '순위키워드', '유효키워드 개수', '등록상태', '캠페인코드', '실패사유'])
+        for r in rows:
+            if r.get('productUrl'):
+                v = r.get('valid') or ''
+                n = len(v) if isinstance(v, list) else len([x for x in str(v).split(',') if x.strip()])
+                w.writerow([r['productUrl'], r.get('rankKeyword', ''), n, r.get('regStatus') or r.get('regState', ''),
+                            r.get('regCode', ''), r.get('regMsg') or r.get('regReason', '')])
+    print('결과 저장:', out)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('xlsx', nargs='?')
+    ap.add_argument('--grade', help='NS트래픽 등급 이름(확장 등급 칸과 같은 글자)')
+    ap.add_argument('--target', type=int, help='엑셀 일목표가 빈 행에 넣을 값(10 이상)')
+    ap.add_argument('--setup', action='store_true')
+    a = ap.parse_args()
+    if a.setup:
+        start_chrome(STORE_URL)
+        print('전용 크롬에서: 확장 설치 → 설정(파트너키·프록시) → 확장 화면 상단 영업점 선택. 한 번만 하면 됩니다.')
+        return
+    if not a.grade or not a.target or a.target < 10:
+        sys.exit('--grade 와 --target(10 이상)을 넣어 주세요.')
+    src = a.xlsx or max(glob.glob(os.path.join(os.environ['USERPROFILE'], 'Downloads', '쇼핑접수_*.xlsx')),
+                        key=os.path.getmtime, default=None)
+    if not src:
+        sys.exit('엑셀 파일이 없습니다. 어드민 접수 현황에서 엑셀 다운로드 후 실행하세요.')
+    print('엑셀:', src)
+
+    with sync_playwright() as p:
+        try:
+            br = p.chromium.connect_over_cdp(f'http://127.0.0.1:{PORT}')
+        except Exception:
+            start_chrome('about:blank'); time.sleep(4)
+            br = p.chromium.connect_over_cdp(f'http://127.0.0.1:{PORT}')
+        ctx = br.contexts[0]
+        page = next((pg for pg in ctx.pages if pg.url.startswith(f'chrome-extension://{EXT_ID}/popup.html')), None) or ctx.new_page()
+        page.on('dialog', lambda d: d.accept())  # '시트 내용 교체' 확인(과금 무관)
+        page.goto(EXT_URL); page.wait_for_selector('#btn-crawl'); time.sleep(1)
+        if bulk(page).get('running'):
+            sys.exit('확장에서 이미 작업이 진행 중입니다.')
+        agency = page.inner_text('#agency-current').strip()
+        if agency in ('', '선택해주세요', '영업점 없음'):
+            sys.exit('확장 화면 상단에서 등록할 영업점을 먼저 선택해 주세요.')
+        up, n = build_upload(src, agency, a.grade, a.target)
+        print(f'영업점 {agency} · 등급 {a.grade} · {n}행 업로드')
+        close_alert(page)
+        page.set_input_files('#excel-file', up)
+        time.sleep(3)
+        run_step(page, '#btn-crawl', '1. 정보 불러오기')
+        run_step(page, '#btn-extract', '2. 유효키워드 추출')
+        run_step(page, '#btn-register', '3. 캠페인 등록', human=True)
+        close_alert(page)
+        save_result(page, src)
+
+
+if __name__ == '__main__':
+    main()
