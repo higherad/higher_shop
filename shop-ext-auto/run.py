@@ -130,7 +130,11 @@ def main():
         ctx = br.contexts[0]
         page = next((pg for pg in ctx.pages if pg.url.startswith(f'chrome-extension://{EXT_ID}/popup.html')), None) or ctx.new_page()
         page.on('dialog', lambda d: d.accept())  # '시트 내용 교체' 확인(과금 무관)
-        page.goto(EXT_URL); page.wait_for_selector('#btn-crawl'); time.sleep(1)
+        try:
+            page.goto(EXT_URL)
+        except Exception:
+            sys.exit('전용 크롬에 확장이 설치돼 있지 않습니다. python run.py --setup 으로 설치·설정부터 해 주세요.')
+        page.wait_for_selector('#btn-crawl'); time.sleep(1)
         if bulk(page).get('running'):
             sys.exit('확장에서 이미 작업이 진행 중입니다.')
         agency = page.inner_text('#agency-current').strip()
