@@ -1,7 +1,7 @@
 """쇼핑 접수 엑셀 → 확장(키워드 추출 · 캠페인 등록) 업로드 → 1 정보 불러오기 → 2 유효키워드 추출 → 3 캠페인 등록.
 
   python run.py --setup                          전용 크롬 처음 띄우기(확장 설치·설정·영업점 선택은 사람이 1회)
-  python run.py --grade 등급명 --target 10 [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
+  python run.py --grade 등급명 [엑셀]   엑셀 생략 = 다운로드 폴더의 최신 쇼핑접수_*.xlsx
 
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
 영업점 = 확장 상단에서 골라 둔 영업점 이름을 모든 행에 넣음.
@@ -106,7 +106,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('xlsx', nargs='?')
     ap.add_argument('--grade', help='NS트래픽 등급 이름(확장 등급 칸과 같은 글자)')
-    ap.add_argument('--target', type=int, help='엑셀 일목표가 빈 행에 넣을 값(10 이상)')
+    ap.add_argument('--target', type=int, default=100, help='엑셀 일목표가 빈 행에 넣을 값(기본 100)')
     ap.add_argument('--setup', action='store_true')
     a = ap.parse_args()
     if a.setup:
