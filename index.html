@@ -545,7 +545,7 @@ function parseMid(v) {
   return m ? m[1] : '';
 }
 // 진행중 = 하이어 직원이 접수 현황에서 전환(runAt). 시작일이 지나도 자동으로 바뀌지 않음
-const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-req'], empty: ['빈 슬롯', 'b-empty'], end: ['종료', 'b-empty'] };
+const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-req'], empty: ['빈 슬롯', 'b-ext'], end: ['종료', 'b-empty'] };
 function slotState(sl) {
   if (sl.end < today()) return 'end';
   if (!sl.mid) return 'empty';
@@ -714,7 +714,7 @@ $('i-go').onclick = () => busy($('i-go'), async () => {
 const runningIn = (slots, is) => slots.some(x => x.userId === is.userId && x.issueNo === is.no && x.runAt);
 const canCancel = is => !is.revokedAt && is.end >= today() && !SLOTS.some(x => x.issueNo === is.no && x.runAt);
 function settleState(is) {
-  if (is.revokedAt) return ['취소', 'b-empty'];
+  if (is.revokedAt) return ['취소', 'b-end'];
   return is.paidAt ? ['입금 완료', 'b-run'] : ['미입금', 'b-ext'];
 }
 let settleRows = [];
@@ -768,11 +768,11 @@ function renderHistory() {
   const ev = [];
   ISSUES.forEach(is => {
     const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소';
-    ev.push([is.at, '<span class="badge b-run">발급</span>', `발급번호 #${is.no}`, `슬롯 ${is.qty}건 발급 / ${span}`]);
+    ev.push([is.at, '<span class="badge b-req">발급</span>', `발급번호 #${is.no}`, `슬롯 ${is.qty}건 발급 / ${span}`]);
     if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge b-end">${cancel}</span>`, `발급번호 #${is.no}`, `슬롯 ${is.qty}건 ${cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
-  SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-req">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
