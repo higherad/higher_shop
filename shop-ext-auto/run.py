@@ -6,7 +6,7 @@
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
 영업점·등급은 AGENCY·GRADE 고정(확장 상단 영업점도 자동 선택).
 """
-import argparse, csv, glob, os, subprocess, sys, tempfile, time
+import argparse, csv, glob, json, os, subprocess, sys, tempfile, time, urllib.request
 import openpyxl
 from playwright.sync_api import sync_playwright
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True); sys.stderr.reconfigure(encoding="utf-8")  # 파이프 실행에서도 바로 출력
@@ -20,6 +20,11 @@ PROFILE = os.path.join(os.environ['LOCALAPPDATA'], 'shop-ext-chrome')
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
 STEP_TIMEOUT = 60 * 60  # 단계별 최대 대기(초)
 AGENCY, GRADE = '[SR]하이어애드', '스모키'
+LAUNCHER = 'http://127.0.0.1:9334'  # apihub-launcher(크롤 창 컨트롤러)
+CRAWL_CDP = 'http://127.0.0.1:9333'  # 크롤 창 크롬
+# 크롤 창 번호별 네이버 계정 {"1": ["아이디", "비번"], ...} — 저장소 밖(공개 저장소라 비번 커밋 금지)
+ACCOUNTS_FILE = os.path.join(PROFILE, 'naver_accounts.json')
+LOGIN_TIMEOUT = 10 * 60
 HEAD = ['영업점', '등급', '상품URL', '순위키워드', '당일 진행 여부', '일수', '일목표']
 
 
@@ -103,6 +108,53 @@ CLEAR_FAILED = """() => chrome.storage.local.get('gridRows').then(({ gridRows: g
 })"""
 
 
+def launcher(path, body=None, timeout=30):
+    req = urllib.request.Request(LAUNCHER + path, data=None if body is None else json.dumps(body).encode(),
+                                 headers={'content-type': 'application/json'})
+    return json.load(urllib.request.urlopen(req, timeout=timeout))
+
+
+def ensure_logins(p):
+    """계정이 정해진 크롤 창 중 로그아웃된 창만 그 계정으로 로그인(창 1개 = 계정 1개). 보안문자·기기 등록은 사람이 처리할 때까지 대기."""
+    if not os.path.exists(ACCOUNTS_FILE):
+        print(f'(네이버 자동 로그인 건너뜀 — {ACCOUNTS_FILE} 없음)')
+        return
+    acc = json.load(open(ACCOUNTS_FILE, encoding='utf-8'))
+    try:
+        st = launcher('/wake', {}, 90)  # 꺼진 크롬·닫힌 창 다시 열기
+    except Exception as e:
+        sys.exit(f'크롤 창 프로그램(apihub-launcher)이 응답하지 않습니다: {e}')
+    need = [w['n'] for w in st.get('windows', []) if str(w['n']) in acc and not w.get('loggedIn')]
+    if not need:
+        return
+    br = p.chromium.connect_over_cdp(CRAWL_CDP)
+    for n in need:
+        uid, pw = acc[str(n)]
+        launcher('/goto', {'n': n, 'url': 'https://nid.naver.com/nidlogin.login'})
+        launcher('/wait', {'n': n, 'part': 'nidlogin', 'timeoutMs': 15000}, 20)
+        launcher('/eval', {'n': n, 'expr': f'window.__shopN = {n}'})  # 창 번호 표시 → CDP 페이지 찾기
+        page = next((pg for c in br.contexts for pg in c.pages
+                     if 'nidlogin' in pg.url and pg.evaluate('window.__shopN') == n), None)
+        if not page:
+            print(f'  ⚠ {n}번 창 로그인 화면을 찾지 못함 — 직접 로그인해 주세요.')
+            continue
+        page.bring_to_front()
+        page.click('#id'); page.keyboard.type(uid, delay=120)  # 실제 키 입력(값 대입은 네이버가 자동입력으로 봄)
+        page.click('#pw'); page.keyboard.type(pw, delay=120)
+        page.keyboard.press('Enter')
+        print(f'  {n}번 창 {uid} 로그인 시도')
+    t0, warned = time.time(), False
+    while True:
+        left = [w['n'] for w in launcher('/status').get('windows', []) if w['n'] in need and not w.get('loggedIn')]
+        if not left:
+            print('✔ 네이버 로그인 완료'); return
+        if time.time() - t0 > 20 and not warned:
+            print(f'  ⏸ {left}번 창 로그인 대기 — 보안문자·새 기기 등록 화면이면 그 창에서 직접 처리해 주세요.'); warned = True
+        if time.time() - t0 > LOGIN_TIMEOUT:
+            sys.exit(f'✖ {left}번 창 로그인 {LOGIN_TIMEOUT // 60}분 초과')
+        time.sleep(3)
+
+
 def crawl_with_retry(page):
     run_step(page, '#btn-crawl', '1. 정보 불러오기')
     for k in range(CRAWL_RETRY):
@@ -182,6 +234,7 @@ def main():
         close_alert(page)
         page.set_input_files('#excel-file', up)
         time.sleep(3)
+        ensure_logins(p)
         crawl_with_retry(page)
         run_step(page, '#btn-extract', '2. 유효키워드 추출')
         run_step(page, '#btn-register', '3. 캠페인 등록', human=True)
