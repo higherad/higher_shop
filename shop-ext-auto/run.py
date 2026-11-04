@@ -88,6 +88,35 @@ def run_step(page, btn, name, human=False):
     print(f"\n✔ {name} 끝: {b.get('summary', '')}")
 
 
+CRAWL_RETRY = 3  # 정보 불러오기 실패 행 재시도 횟수
+# 정보 불러오기 실패(오류·다시 불러오기 필요) 행의 MID~옵션키워드를 비움 — 확장은 빈 칸만 다시 불러옴.
+#   _crawlSeq·_optionKwSeq는 남겨야 옛 실패 결과가 다시 편입되지 않음
+CLEAR_FAILED = """() => chrome.storage.local.get('gridRows').then(({ gridRows: g = [] }) => {
+  let n = 0;
+  g.forEach(r => {
+    if (!String(r.productUrl || '').trim()) return;
+    if (!(r._crawlStatus || r._optionKwRetry || !String(r.mid || '').trim() || !String(r.productName || '').trim())) return;
+    ['mid', 'productName', 'thumb', 'storeName', 'price', 'hashtag', 'optionKw', '_crawlStatus', '_crawlReason', '_optionKwRetry'].forEach(k => r[k] = '');
+    n++;
+  });
+  return n ? chrome.storage.local.set({ gridRows: g }).then(() => n) : 0;
+})"""
+
+
+def crawl_with_retry(page):
+    run_step(page, '#btn-crawl', '1. 정보 불러오기')
+    for k in range(CRAWL_RETRY):
+        n = page.evaluate(CLEAR_FAILED)
+        if not n:
+            return
+        print(f'↻ 실패 {n}행 비우고 다시 불러오기 ({k + 1}/{CRAWL_RETRY})')
+        page.reload(); page.wait_for_selector('#btn-crawl'); time.sleep(1)  # 확장 화면이 비운 시트를 다시 읽게
+        run_step(page, '#btn-crawl', '1. 정보 불러오기(재시도)')
+    if page.evaluate(CLEAR_FAILED):
+        page.reload()
+        sys.exit(f'✖ {CRAWL_RETRY}번 재시도해도 정보 불러오기 실패한 행이 있습니다.')
+
+
 def save_result(page, src):
     rows = page.evaluate("""Promise.all([chrome.storage.local.get('gridRows'), chrome.storage.session.get('bulk')])
       .then(([g, s]) => (g.gridRows || []).map((r, i) => ({ ...r, ...((s.bulk || {}).rows || [])[i] || {} })))""")
@@ -153,7 +182,7 @@ def main():
         close_alert(page)
         page.set_input_files('#excel-file', up)
         time.sleep(3)
-        run_step(page, '#btn-crawl', '1. 정보 불러오기')
+        crawl_with_retry(page)
         run_step(page, '#btn-extract', '2. 유효키워드 추출')
         run_step(page, '#btn-register', '3. 캠페인 등록', human=True)
         close_alert(page)
