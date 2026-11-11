@@ -294,20 +294,34 @@ def crawl_with_retry(page):
         sys.exit(f'✖ {CRAWL_RETRY}번 재시도해도 정보 불러오기 실패한 행이 있습니다.')
 
 
+def slot_numbers(src):
+    """엑셀의 슬롯번호를 (상품URL, 순위키워드)별 순서대로 — 확장은 모르는 열을 버려서 결과에 다시 붙임."""
+    rows = list(openpyxl.load_workbook(src, read_only=True).active.iter_rows(values_only=True))
+    col = {str(h or '').split('\n')[0].strip(): i for i, h in enumerate(rows[0])}
+    nos = {}
+    if '슬롯번호' in col:
+        for r in rows[1:]:
+            key = (str(r[col['상품URL']] or '').strip(), str(r[col['순위키워드']] or '').strip())
+            nos.setdefault(key, []).append(r[col['슬롯번호']])
+    return nos
+
+
 def save_result(page, src):
     rows = page.evaluate("""Promise.all([chrome.storage.local.get('gridRows'), chrome.storage.session.get('bulk')])
       .then(([g, s]) => (g.gridRows || []).map((r, i) => ({ ...r, ...((s.bulk || {}).rows || [])[i] || {} })))""")
     out = os.path.splitext(src)[0] + '_결과.csv'
+    nos = slot_numbers(src)
     with open(out, 'w', newline='', encoding='utf-8-sig') as f:
         w = csv.writer(f)
-        w.writerow(['상품URL', '순위키워드', '유효키워드 개수', '등록상태', '캠페인코드', '실패사유'])
+        w.writerow(['슬롯번호', 'MID', '상품URL', '순위키워드', '유효키워드 개수', '등록상태', '캠페인코드', '실패사유'])
         for r in rows:
             if r.get('productUrl'):
                 v = r.get('valid') or ''
                 n = len(v) if isinstance(v, list) else len([x for x in str(v).split(',') if x.strip()])
-                w.writerow([r['productUrl'], r.get('rankKeyword', ''), n, r.get('regStatus') or r.get('regState', ''),
+                q = nos.get((r['productUrl'].strip(), str(r.get('rankKeyword', '')).strip())) or ['']
+                w.writerow([q.pop(0), r.get('mid', ''), r['productUrl'], r.get('rankKeyword', ''), n, r.get('regStatus') or r.get('regState', ''),
                             r.get('regCode', ''), r.get('regMsg') or r.get('regReason', '')])
-    print('결과 저장:', out)
+    print('결과 저장:', out, '— 어드민 접수 현황 「Pcode 업로드」로 올려 주세요.')
 
 
 def main():

@@ -313,6 +313,7 @@
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="issue-open"><i data-lucide="plus"></i>슬롯 발급</button>
         <button class="btn" id="edit-open"><i data-lucide="pencil"></i>일괄 정보 수정 <span id="sel-cnt"></span></button>
+        <button class="btn" id="refund-open" style="color:var(--danger)"><i data-lucide="undo-2"></i>환불 요청</button>
         <button class="btn" id="slot-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button>
       </div>
     </div>
@@ -411,7 +412,7 @@
       <label><input type="checkbox" id="ds-noend" checked>종료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>종료일</th><th>상태</th></tr></thead>
+      <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>종료일</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="ds-rows"></tbody>
     </table></div>
   </section>
@@ -546,10 +547,16 @@ function parseMid(v) {
   const m = v.match(/(?:products|catalog)\/(\d{6,})/) || v.match(/[?&](?:nvMid|nv_mid)=(\d{6,})/);
   return m ? m[1] : '';
 }
-// 광고주·총판 화면 상태 = 빈 슬롯 / 진행중(정보 입력됨) / 종료. 직원의 '접수 → 진행중' 구분(runAt)은 어드민에서만 보임
-const STATE = { run: ['진행중', 'b-run'], empty: ['빈 슬롯', 'b-ext'], end: ['종료', 'b-empty'] };
-const slotState = sl => sl.end < today() ? 'end' : sl.mid ? 'run' : 'empty';
-const billOf = is => is.qty * is.price;
+// 광고주·총판 화면 상태 = 빈 슬롯 / 진행중(정보 입력됨) / 환불 요청 / 중단 / 종료. 직원의 '접수 → 진행중' 구분(runAt)은 어드민에서만 보임
+const STATE = { run: ['진행중', 'b-run'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-req'], stop: ['중단', 'b-end'], end: ['종료', 'b-empty'] };
+const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.mid ? 'run' : 'empty';
+const closedState = st => st === 'end' || st === 'stop';
+// 환불 요청 = 직원이 작업을 시작한 슬롯 + 종료일 전날까지(서버 can_refund와 같음)
+const canRefund = sl => !!sl.runAt && sl.end > today() && !sl.refundAt;
+// 정산 금액 = 발급 금액 - 중단 슬롯 환불액
+const billOf = is => is.qty * is.price - (is.refund || 0);
+const refundNote = is => is.refund ? `<br><span style="font-size:11px;color:var(--danger);font-weight:600">환불 ${won(refundVat(is))}</span>` : '';
+const refundVat = is => Math.round((billOf(is) + (is.refund || 0)) * VAT) - Math.round(billOf(is) * VAT);
 
 async function api(path, data) {
   const res = await fetch(API + path, {
@@ -626,13 +633,13 @@ function render() {
   const dash = '<span class="empty">미입력</span>';
   const checked = new Set([...document.querySelectorAll('.cb:checked')].map(c => +c.value));
   $('slot-rows').innerHTML = rows.map(x => {
-    const st = slotState(x), left = Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
-    return `<tr><td><input type="checkbox" class="cb" value="${x.no}" ${st === 'end' ? 'disabled' : checked.has(x.no) ? 'checked' : ''}></td><td><b>${x.no}</b></td>
+    const st = slotState(x), left = Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), locked = closedState(st) || st === 'refund';
+    return `<tr><td><input type="checkbox" class="cb" value="${x.no}" ${locked ? 'disabled' : checked.has(x.no) ? 'checked' : ''}></td><td><b>${x.no}</b></td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${st === 'end' ? '-' : left + '일'}</td>
+      <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${closedState(st) ? '-' : left + '일'}</td>
       <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
-      <td>${st === 'end' ? '-' : `<button class="btn sm" data-edit="${x.no}">수정</button>`}</td></tr>`;
+      <td>${locked ? '-' : `<button class="btn sm" data-edit="${x.no}">수정</button>`}</td></tr>`;
   }).join('') || '<tr><td colspan="10" style="height:160px;color:var(--muted)">슬롯이 없습니다. 오른쪽 위 \'슬롯 발급\'으로 발급받으세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   selCount(); renderSettle(); renderHistory();
@@ -643,6 +650,22 @@ $('st-chips').onclick = e => { const f = e.target.dataset.f; if (f !== undefined
 $('cb-all').onclick = e => { document.querySelectorAll('.cb:not(:disabled)').forEach(c => c.checked = e.target.checked); selCount(); };
 $('slot-rows').onchange = selCount;
 $('slot-rows').onclick = e => { const no = e.target.closest('[data-edit]')?.dataset.edit; if (no) openEdit([+no]); };
+
+/* 환불 요청 */
+function requestRefund(list, btn) {
+  if (!list.length) return alert('환불 요청할 수 있는 슬롯이 없습니다. 작업 시작 전 슬롯은 정산 내역에서 취소해 주세요.');
+  if (!confirm(`슬롯 ${list.length}개를 환불 요청합니다. 요청 후에는 정보를 수정할 수 없습니다.`)) return;
+  busy(btn, async () => {
+    const r = await api('/shop-refund', { items: list.map(x => ({ userId: x.userId || ME, no: x.no })) });
+    document.querySelectorAll('.cb:checked').forEach(c => c.checked = false); selCount();
+    alert(r.skipped ? `${r.changed}개 요청, ${r.skipped}개는 요청할 수 없어 건너뛰었습니다.` : `${r.changed}개 슬롯을 환불 요청했습니다.`);
+  });
+}
+$('refund-open').onclick = () => {
+  const nos = new Set([...document.querySelectorAll('.cb:checked')].map(c => +c.value));
+  if (!nos.size) return alert('환불 요청할 슬롯을 선택해 주세요.');
+  requestRefund(SLOTS.filter(x => nos.has(x.no) && canRefund(x)), $('refund-open'));
+};
 
 /* 일괄 정보 수정 */
 $('edit-open').onclick = () => {
@@ -731,7 +754,7 @@ function renderSettle() {
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${is.qty}</td><td>${won(is.price)}</td>
-      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td>
+      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b>${refundNote(is)}</td>
       <td>${md(is.start)} ~ ${md(is.end)}</td><td><span class="badge ${c}">${l}</span></td>
       <td class="void-keep">${!is._sub && canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
@@ -754,12 +777,12 @@ function saveXlsx(name, header, rows, widths) {
 }
 $('slot-xlsx').onclick = () => saveXlsx('내슬롯',
   ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '종료일', '남은 일', '상태'],
-  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, st === 'end' ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
+  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
   [8, 18, 14, 50, 12, 12, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
-  ['발급일시', '발급번호', '수량', '단가(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '시작일', '종료일', '상태'],
-  settleRows.map(is => [is.at, is.no, is.qty, is.price, billOf(is), Math.round(billOf(is) * VAT), is.start, is.end, settleState(is)[0]]),
-  [18, 10, 8, 10, 18, 18, 12, 12, 12]);
+  ['발급일시', '발급번호', '수량', '단가(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '환불액(VAT 포함)', '시작일', '종료일', '상태'],
+  settleRows.map(is => [is.at, is.no, is.qty, is.price, billOf(is), Math.round(billOf(is) * VAT), refundVat(is), is.start, is.end, settleState(is)[0]]),
+  [18, 10, 8, 10, 18, 18, 16, 12, 12, 12]);
 
 /* ── 변경 이력 ── */
 function renderHistory() {
@@ -771,6 +794,8 @@ function renderHistory() {
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
   SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  SLOTS.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-req">환불 요청</span>', `슬롯 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
+  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-end">중단</span>', `슬롯 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
@@ -788,7 +813,7 @@ $('pw-go').onclick = () => busy($('pw-go'), async () => {
 
 /* ── 총판 ── */
 // 하부점 발급분 = 총판이 하이어에 낼 돈(총판 단가·distPaidAt) — 내 정산 내역에 합침
-const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, paidAt: is.distPaidAt || '' }))) : [];
+const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, refund: is.distRefund || 0, paidAt: is.distPaidAt || '' }))) : [];
 const subName = id => (SUBS.find(u => u.id === id) || {}).company || id;
 const subIssues = () => Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, userId: u })));
 const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => ({ ...x, userId: u })));
@@ -853,14 +878,20 @@ $('di-rows').onclick = e => {
 /* 하부점 접수 현황 */
 function renderDSlots() {
   const uid = $('ds-user').value, q = $('ds-q').value.trim(), noEnd = $('ds-noend').checked, dash = '<span class="empty">미세팅</span>';
-  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && slotState(x) === 'end')).sort((a, b) => b.no - a.no);
+  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => b.no - a.no);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
     return `<tr><td><b>${x.no}</b></td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${md(x.setAt) || '-'}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td></tr>`;
-  }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">조회된 슬롯이 없습니다.</td></tr>';
+      <td>${md(x.setAt) || '-'}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
+      <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">조회된 슬롯이 없습니다.</td></tr>';
 }
+$('ds-rows').onclick = e => {
+  const btn = e.target.closest('[data-refund]'); if (!btn) return;
+  const [uid, no] = btn.dataset.refund.split('|');
+  requestRefund(subSlots().filter(x => x.userId === uid && x.no === +no && canRefund(x)), btn);
+};
 ['ds-user', 'ds-q', 'ds-noend'].forEach(id => { $(id).oninput = renderDSlots; $(id).onchange = renderDSlots; });
 
 /* 하부점 정산(하부점 → 총판, 하부점 단가) */
@@ -876,7 +907,7 @@ function renderDSettle() {
   $('dt-rows').innerHTML = rows.map(is => {
     const [l, c] = settleState(is), b = billOf(is), k = `${esc(is.userId)}|${is.no}`;
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td><input type="checkbox" class="dt-cb" value="${k}"${picked.has(`${is.userId}|${is.no}`) ? ' checked' : ''}></td><td>${md(is.at)}</td><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}</td><td>${won(is.price)}</td>
-      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b></td><td><span class="badge ${c}">${l}</span></td>
+      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b>${refundNote(is)}</td><td><span class="badge ${c}">${l}</span></td>
       <td class="void-keep">${is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
   }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
   dtCount();
@@ -910,7 +941,7 @@ $('dt-rows').onclick = e => {
 function renderDUsers() {
   const iss = subIssues(), slots = subSlots();
   $('du-rows').innerHTML = SUBS.filter(u => !u.deleted).map((u, i) => {
-    const own = slots.filter(x => x.userId === u.id && slotState(x) !== 'end').length;
+    const own = slots.filter(x => x.userId === u.id && !closedState(slotState(x))).length;
     const unpaid = iss.filter(x => x.userId === u.id && !x.revokedAt && !x.paidAt).reduce((a, x) => a + billOf(x), 0);
     return `<tr><td>${i + 1}</td><td>${esc(u.createdAt)}</td><td><b>${esc(u.company)}</b></td><td>${esc(u.id)}</td><td>${won(u.price)}</td><td>${own}</td>
       <td style="color:${unpaid ? '#b45309' : 'inherit'}">${won(Math.round(unpaid * VAT))}</td><td>${esc(u.memo)}</td>
