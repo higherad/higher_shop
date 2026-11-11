@@ -321,7 +321,7 @@ def save_result(page, src):
                 q = nos.get((r['productUrl'].strip(), str(r.get('rankKeyword', '')).strip())) or ['']
                 w.writerow([q.pop(0), r.get('mid', ''), r['productUrl'], r.get('rankKeyword', ''), n, r.get('regStatus') or r.get('regState', ''),
                             r.get('regCode', ''), r.get('regMsg') or r.get('regReason', '')])
-    print('결과 저장:', out, '— 어드민 접수 현황 「Pcode 업로드」로 올려 주세요.')
+    print('결과 저장:', out, '— 어드민 접수 현황 「MID 업로드」로 올려 주세요.')
 
 
 def main():
