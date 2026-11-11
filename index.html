@@ -530,7 +530,6 @@ const $ = id => document.getElementById(id);
 document.querySelectorAll('details.guide').forEach(d => { d.open = localStorage.getItem('shop_' + d.id) === '1'; d.ontoggle = () => localStorage.setItem('shop_' + d.id, d.open ? '1' : '0'); });
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const won = n => (n || 0).toLocaleString('ko-KR');
-const pad = n => String(n).padStart(2, '0');
 // 날짜는 한국 시간 기준(마감·시작일 판정은 서버가 다시 함)
 const kstNow = () => new Date(Date.now() + 9 * 3600e3);
 const today = () => kstNow().toISOString().slice(0, 10);
