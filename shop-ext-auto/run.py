@@ -7,7 +7,7 @@
 확장 설정(파트너키·프록시 — 안내), 크롤 창 프로그램·브릿지(확장 폴더에서 자동 설치), 크롤 창 구성·네이버 계정 파일(안내).
 
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
-영업점·등급은 어드민 엑셀 값 그대로(영업점 = 총판 회사명, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
+영업점·등급은 어드민 엑셀 값 그대로(영업점 = 대행사 업체명[SR] — 하부점은 총판, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
 """
 import argparse, csv, glob, gzip, json, os, shutil, subprocess, sys, time, urllib.request, winreg
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True); sys.stderr.reconfigure(encoding="utf-8")  # 파이프 실행에서도 바로 출력
@@ -321,7 +321,7 @@ def save_result(page, src):
                 q = nos.get((r['productUrl'].strip(), str(r.get('rankKeyword', '')).strip())) or ['']
                 w.writerow([q.pop(0), r.get('mid', ''), r['productUrl'], r.get('rankKeyword', ''), n, r.get('regStatus') or r.get('regState', ''),
                             r.get('regCode', ''), r.get('regMsg') or r.get('regReason', '')])
-    print('결과 저장:', out, '— 어드민 접수 현황 「MID 업로드」로 올려 주세요.')
+    print('결과 저장:', out)
 
 
 def main():
