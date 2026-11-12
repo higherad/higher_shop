@@ -145,10 +145,6 @@
   .box .fbtns { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
   .page { display:none; } .page.show { display:block; }
   .nav-label { font-size:10px; color:var(--muted); letter-spacing:1.5px; padding:16px 12px 6px; }
-  .issue-box { background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:14px; display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; }
-  .issue-box .f label { display:block; font-size:11px; color:var(--text2); font-weight:600; margin-bottom:5px; }
-  .issue-box .f label em { color:var(--danger); font-style:normal; margin-left:4px; }
-  .issue-box select, .issue-box input[type=date] { padding:8px 10px; border:1px solid var(--border); border-radius:7px; font-size:13px; }
   /* 취소된 정산 건: 줄 긋고 흐리게(오른쪽 끝 '취소' 표시는 그대로) */
   tr.void td { text-decoration:line-through; color:var(--muted); } tr.void td.void-keep { text-decoration:none; }
   body:not(.in) aside, body:not(.in) main, body:not(.in) .mtop { display:none; }
@@ -177,8 +173,6 @@
     .chips { flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; } .chip { white-space:nowrap; }
     .box { padding:18px 16px; }
     .fgrid { grid-template-columns:1fr; gap:6px; }
-    .qty { flex-wrap:wrap; }
-    .issue-box { padding:14px; }
     #m-edit .tbl-wrap { border:none; }
     #m-edit thead { display:none; }
     #m-edit table, #m-edit tbody, #m-edit tr, #m-edit td { display:block; width:auto !important; }
@@ -195,7 +189,6 @@
   .fgrid { display:grid; grid-template-columns:120px 1fr; gap:12px 14px; align-items:center; }
   .fgrid label { font-weight:600; color:var(--text2); font-size:12px; } .fgrid label em { display:block; color:var(--danger); font-style:normal; font-size:10px; }
   .fgrid input[type=date] { padding:8px 10px; border:1px solid var(--border); border-radius:7px; width:180px; }
-  .qty { display:flex; gap:4px; } .qty input { width:70px; text-align:center; border:1px solid var(--border); border-radius:7px; font-size:14px; }
 </style>
 </head>
 <body>
@@ -373,25 +366,16 @@
 
   <!-- 총판: 하부점 슬롯 발급 -->
   <section class="page" id="p-d-issue">
-    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 슬롯을 발급합니다. 시작일 당일까지 취소할 수 있습니다.</p></div></div>
+    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 키워드·상품 URL이 들어간 슬롯을 바로 접수합니다. 시작일 당일까지 취소할 수 있습니다.</p></div>
+      <button class="btn pri" id="d-order-open"><i data-lucide="clipboard-plus"></i>접수</button></div>
         <details class="guide" id="g-d-issue">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>발급</b><span>하부점·개수·시작일을 고르고 <em>슬롯 발급</em><br>하부점에 빈 슬롯이 바로 생깁니다</span></li>
-        <li><b>하부점이 입력</b><span>키워드와 상품 URL은<br>하부점이 자기 계정에서 직접 입력합니다</span></li>
+        <li><b>접수</b><span><em>접수</em>에서 하부점을 고르고 한 줄씩 입력하거나 엑셀로 올림<br>한 줄 = 슬롯 1개 · 하부점에 바로 생깁니다</span></li>
+        <li><b>수정</b><span>진행 전 슬롯의 키워드·URL은<br>하부점이 자기 계정에서 수정합니다</span></li>
         <li><b>취소</b><span>시작일 당일까지 <em>취소</em> 가능<br>금액은 하부점 단가로 <em>하부점 정산</em>에 잡힙니다</span></li>
       </ol>
     </details>
-    <div class="issue-box">
-      <div class="f"><label>대상 하부점</label><select id="di-user" style="width:200px"></select></div>
-      <div class="f"><label>수량<em>1회 최대 500개</em></label><div class="qty"><button class="btn" data-dq="-1">-</button><input id="di-qty" type="number" value="1"><button class="btn" data-dq="1">+</button><button class="btn" data-dq="10">+10</button><button class="btn" data-dq="100">+100</button></div></div>
-      <div class="f"><label>시작일<em>17시 마감</em></label><input id="di-start" type="date"></div>
-      <div class="f"><label>일수<em>1~7일</em></label><select id="di-days"></select></div>
-      <div class="f"><label>일 목표<em>최소 10개</em></label><input id="di-daily" type="number" value="100" style="width:80px;padding:8px 10px;border:1px solid var(--border);border-radius:7px;text-align:center"></div>
-      <div class="f"><label>종료 예정일</label><input id="di-end" type="date" disabled></div>
-      <div class="f"><label>하부점 금액<em>VAT 별도</em></label><div id="di-amt" style="padding:8px 0;font-weight:800;font-size:15px">-</div></div>
-      <button class="btn pri" id="di-go" style="padding:9px 18px">슬롯 발급</button>
-    </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>발급번호</th><th>하부점</th><th>수량</th><th>세팅 완료</th><th>발급일시</th><th>기간</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="di-rows"></tbody>
@@ -489,6 +473,7 @@
 <div class="ov" id="m-order"><div class="box" style="width:1000px">
   <h3>접수</h3>
   <div class="sub">한 줄 = 슬롯 1개 · 시작일은 당일·익일 중 선택 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</div>
+  <select id="or-user" style="display:none;width:280px;margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
   <div class="chips" id="or-tabs"><span class="chip on" data-t="one">개별 접수</span><span class="chip" data-t="xlsx">엑셀 접수</span></div>
   <div id="or-one">
     <div class="tbl-wrap"><table>
@@ -548,10 +533,8 @@ const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(
 // 접수 마감 = 17시~자정엔 발급 불가(서버 closed_now와 같음)
 const closedNow = () => kstNow().getUTCHours() >= CUTOFF_HOUR;
 const CLOSED_MSG = `접수는 ${CUTOFF_HOUR}시에 마감됩니다. 내일 0시부터 발급할 수 있습니다.`;
-const endOf = (s, days) => addDays(s, days - 1);
 // 일수 1~7·일 목표 최소 10 — 발급 건 price = 단가 × 일수 × 일 목표(슬롯 1개 금액). days 없는 옛 건 = 7일·100개
 const termOpts = (v = TERM_DAYS) => Array.from({ length: TERM_DAYS }, (_, i) => `<option value="${i + 1}"${i + 1 === v ? ' selected' : ''}>${i + 1}</option>`).join('');
-const fixDaily = inp => { inp.value = Math.max(MIN_DAILY, parseInt(inp.value) || MIN_DAILY); return +inp.value; };
 const termOf = x => `${x.days || TERM_DAYS}일 · 일 ${(x.daily || 100).toLocaleString()}개`;
 const md = s => (s || '').slice(5).replace('-', '/');
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
@@ -732,7 +715,10 @@ function orderErr(r) {
   if (!Number.isInteger(r.daily) || r.daily < MIN_DAILY) return `일 목표 최소 ${MIN_DAILY}개`;
   return '';
 }
-const orderAmt = r => USER.price * r.days * r.daily;
+// 접수 대상 = 본인(orderSub null) 또는 총판이 고른 하부점(orderSub = 하부점 id, '' = 아직 선택 안 함) — 금액은 대상 계정 단가
+let orderSub = null;
+const orderUser = () => orderSub === null ? USER : SUBS.find(u => u.id === orderSub);
+const orderAmt = r => (orderUser()?.price || 0) * r.days * r.daily;
 const orderRows = () => orderTab === 'one' ? [...$('or-rows').children].map(tr => ({
   kw: tr.querySelector('.or-kw').value.trim(), url: tr.querySelector('.or-url').value.trim(), off: +tr.querySelector('.or-when').value,
   start: addDays(today(), +tr.querySelector('.or-when').value), days: +tr.querySelector('.or-days').value, daily: Number(tr.querySelector('.or-daily').value) })) : xRows;
@@ -746,7 +732,7 @@ function orAddRow(base = {}) {
 }
 // 줄별 슬롯 금액·합계 다시 그림 — 틀린 칸은 빨간 테두리, 한 줄이라도 틀리면 접수 버튼 막음
 function orSync() {
-  const rows = orderRows(), errs = rows.map(orderErr), ok = USER.price > 0;
+  const rows = orderRows(), errs = rows.map(orderErr), ok = orderUser()?.price > 0;
   if (orderTab === 'one') [...$('or-rows').children].forEach((tr, i) => {
     const r = rows[i];
     tr.querySelector('.or-n').textContent = i + 1;
@@ -759,7 +745,7 @@ function orSync() {
       <td>${errs[i] || !ok ? '-' : won(orderAmt(r)) + '원'}</td><td>${errs[i] ? `<span class="badge b-end">${errs[i]}</span>` : '<span class="badge b-run">정상</span>'}</td></tr>`).join('')
     || '<tr><td colspan="8" style="height:100px;text-align:center;color:var(--muted)">양식에 맞춰 작성한 엑셀을 선택해 주세요.</td></tr>';
   const bad = errs.filter(Boolean).length, amt = rows.reduce((a, r, i) => a + (errs[i] ? 0 : orderAmt(r)), 0);
-  $('or-sum').innerHTML = rows.length && ok ? `${bad ? `<b style="color:var(--danger)">오류 ${bad}건</b> · ` : ''}${rows.length}건 합계 <b style="color:var(--text);font-size:15px">${won(Math.round(amt * VAT))}원</b> (VAT 포함)` : '';
+  $('or-sum').innerHTML = rows.length && ok ? `${bad ? `<b style="color:var(--danger)">오류 ${bad}건</b> · ` : ''}${rows.length}건 합계 <b style="color:var(--text);font-size:15px">${orderSub === null ? `${won(Math.round(amt * VAT))}원</b> (VAT 포함)` : `${won(amt)}원</b> (하부점 금액, VAT 별도) · 총판 정산 ${won(amt / orderUser().price * USER.price)}원`}` : '';
   $('or-go').disabled = !rows.length || bad > 0 || !ok;
 }
 function orTab(t) {
@@ -803,26 +789,34 @@ $('or-file').onchange = async e => {
   } catch (err) { alert(err.message || '파일을 읽지 못했습니다. 양식을 확인해 주세요.'); }
   orSync();
 };
-$('order-open').onclick = () => {
+function openOrder(sub) {
   if (!(USER.price > 0)) return alert('단가가 설정되지 않았습니다. 관리자에게 문의해 주세요.');
   if (closedNow()) return alert(CLOSED_MSG);
+  orderSub = sub;
+  $('or-user').style.display = sub === null ? 'none' : '';
+  if (sub !== null) $('or-user').innerHTML = '<option value="">-- 하부점 선택 --</option>' + SUBS.filter(u => !u.blocked && !u.deleted).map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
   xRows = []; $('or-xinfo').textContent = ''; $('or-rows').innerHTML = ''; orAddRow(); orTab('one');
   $('m-order').classList.add('show');
-};
+}
+$('order-open').onclick = () => openOrder(null);
+$('d-order-open').onclick = () => openOrder('');
+$('or-user').onchange = () => { orderSub = $('or-user').value; orSync(); };
 $('or-tabs').onclick = e => { const t = e.target.dataset.t; if (t) orTab(t); };
 $('or-go').onclick = () => busy($('or-go'), async () => {
   if (closedNow()) throw new Error(CLOSED_MSG);
   const rows = orderRows(), bad = rows.findIndex(orderErr);
   if (!rows.length) throw new Error('접수할 줄이 없습니다.');
   if (bad >= 0) throw new Error(`${bad + 1}번째 줄: ${orderErr(rows[bad])}`);
-  const amt = rows.reduce((a, r) => a + orderAmt(r), 0);
-  if (!confirm(`슬롯 ${rows.length}개를 접수합니다. (결제 금액 VAT 포함 ${won(Math.round(amt * VAT))}원)`)) return;
-  const r = await api('/shop-order', { items: rows.map(({ kw, url, start, days, daily }) => ({ kw, url, start, days, daily })), reqId: newReqId() });
-  $('m-order').classList.remove('show'); filter = 'wait'; render();
+  const u = orderUser(), amt = rows.reduce((a, r) => a + orderAmt(r), 0);
+  if (!u) throw new Error('대상 하부점을 선택해 주세요.');
+  if (!confirm(orderSub === null ? `슬롯 ${rows.length}개를 접수합니다. (결제 금액 VAT 포함 ${won(Math.round(amt * VAT))}원)`
+    : `${u.company}에 슬롯 ${rows.length}개를 접수합니다. (하부점 금액 ${won(amt)}원 / 총판 정산 ${won(amt / u.price * USER.price)}원, VAT 별도)`)) return;
+  const r = await api('/shop-order', { ...(orderSub === null ? {} : { userId: orderSub }), items: rows.map(({ kw, url, start, days, daily }) => ({ kw, url, start, days, daily })), reqId: newReqId() });
+  $('m-order').classList.remove('show');
+  if (orderSub === null) { filter = 'wait'; render(); }
   alert(`${r.count}개 슬롯이 접수되었습니다.`);
 });
 
-$('di-days').innerHTML = termOpts();
 
 /* ── 정산 내역 ── */
 // 취소 = 직원이 진행중 전환한 슬롯 없음 + 시작일 당일까지(서버 can_cancel과 같음, 입금·정보 입력 무관)
@@ -930,30 +924,11 @@ function renderDist() {
   if (USER.role !== 'dist') return;
   const opts = all => (all ? `<option value="">${all}</option>` : '') + SUBS.map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
   const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.selectedIndex < 0) el.selectedIndex = 0; };
-  keep('di-user', '<option value="">-- 하부점 선택 --</option>' + SUBS.filter(u => !u.blocked && !u.deleted).map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join(''));
   keep('ds-user', opts('전체 하부점')); keep('dt-user', opts('전체 하부점'));
-  diSync(); renderDIssues(); renderDSlots(); renderDSettle(); renderDUsers();
+  renderDIssues(); renderDSlots(); renderDSettle(); renderDUsers();
 }
 
-/* 하부점 슬롯 발급 */
-function diSync() {
-  const q = $('di-qty'); q.value = Math.min(MAX_QTY, Math.max(1, parseInt(q.value) || 1));
-  const st = $('di-start'); if (!st.value || st.value < today()) st.value = today();
-  const days = +$('di-days').value, daily = fixDaily($('di-daily')), n = days * daily * +q.value;
-  $('di-end').value = endOf(st.value, days);
-  const u = SUBS.find(x => x.id === $('di-user').value);
-  $('di-amt').textContent = u ? `${won(u.price * n)}원` : '-';
-  return { u, qty: +q.value, start: st.value, days, daily, n };
-}
-document.querySelectorAll('[data-dq]').forEach(b => b.onclick = () => { $('di-qty').value = (parseInt($('di-qty').value) || 0) + +b.dataset.dq; diSync(); });
-['di-qty', 'di-start', 'di-user', 'di-days', 'di-daily'].forEach(id => $(id).onchange = diSync);
-$('di-go').onclick = () => busy($('di-go'), async () => {
-  if (closedNow()) throw new Error(CLOSED_MSG);
-  const { u, qty, start, days, daily, n } = diSync();
-  if (!u) throw new Error('대상 하부점을 선택해 주세요.');
-  if (!confirm(`${u.company}에 슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start, days)}, ${days}일 · 일 ${daily}개, 하부점 금액 ${won(u.price * n)}원 / 총판 정산 ${won(USER.price * n)}원, VAT 별도)`)) return;
-  await api('/shop-issue', { userId: u.id, qty, start, days, daily, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
-});
+/* 하부점 슬롯 발급(접수는 openOrder) */
 function renderDIssues() {
   const rows = subIssues().sort((a, b) => b.no - a.no), slots = subSlots();
   $('di-rows').innerHTML = rows.map(is => {
