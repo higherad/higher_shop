@@ -398,7 +398,6 @@
       <ol>
         <li><b>받을 금액</b><span>하부점 캠페인이 <em>하부점 단가</em>로 쌓입니다<br>환불된 금액은 빠집니다</span></li>
         <li><b>입금 확인</b><span>하부점에게 입금을 받으면<br><em>입금 확인</em>을 눌러 주세요</span></li>
-        <li><b>총판 정산</b><span>하부점 건으로 하이어에 낼 금액(<em>총판 단가</em>)<br>하이어가 입금을 확인하면 <em>정산완료</em></span></li>
       </ol>
     </details>
     <div class="summary" id="dt-cards"></div>
@@ -409,7 +408,7 @@
         <button class="btn pri" id="dt-pay">입금 확인</button><button class="btn" id="dt-unpay">입금 취소</button></span>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>접수일시</th><th>하부점</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th><th>총판 정산(VAT 별도)</th><th>액션</th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>접수일시</th><th>하부점</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th><th>액션</th></tr></thead>
       <tbody id="dt-rows"></tbody>
     </table></div>
   </section>
@@ -555,7 +554,7 @@ const closedState = st => st === 'end' || st === 'stop';
 // 환불 = 진행 전(runAt 없음, 기간 안) → 바로 삭제·전액 / 진행중 → 환불 요청(종료일 전날까지) — 서버 can_drop·can_refund와 같음
 const canRefund = sl => !sl.refundAt && !sl.stoppedAt && (sl.runAt ? sl.end > today() : sl.end >= today());
 // 정산 금액 = 발급 금액 - 중단 슬롯 환불액
-// 환불 = 중단 슬롯 환불(refund) + 하이어가 넣은 추가 환불(adj·autoAdj — 하이어 청구 쪽이라 하부점 건은 총판 정산에만, distView가 refund에 합침)
+// 환불 = 중단 슬롯 환불(refund) + 하이어가 넣은 추가 환불(adj·autoAdj — 하이어 청구 쪽이라 하부점 건 = 하부점→총판 정산엔 안 뺌)
 const refundOf = is => (is.refund || 0) + (is.dist ? 0 : (is.adj || 0) + (is.autoAdj || 0));
 const billOf = is => is.qty * is.price - refundOf(is);
 
@@ -901,8 +900,6 @@ $('pw-go').onclick = () => busy($('pw-go'), async () => {
 
 /* ── 총판 ── */
 // 하부점 발급분 = 총판이 하이어에 낼 돈(총판 단가·distPaidAt) — 내 정산 내역에 합침
-// 하부점 건의 총판 쪽(하이어가 총판에 청구) — 총판 단가·총판 입금(distPaidAt), 하이어 추가 환불(adj·autoAdj)도 이쪽에서 뺌
-const distView = is => ({ ...is, price: is.distPrice || 0, unit: is.distUnit, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' });
 const subName = id => (SUBS.find(u => u.id === id) || {}).company || id;
 const subIssues = () => Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, userId: u })));
 const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => ({ ...x, userId: u })));
@@ -964,9 +961,8 @@ function renderDSettle() {
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td><input type="checkbox" class="dt-cb" value="${k}"${picked.has(`${is.userId}|${is.no}`) ? ' checked' : ''}></td><td>${md(is.at)}</td><td>${esc(subName(is.userId))}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
       <td style="font-weight:700;color:var(--ok)">${won(b)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(b * VAT))}원</td>
       <td style="${refundOf(is) ? 'color:var(--danger);font-weight:700' : ''}">${refundOf(is) ? won(refundOf(is)) + '원' : '-'}</td><td><span class="badge ${c}">${l}</span></td>
-      <td>${(d => `${won(billOf(d))}원<br><span class="badge ${settleState(d)[1]}" style="margin-top:3px">${settleState(d)[0]}</span>`)(distView(is))}</td>
       <td class="void-keep">${is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="12" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
   dtCount();
 }
 ['dt-user', 'dt-st'].forEach(id => $(id).onchange = renderDSettle);
