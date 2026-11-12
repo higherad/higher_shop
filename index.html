@@ -545,7 +545,7 @@ function parseMid(v) {
   const m = v.match(/(?:products|catalog)\/(\d{6,})/) || v.match(/[?&](?:nvMid|nv_mid)=(\d{6,})/);
   return m ? m[1] : '';
 }
-// 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 중단 / 종료
+// 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 환불(직원 중단 처리 완료) / 종료
 const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-end'], end: ['종료', 'b-empty'] };
 const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
 const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
