@@ -311,10 +311,9 @@
   <!-- 내 슬롯 관리 -->
   <section class="page show" id="p-slots">
     <div class="head">
-      <div><h2>내 슬롯 관리</h2><p><b>접수</b>에서 키워드·상품 URL을 넣으면 슬롯이 바로 발급됩니다. 빈 슬롯은 옆 <b>수정</b>으로 입력합니다.</p></div>
+      <div><h2>내 슬롯 관리</h2><p><b>접수</b>에서 키워드·상품 URL을 넣으면 슬롯이 바로 발급됩니다. 진행 전 슬롯은 옆 <b>수정</b>으로 바꿀 수 있습니다.</p></div>
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="order-open"><i data-lucide="clipboard-plus"></i>접수</button>
-        <button class="btn" id="issue-open"><i data-lucide="plus"></i>빈 슬롯 발급</button>
         <button class="btn" id="slot-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button>
       </div>
     </div>
@@ -507,23 +506,6 @@
     </table></div>
   </div>
   <div class="fbtns"><span id="or-sum" style="align-self:center;margin-right:6px;color:var(--text2)"></span><button class="btn" data-close="m-order">취소</button><button class="btn pri" id="or-go">접수</button></div>
-</div></div>
-
-<!-- 슬롯 발급 -->
-<div class="ov" id="m-issue"><div class="box" style="width:520px">
-  <h3>빈 슬롯 발급</h3>
-  <div class="sub">발급 즉시 빈 슬롯이 생기고, 금액은 정산 내역에서 확인 후 입금해 주세요.</div>
-  <div class="fgrid">
-    <label>수량 <em>1회 최대 500개</em></label>
-    <div class="qty"><button class="btn" data-q="-1">-</button><input id="iq" type="number" value="1"><button class="btn" data-q="1">+</button><button class="btn" data-q="10">+10</button><button class="btn" data-q="100">+100</button></div>
-    <label>시작일 <em>17시 마감</em></label><input id="i-start" type="date">
-    <label>일수 <em>1~7일</em></label><select id="i-days" style="width:100px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
-    <label>일 목표 <em>최소 10개</em></label><div class="qty"><input id="i-daily" type="number" value="100" style="width:100px"></div>
-    <label>종료 예정일</label><input id="i-end" type="date" disabled>
-    <label>단가</label><div id="i-price"></div>
-    <label>결제 금액</label><div><b id="i-amt" style="font-size:18px"></b> <span style="color:var(--text2);font-size:12px" id="i-vat"></span></div>
-  </div>
-  <div class="fbtns"><button class="btn" data-close="m-issue">취소</button><button class="btn pri" id="i-go">발급하기</button></div>
 </div></div>
 
 <!-- 비밀번호 변경 -->
@@ -839,34 +821,7 @@ $('or-go').onclick = () => busy($('or-go'), async () => {
   alert(`${r.count}개 슬롯이 접수되었습니다.`);
 });
 
-/* 빈 슬롯 발급 */
-$('i-days').innerHTML = termOpts(); $('di-days').innerHTML = termOpts();
-$('issue-open').onclick = () => {
-  if (!(USER.price > 0)) return alert('단가가 설정되지 않았습니다. 관리자에게 문의해 주세요.');
-  if (closedNow()) return alert(CLOSED_MSG);
-  $('iq').value = 1; $('i-start').value = today(); $('i-days').value = TERM_DAYS; $('i-daily').value = 100;
-  $('i-price').textContent = `${won(USER.price)}원 / 1개 (VAT 별도)`;
-  iSync(); $('m-issue').classList.add('show');
-};
-// 결제 금액 = 단가 × 일수 × 일 목표 × 수량
-function iSync() {
-  const q = $('iq'); q.value = Math.min(MAX_QTY, Math.max(1, parseInt(q.value) || 1));
-  const st = $('i-start'); if (!st.value || st.value < today()) st.value = today();
-  const days = +$('i-days').value, daily = fixDaily($('i-daily'));
-  $('i-end').value = endOf(st.value, days);
-  const amt = USER.price * days * daily * +q.value;
-  $('i-amt').textContent = `${won(amt)}원`; $('i-vat').textContent = `(VAT 포함 ${won(Math.round(amt * VAT))}원)`;
-  return { qty: +q.value, start: st.value, days, daily, amt };
-}
-document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { $('iq').value = (parseInt($('iq').value) || 0) + +b.dataset.q; iSync(); });
-['iq', 'i-start', 'i-days', 'i-daily'].forEach(id => $(id).onchange = iSync);
-$('i-go').onclick = () => busy($('i-go'), async () => {
-  if (closedNow()) throw new Error(CLOSED_MSG);
-  const { qty, start, days, daily, amt } = iSync();
-  if (!confirm(`슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start, days)}, ${days}일 · 일 ${daily}개, VAT 포함 ${won(Math.round(amt * VAT))}원)`)) return;
-  await api('/shop-issue', { qty, start, days, daily, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
-  $('m-issue').classList.remove('show'); filter = 'empty'; render();
-});
+$('di-days').innerHTML = termOpts();
 
 /* ── 정산 내역 ── */
 // 취소 = 직원이 진행중 전환한 슬롯 없음 + 시작일 당일까지(서버 can_cancel과 같음, 입금·정보 입력 무관)
