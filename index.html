@@ -128,7 +128,7 @@
   .empty { color:#cbd5e1; }
   .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
   .b-run { background:#ecfdf5; color:#059669; } .b-empty { background:#f1f5f9; color:#64748b; }
-  .b-ext { background:#fffbeb; color:#b45309; } .b-req { background:#eef2ff; color:var(--acc); } .b-end { background:#fef2f2; color:var(--danger); }
+  .b-ext { background:#fffbeb; color:#b45309; } .b-wait { background:#eff6ff; color:#2563eb; } .b-req { background:#eef2ff; color:var(--acc); } .b-end { background:#fef2f2; color:var(--danger); }
   .st-g { color:#059669; font-weight:600; } .st-n { color:#64748b; font-weight:600; } .st-r { color:var(--danger); font-weight:600; }
   .foot { display:flex; justify-content:flex-end; align-items:center; gap:12px; padding:10px 14px; color:var(--text2); font-size:12px; }
   .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
@@ -320,8 +320,8 @@
     <details class="guide" id="g-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>슬롯 발급</b><span><em>슬롯 발급</em>에서 개수·시작일을 고르면 바로 생성<br>1개 = 7일 · 밤 10시 전 신청 시 당일 시작</span></li>
-        <li><b>키워드·상품 입력</b><span>슬롯 옆 <em>수정</em> 또는 체크 후 <em>일괄 정보 수정</em><br>키워드·상품 URL을 넣으면 바로 진행중</span></li>
+        <li><b>슬롯 발급</b><span><em>슬롯 발급</em>에서 개수·시작일·일수(1~7일)·일 목표(최소 10개)를 고르면 바로 생성<br>접수는 매일 17시 마감 · 17시 이후엔 다음 날 0시부터 발급</span></li>
+        <li><b>키워드·상품 입력</b><span>슬롯 옆 <em>수정</em> 또는 체크 후 <em>일괄 정보 수정</em><br>입력하면 <em>접수</em> → 작업이 시작되면 <em>진행중</em>(이후 수정 불가, 환불 요청만)</span></li>
         <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>시작일 당일까지 취소 가능</span></li>
       </ol>
     </details>
@@ -332,8 +332,8 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>종료일</th><th>남은 일</th><th>상태</th><th>수정</th></tr></thead>
-        <tbody id="slot-rows"><tr><td colspan="9" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
+        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>상태</th><th>수정</th></tr></thead>
+        <tbody id="slot-rows"><tr><td colspan="11" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
     </div>
@@ -357,7 +357,7 @@
       <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th></th></tr></thead>
+      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>슬롯 금액(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th></th></tr></thead>
       <tbody id="settle-rows"></tbody>
     </table></div>
   </section>
@@ -385,8 +385,10 @@
     <div class="issue-box">
       <div class="f"><label>대상 하부점</label><select id="di-user" style="width:200px"></select></div>
       <div class="f"><label>수량<em>1회 최대 500개</em></label><div class="qty"><button class="btn" data-dq="-1">-</button><input id="di-qty" type="number" value="1"><button class="btn" data-dq="1">+</button><button class="btn" data-dq="10">+10</button><button class="btn" data-dq="100">+100</button></div></div>
-      <div class="f"><label>시작일<em>당일 22시 마감</em></label><input id="di-start" type="date"></div>
-      <div class="f"><label>종료 예정일<em>7일</em></label><input id="di-end" type="date" disabled></div>
+      <div class="f"><label>시작일<em>17시 마감</em></label><input id="di-start" type="date"></div>
+      <div class="f"><label>일수<em>1~7일</em></label><select id="di-days"></select></div>
+      <div class="f"><label>일 목표<em>최소 10개</em></label><input id="di-daily" type="number" value="100" style="width:80px;padding:8px 10px;border:1px solid var(--border);border-radius:7px;text-align:center"></div>
+      <div class="f"><label>종료 예정일</label><input id="di-end" type="date" disabled></div>
       <div class="f"><label>하부점 금액<em>VAT 별도</em></label><div id="di-amt" style="padding:8px 0;font-weight:800;font-size:15px">-</div></div>
       <button class="btn pri" id="di-go" style="padding:9px 18px">슬롯 발급</button>
     </div>
@@ -403,7 +405,7 @@
       <summary>이용 방법</summary>
       <ol>
         <li><b>한눈에 확인</b><span>모든 하부점의 키워드·상품을 한곳에서 확인<br>수정은 하부점이 직접 합니다</span></li>
-        <li><b>상태</b><span><em>빈 슬롯</em> = 입력 전 · <em>진행중</em> = 입력 완료<br><em>종료</em> = 기간 끝</span></li>
+        <li><b>상태</b><span><em>빈 슬롯</em> = 입력 전 · <em>접수</em> = 입력 완료(수정 가능)<br><em>진행중</em> = 작업 시작(수정 불가·환불만) · <em>종료</em> = 기간 끝</span></li>
       </ol>
     </details>
     <div class="bar">
@@ -435,24 +437,24 @@
         <button class="btn pri" id="dt-pay">입금 확인</button><button class="btn" id="dt-unpay">입금 취소</button></span>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>단가(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>슬롯 금액(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
       <tbody id="dt-rows"></tbody>
     </table></div>
   </section>
 
   <!-- 총판: 하부점 관리 -->
   <section class="page" id="p-d-users">
-    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 슬롯 단가를 정합니다.</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
+    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 단가를 정합니다. 슬롯 금액 = 단가 × 일수 × 일 목표</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
     <details class="guide" id="g-d-users">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>계정 만들기</b><span><em>하부점 추가</em>에서 계정을 만듭니다<br>업체명·아이디·비밀번호·슬롯 단가 입력</span></li>
+        <li><b>계정 만들기</b><span><em>하부점 추가</em>에서 계정을 만듭니다<br>업체명·아이디·비밀번호·단가(1개) 입력</span></li>
         <li><b>하부점 사용</b><span>하부점은 그 아이디로 로그인해<br>슬롯 발급·키워드 입력을 직접 합니다</span></li>
         <li><b>단가·차단</b><span>단가는 <em>수정</em>에서 변경(이후 발급분부터)<br>거래를 멈출 땐 <em>차단</em></span></li>
       </ol>
     </details>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>슬롯 단가(원)</th><th>보유 슬롯</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>단가(1개, 원)</th><th>보유 슬롯</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="du-rows"></tbody>
     </table></div>
   </section>
@@ -465,7 +467,7 @@
     <label>업체명 <em>필수</em></label><input id="sub-company" maxlength="30" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
     <label>아이디 <em>필수</em></label><input id="sub-id" maxlength="20" placeholder="영문+숫자 3~20자" autocomplete="off" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
     <label id="sub-pw-l">비밀번호 <em>필수</em></label><input id="sub-pw" maxlength="64" autocomplete="new-password" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
-    <label>슬롯 단가 <em>원, VAT 별도</em></label><input id="sub-price" type="number" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px;text-align:center">
+    <label>단가 <em>1개당 원, VAT 별도</em></label><input id="sub-price" type="number" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px;text-align:center">
     <label>메모</label><input id="sub-memo" maxlength="200" style="padding:8px 10px;border:1px solid var(--border);border-radius:7px">
   </div>
   <div class="fbtns"><button class="btn" data-close="m-sub">취소</button><button class="btn pri" id="sub-save">저장</button></div>
@@ -490,9 +492,11 @@
   <div class="fgrid">
     <label>수량 <em>1회 최대 500개</em></label>
     <div class="qty"><button class="btn" data-q="-1">-</button><input id="iq" type="number" value="1"><button class="btn" data-q="1">+</button><button class="btn" data-q="10">+10</button><button class="btn" data-q="100">+100</button></div>
-    <label>시작일 <em>당일 22시 마감</em></label><input id="i-start" type="date">
-    <label>종료 예정일 <em>7일</em></label><input id="i-end" type="date" disabled>
-    <label>슬롯 단가</label><div id="i-price"></div>
+    <label>시작일 <em>17시 마감</em></label><input id="i-start" type="date">
+    <label>일수 <em>1~7일</em></label><select id="i-days" style="width:100px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
+    <label>일 목표 <em>최소 10개</em></label><div class="qty"><input id="i-daily" type="number" value="100" style="width:100px"></div>
+    <label>종료 예정일</label><input id="i-end" type="date" disabled>
+    <label>단가</label><div id="i-price"></div>
     <label>결제 금액</label><div><b id="i-amt" style="font-size:18px"></b> <span style="color:var(--text2);font-size:12px" id="i-vat"></span></div>
   </div>
   <div class="fbtns"><button class="btn" data-close="m-issue">취소</button><button class="btn pri" id="i-go">발급하기</button></div>
@@ -525,7 +529,7 @@ const app = initializeApp({
 const db = getDatabase(app), auth = getAuth(app);
 const API = 'https://higherad-shop-938928195180.asia-northeast3.run.app';
 
-const TERM_DAYS = 7, MAX_QTY = 500, CUTOFF_HOUR = 22, VAT = 1.1;
+const TERM_DAYS = 7, MAX_QTY = 500, CUTOFF_HOUR = 17, MIN_DAILY = 10, VAT = 1.1;
 const $ = id => document.getElementById(id);
 document.querySelectorAll('details.guide').forEach(d => { d.open = localStorage.getItem('shop_' + d.id) === '1'; d.ontoggle = () => localStorage.setItem('shop_' + d.id, d.open ? '1' : '0'); });
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -535,8 +539,14 @@ const kstNow = () => new Date(Date.now() + 9 * 3600e3);
 const today = () => kstNow().toISOString().slice(0, 10);
 const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5);
-const minStart = () => kstNow().getUTCHours() >= CUTOFF_HOUR ? addDays(today(), 1) : today();
-const endOf = s => addDays(s, TERM_DAYS - 1);
+// 접수 마감 = 17시~자정엔 발급 불가(서버 closed_now와 같음)
+const closedNow = () => kstNow().getUTCHours() >= CUTOFF_HOUR;
+const CLOSED_MSG = `접수는 ${CUTOFF_HOUR}시에 마감됩니다. 내일 0시부터 발급할 수 있습니다.`;
+const endOf = (s, days) => addDays(s, days - 1);
+// 일수 1~7·일 목표 최소 10 — 발급 건 price = 단가 × 일수 × 일 목표(슬롯 1개 금액). days 없는 옛 건 = 7일·100개
+const termOpts = () => Array.from({ length: TERM_DAYS }, (_, i) => `<option value="${i + 1}"${i + 1 === TERM_DAYS ? ' selected' : ''}>${i + 1}일</option>`).join('');
+const fixDaily = inp => { inp.value = Math.max(MIN_DAILY, parseInt(inp.value) || MIN_DAILY); return +inp.value; };
+const termOf = x => `${x.days || TERM_DAYS}일 · 일 ${(x.daily || 100).toLocaleString()}개`;
 const md = s => (s || '').slice(5);
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
 function parseMid(v) {
@@ -546,9 +556,10 @@ function parseMid(v) {
   const m = v.match(/(?:products|catalog)\/(\d{6,})/) || v.match(/[?&](?:nvMid|nv_mid)=(\d{6,})/);
   return m ? m[1] : '';
 }
-// 광고주·총판 화면 상태 = 빈 슬롯 / 진행중(정보 입력됨) / 환불 요청 / 중단 / 종료. 직원의 '접수 → 진행중' 구분(runAt)은 어드민에서만 보임
-const STATE = { run: ['진행중', 'b-run'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-req'], stop: ['중단', 'b-end'], end: ['종료', 'b-empty'] };
-const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.mid ? 'run' : 'empty';
+// 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 중단 / 종료
+const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-req'], stop: ['중단', 'b-end'], end: ['종료', 'b-empty'] };
+const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
+const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
 const closedState = st => st === 'end' || st === 'stop';
 // 환불 요청 = 직원이 작업을 시작한 슬롯 + 종료일 전날까지(서버 can_refund와 같음)
 const canRefund = sl => !!sl.runAt && sl.end > today() && !sl.refundAt;
@@ -636,10 +647,10 @@ function render() {
     return `<tr><td><input type="checkbox" class="cb" value="${x.no}" ${locked ? 'disabled' : checked.has(x.no) ? 'checked' : ''}></td><td><b>${x.no}</b></td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${closedState(st) ? '-' : left + '일'}</td>
+      <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
       <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
-      <td>${locked ? '-' : `<button class="btn sm" data-edit="${x.no}">수정</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:160px;color:var(--muted)">슬롯이 없습니다. 오른쪽 위 \'슬롯 발급\'으로 발급받으세요.</td></tr>';
+      <td>${canEdit(x) ? `<button class="btn sm" data-edit="${x.no}">수정</button>` : '-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="11" style="height:160px;color:var(--muted)">슬롯이 없습니다. 오른쪽 위 \'슬롯 발급\'으로 발급받으세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   selCount(); renderSettle(); renderHistory();
 }
@@ -674,7 +685,9 @@ $('edit-open').onclick = () => {
 };
 function openEdit(nos) {
   nos = new Set(nos);
-  editing = SLOTS.filter(x => nos.has(x.no)).sort((a, b) => b.no - a.no);
+  editing = SLOTS.filter(x => nos.has(x.no) && canEdit(x)).sort((a, b) => b.no - a.no);
+  if (!editing.length) return alert('수정할 수 있는 슬롯이 없습니다. 진행중 슬롯은 수정할 수 없고 환불 요청만 가능합니다.');
+  if (editing.length < nos.size) alert(`진행중·환불·종료 슬롯 ${nos.size - editing.length}개는 수정할 수 없어 빼고 엽니다.`);
   $('ed-n').textContent = editing.length;
   $('ed-rows').innerHTML = editing.map(x => `<tr><td class="ed-period"><b>${x.no}</b><span class="ed-m"> · ${md(x.start)} ~ ${md(x.end)}</span></td><td class="ed-hide">${md(x.start)}</td><td class="ed-hide">${md(x.end)}</td>
     <td data-l="순위 키워드"><input class="ed-kw" maxlength="50" value="${esc(x.kw)}" placeholder="키워드"></td>
@@ -702,30 +715,35 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
   $('m-edit').classList.remove('show');
   document.querySelectorAll('.cb:checked').forEach(c => c.checked = false); selCount();
   const skip = r.bad.length + (r.locked || []).length;
-  alert(skip ? `${r.changed}개 저장, ${skip}개는 종료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
+  alert(skip ? `${r.changed}개 저장, ${skip}개는 진행중·종료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
 });
 
 /* 슬롯 발급 */
+$('i-days').innerHTML = termOpts(); $('di-days').innerHTML = termOpts();
 $('issue-open').onclick = () => {
-  if (!(USER.price > 0)) return alert('슬롯 단가가 설정되지 않았습니다. 관리자에게 문의해 주세요.');
-  $('iq').value = 1; $('i-start').value = minStart();
-  $('i-price').textContent = `${won(USER.price)}원 / 1슬롯 · ${TERM_DAYS}일 (VAT 별도)`;
+  if (!(USER.price > 0)) return alert('단가가 설정되지 않았습니다. 관리자에게 문의해 주세요.');
+  if (closedNow()) return alert(CLOSED_MSG);
+  $('iq').value = 1; $('i-start').value = today(); $('i-days').value = TERM_DAYS; $('i-daily').value = 100;
+  $('i-price').textContent = `${won(USER.price)}원 / 1개 (VAT 별도)`;
   iSync(); $('m-issue').classList.add('show');
 };
+// 결제 금액 = 단가 × 일수 × 일 목표 × 수량
 function iSync() {
   const q = $('iq'); q.value = Math.min(MAX_QTY, Math.max(1, parseInt(q.value) || 1));
-  const st = $('i-start'); if (!st.value || st.value < minStart()) st.value = minStart();
-  $('i-end').value = endOf(st.value);
-  const amt = USER.price * +q.value;
+  const st = $('i-start'); if (!st.value || st.value < today()) st.value = today();
+  const days = +$('i-days').value, daily = fixDaily($('i-daily'));
+  $('i-end').value = endOf(st.value, days);
+  const amt = USER.price * days * daily * +q.value;
   $('i-amt').textContent = `${won(amt)}원`; $('i-vat').textContent = `(VAT 포함 ${won(Math.round(amt * VAT))}원)`;
+  return { qty: +q.value, start: st.value, days, daily, amt };
 }
 document.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { $('iq').value = (parseInt($('iq').value) || 0) + +b.dataset.q; iSync(); });
-$('iq').onchange = iSync; $('i-start').onchange = iSync;
+['iq', 'i-start', 'i-days', 'i-daily'].forEach(id => $(id).onchange = iSync);
 $('i-go').onclick = () => busy($('i-go'), async () => {
-  iSync();
-  const qty = +$('iq').value, start = $('i-start').value;
-  if (!confirm(`슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start)}, VAT 포함 ${won(Math.round(USER.price * qty * VAT))}원)`)) return;
-  await api('/shop-issue', { qty, start, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
+  if (closedNow()) throw new Error(CLOSED_MSG);
+  const { qty, start, days, daily, amt } = iSync();
+  if (!confirm(`슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start, days)}, ${days}일 · 일 ${daily}개, VAT 포함 ${won(Math.round(amt * VAT))}원)`)) return;
+  await api('/shop-issue', { qty, start, days, daily, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
   $('m-issue').classList.remove('show'); filter = 'empty'; render();
 });
 
@@ -754,7 +772,7 @@ function renderSettle() {
     const [l, c] = settleState(is), b = billOf(is);
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${is.qty}</td><td>${won(is.price)}</td>
       <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b>${refundNote(is)}</td>
-      <td>${md(is.start)} ~ ${md(is.end)}</td><td><span class="badge ${c}">${l}</span></td>
+      <td>${md(is.start)} ~ ${md(is.end)}<br><span style="font-size:11px;color:var(--muted)">${termOf(is)}</span></td><td><span class="badge ${c}">${l}</span></td>
       <td class="void-keep">${!is._sub && canCancel(is) ? `<button class="btn sm" data-cancel="${is.no}" style="color:var(--danger)">취소</button>` : is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
 }
@@ -775,20 +793,20 @@ function saveXlsx(name, header, rows, widths) {
   XLSX.writeFile(wb, `쇼핑슬롯_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
 $('slot-xlsx').onclick = () => saveXlsx('내슬롯',
-  ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '종료일', '남은 일', '상태'],
-  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
-  [8, 18, 14, 50, 12, 12, 8, 10]);
+  ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '종료일', '일 목표', '남은 일', '상태'],
+  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
+  [8, 18, 14, 50, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
-  ['발급일시', '발급번호', '수량', '단가(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '환불액(VAT 포함)', '시작일', '종료일', '상태'],
-  settleRows.map(is => [is.at, is.no, is.qty, is.price, billOf(is), Math.round(billOf(is) * VAT), refundVat(is), is.start, is.end, settleState(is)[0]]),
-  [18, 10, 8, 10, 18, 18, 16, 12, 12, 12]);
+  ['발급일시', '발급번호', '수량', '일수', '일 목표', '슬롯 금액(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '환불액(VAT 포함)', '시작일', '종료일', '상태'],
+  settleRows.map(is => [is.at, is.no, is.qty, is.days || TERM_DAYS, is.daily || 100, is.price, billOf(is), Math.round(billOf(is) * VAT), refundVat(is), is.start, is.end, settleState(is)[0]]),
+  [18, 10, 8, 6, 8, 12, 18, 18, 16, 12, 12, 12]);
 
 /* ── 변경 이력 ── */
 function renderHistory() {
   const ev = [];
   ISSUES.forEach(is => {
     const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소';
-    ev.push([is.at, '<span class="badge b-req">발급</span>', `발급번호 #${is.no}`, `슬롯 ${is.qty}건 발급 / ${span}`]);
+    ev.push([is.at, '<span class="badge b-req">발급</span>', `발급번호 #${is.no}`, `슬롯 ${is.qty}건 발급 / ${span} (${termOf(is)})`]);
     if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge b-end">${cancel}</span>`, `발급번호 #${is.no}`, `슬롯 ${is.qty}건 ${cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
@@ -843,27 +861,29 @@ function renderDist() {
 /* 하부점 슬롯 발급 */
 function diSync() {
   const q = $('di-qty'); q.value = Math.min(MAX_QTY, Math.max(1, parseInt(q.value) || 1));
-  const st = $('di-start'); if (!st.value || st.value < minStart()) st.value = minStart();
-  $('di-end').value = endOf(st.value);
+  const st = $('di-start'); if (!st.value || st.value < today()) st.value = today();
+  const days = +$('di-days').value, daily = fixDaily($('di-daily')), n = days * daily * +q.value;
+  $('di-end').value = endOf(st.value, days);
   const u = SUBS.find(x => x.id === $('di-user').value);
-  $('di-amt').textContent = u ? `${won(u.price * +q.value)}원` : '-';
+  $('di-amt').textContent = u ? `${won(u.price * n)}원` : '-';
+  return { u, qty: +q.value, start: st.value, days, daily, n };
 }
 document.querySelectorAll('[data-dq]').forEach(b => b.onclick = () => { $('di-qty').value = (parseInt($('di-qty').value) || 0) + +b.dataset.dq; diSync(); });
-['di-qty', 'di-start', 'di-user'].forEach(id => $(id).onchange = diSync);
+['di-qty', 'di-start', 'di-user', 'di-days', 'di-daily'].forEach(id => $(id).onchange = diSync);
 $('di-go').onclick = () => busy($('di-go'), async () => {
-  diSync();
-  const u = SUBS.find(x => x.id === $('di-user').value), qty = +$('di-qty').value, start = $('di-start').value;
+  if (closedNow()) throw new Error(CLOSED_MSG);
+  const { u, qty, start, days, daily, n } = diSync();
   if (!u) throw new Error('대상 하부점을 선택해 주세요.');
-  if (!confirm(`${u.company}에 슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start)}, 하부점 금액 ${won(u.price * qty)}원 / 총판 정산 ${won(USER.price * qty)}원, VAT 별도)`)) return;
-  await api('/shop-issue', { userId: u.id, qty, start, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
+  if (!confirm(`${u.company}에 슬롯 ${qty}개를 발급합니다. (${start} ~ ${endOf(start, days)}, ${days}일 · 일 ${daily}개, 하부점 금액 ${won(u.price * n)}원 / 총판 정산 ${won(USER.price * n)}원, VAT 별도)`)) return;
+  await api('/shop-issue', { userId: u.id, qty, start, days, daily, reqId: crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2) });
 });
 function renderDIssues() {
   const rows = subIssues().sort((a, b) => b.no - a.no), slots = subSlots();
   $('di-rows').innerHTML = rows.map(is => {
     const set = slots.filter(x => x.userId === is.userId && x.issueNo === is.no && x.mid).length;
-    const st = is.revokedAt ? `<span class="st-r">${is.revokedRole === 'user' ? '하부점 취소' : '취소'}</span>` : is.end < today() ? '<span class="st-n">종료</span>' : set ? '<span class="st-g">진행중</span>' : '빈 슬롯';
+    const st = is.revokedAt ? `<span class="st-r">${is.revokedRole === 'user' ? '하부점 취소' : '취소'}</span>` : is.end < today() ? '<span class="st-n">종료</span>' : runningIn(slots, is) ? '<span class="st-g">진행중</span>' : set ? '접수' : '빈 슬롯';
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}개</td><td>${is.revokedAt ? '-' : `${set} / ${is.qty}`}</td>
-      <td>${md(is.at)}</td><td>${md(is.start)} ~ ${md(is.end)}</td><td>${st}</td>
+      <td>${md(is.at)}</td><td>${md(is.start)} ~ ${md(is.end)}<br><span style="font-size:11px;color:var(--muted)">${termOf(is)}</span></td><td>${st}</td>
       <td class="void-keep">${!is.revokedAt && is.start >= today() && !runningIn(slots, is) ? `<button class="btn sm" data-revoke="${esc(is.userId)}|${is.no}" style="color:var(--danger)">취소</button>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="8" style="height:120px;color:var(--muted)">발급 내역이 없습니다.</td></tr>';
 }
