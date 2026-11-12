@@ -102,6 +102,7 @@
   .guide li { counter-increment:g; display:flex; flex-direction:column; gap:4px; padding:12px 16px; border-radius:10px; background:#f8fafc; font-size:12px; color:var(--text2); line-height:1.6; word-break:keep-all; }
   .guide li b { color:var(--text); font-size:13px; } .guide li b::before { content:counter(g); display:inline-grid; place-items:center; width:20px; height:20px; margin-right:7px; border-radius:50%; background:var(--acc); color:#fff; font-size:11px; }
   .guide em { font-style:normal; font-weight:700; color:var(--text); }
+  .guide .g-red { color:var(--danger); font-weight:700; }  /* 접수 규칙 강조 */
   @media (max-width:768px) { .guide { width:auto; } .guide li { flex:1 1 100%; } }
 
   /* 공통 */
@@ -283,6 +284,7 @@
 <div class="mtop"><button type="button" id="m-menu" aria-label="메뉴">☰</button>SHOPPING <span>SLOT</span></div>
 <aside>
   <div class="brand">SHOPPING <span>SLOT</span></div>
+  <div class="nav-label" id="own-label" style="display:none;padding-top:0">접수 관리</div>
   <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 캠페인 관리</div>
   <div class="nav" data-p="settle"><i data-lucide="receipt"></i> 정산 내역 <span id="nav-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
   <div class="nav" data-p="history"><i data-lucide="history"></i> 변경 이력</div>
@@ -290,6 +292,7 @@
     <div class="nav-label">총판 관리</div>
     <div class="nav" data-p="d-slots"><i data-lucide="layout-list"></i> 하부점 접수 현황</div>
     <div class="nav" data-p="d-settle"><i data-lucide="wallet"></i> 하부점 정산 <span id="nav-d-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
+    <div class="nav" data-p="d-history"><i data-lucide="history"></i> 하부점 변경 이력</div>
     <div class="nav" data-p="d-users"><i data-lucide="users-round"></i> 하부점 관리</div>
   </div>
   <div class="me">
@@ -312,7 +315,7 @@
     <details class="guide" id="g-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올림(엑셀 접수)<br>한 줄 = 캠페인 1개 · 시작일 당일·익일 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></li>
+        <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올림(엑셀 접수)<br><span class="g-red">한 줄 = 캠페인 1개 · 시작일 당일·익일 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></span></li>
         <li><b>진행</b><span>접수 후 작업이 시작되면 <em>진행중</em><br>진행 전(<em>접수</em>)엔 옆 <em>수정</em>으로 키워드·URL 변경</span></li>
         <li><b>환불</b><span>진행 전(<em>접수</em>) = 옆 <em>환불</em>로 바로 삭제, 전액 정산에서 빠짐<br>진행중 = 환불 요청 → 처리되면 남은 일수 금액이 빠짐(종료일 전날까지)</span></li>
         <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>입금이 확인되면 <em>정산완료</em></span></li>
@@ -334,14 +337,14 @@
 
   <!-- 정산 내역 -->
   <section class="page" id="p-settle">
-    <div class="head"><div><h2>정산 내역</h2><p>접수한 캠페인의 금액과 입금 상태입니다. 환불은 내 캠페인 관리에서 캠페인마다 합니다.</p></div>
+    <div class="head"><div><h2>정산 내역</h2><p>직접 접수한 캠페인의 금액과 입금 상태입니다. 환불은 내 캠페인 관리에서 캠페인마다 합니다.</p></div>
       <button class="btn" id="settle-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
         <details class="guide" id="g-settle">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>금액 확인</b><span>접수하면 바로 정산 건이 생깁니다(단가 × 일수 × 일 목표)<br><em>결제 금액(VAT 포함)</em>을 입금해 주세요</span></li>
+        <li><b>금액 확인</b><span>접수하면 바로 정산 건이 생깁니다(단가 × 일수 × 일 목표)<br><em>입금액(VAT 포함)</em>을 입금해 주세요</span></li>
         <li><b>입금 완료</b><span>입금이 확인되면<br>상태가 <em>정산완료</em>로 바뀝니다</span></li>
-        <li><b>환불</b><span>진행 전 환불은 수량·금액에서 바로 빠지고<br>진행중 환불 금액은 정산 금액 아래 <em>환불</em>로 표시</span></li>
+        <li><b>환불</b><span>진행 전 환불은 캠페인 수·금액에서 바로 빠지고<br>진행중 환불은 <em>환불 금액</em> 칸에 표시</span></li>
       </ol>
     </details>
     <div class="summary" id="st-cards"></div>
@@ -371,7 +374,7 @@
     <details class="guide" id="g-d-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>접수</b><span><em>접수</em>에서 하부점을 고르고 한 줄씩 입력하거나 엑셀로 올림<br>한 줄 = 캠페인 1개 · 금액은 하부점 단가로 <em>하부점 정산</em>에</span></li>
+        <li><b>접수</b><span><em>접수</em>에서 하부점을 고르고 한 줄씩 입력하거나 엑셀로 올림<br><span class="g-red">한 줄 = 캠페인 1개 · 시작일 당일·익일 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></span></li>
         <li><b>환불</b><span>진행 전 = <em>환불</em>로 바로 삭제(전액) · 진행중 = 환불 요청 → 남은 일수만큼<br>키워드·URL 수정은 하부점이 직접 합니다</span></li>
         <li><b>상태</b><span><em>접수</em> = 진행 전(수정·환불 가능) · <em>진행중</em> = 작업 시작<br><em>환불 요청</em> → <em>환불</em> · <em>종료</em> = 기간 끝</span></li>
       </ol>
@@ -395,6 +398,7 @@
       <ol>
         <li><b>받을 금액</b><span>하부점 캠페인이 <em>하부점 단가</em>로 쌓입니다<br>환불된 금액은 빠집니다</span></li>
         <li><b>입금 확인</b><span>하부점에게 입금을 받으면<br><em>입금 확인</em>을 눌러 주세요</span></li>
+        <li><b>총판 정산</b><span>하부점 건으로 하이어에 낼 금액(<em>총판 단가</em>)<br>하이어가 입금을 확인하면 <em>정산완료</em></span></li>
       </ol>
     </details>
     <div class="summary" id="dt-cards"></div>
@@ -405,8 +409,18 @@
         <button class="btn pri" id="dt-pay">입금 확인</button><button class="btn" id="dt-unpay">입금 취소</button></span>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>접수일시</th><th>하부점</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th><th>액션</th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>접수일시</th><th>하부점</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th><th>총판 정산(VAT 별도)</th><th>액션</th></tr></thead>
       <tbody id="dt-rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- 총판: 하부점 변경 이력 -->
+  <section class="page" id="p-d-history">
+    <div class="head"><div><h2>하부점 변경 이력</h2><p>하부점 캠페인 접수·환불·수정·입금 기록입니다.</p></div></div>
+    <div class="bar"><span style="color:var(--text2)">하부점</span><select id="dh-user"></select></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>일시</th><th>구분</th><th>하부점</th><th>대상</th><th>내용</th></tr></thead>
+      <tbody id="dh-rows"></tbody>
     </table></div>
   </section>
 
@@ -418,6 +432,7 @@
       <ol>
         <li><b>계정 만들기</b><span><em>하부점 추가</em>에서 계정을 만듭니다<br>업체명·아이디·비밀번호·단가(1개) 입력</span></li>
         <li><b>하부점 사용</b><span>하부점은 그 아이디로 로그인해 직접 접수하거나<br><em>하부점 접수 현황</em>에서 총판이 대신 접수</span></li>
+        <li><b>정산 요약</b><span>업체명을 누르면 누적 정산·미입금<br>월별 정산 현황을 볼 수 있습니다</span></li>
         <li><b>단가·차단</b><span>단가(1개)는 <em>수정</em>에서 변경(이후 접수분부터)<br>거래를 멈출 땐 <em>차단</em></span></li>
       </ol>
     </details>
@@ -540,7 +555,7 @@ const closedState = st => st === 'end' || st === 'stop';
 // 환불 = 진행 전(runAt 없음, 기간 안) → 바로 삭제·전액 / 진행중 → 환불 요청(종료일 전날까지) — 서버 can_drop·can_refund와 같음
 const canRefund = sl => !sl.refundAt && !sl.stoppedAt && (sl.runAt ? sl.end > today() : sl.end >= today());
 // 정산 금액 = 발급 금액 - 중단 슬롯 환불액
-// 환불 = 중단 슬롯 환불(refund) + 하이어가 넣은 추가 환불(adj·autoAdj — 하이어 청구 쪽이라 하부점 건은 총판 정산에만, distOwed가 refund에 합침)
+// 환불 = 중단 슬롯 환불(refund) + 하이어가 넣은 추가 환불(adj·autoAdj — 하이어 청구 쪽이라 하부점 건은 총판 정산에만, distView가 refund에 합침)
 const refundOf = is => (is.refund || 0) + (is.dist ? 0 : (is.adj || 0) + (is.autoAdj || 0));
 const billOf = is => is.qty * is.price - refundOf(is);
 
@@ -596,7 +611,7 @@ onAuthStateChanged(auth, user => {
     $('me-id').textContent = ME;
     $('me-role').textContent = `${USER.company || ''} · ${USER.role === 'dist' ? '총판' : '사용자'}`;
     const isDist = USER.role === 'dist';
-    $('dist-nav').style.display = isDist ? '' : 'none';
+    $('dist-nav').style.display = $('own-label').style.display = isDist ? '' : 'none';
     if (isDist && !distUnsub) distUnsub = watchSubs(fail);
     if (!isDist && distUnsub) { distUnsub(); distUnsub = null; SUBS = []; SUB_ISSUES = {}; SUB_SLOTS = {}; }
   }, fail));
@@ -813,7 +828,7 @@ function settleState(is) {
 let settleRows = [];
 function renderSettle() {
   const st = $('s-st').value, from = $('s-from').value, to = $('s-to').value;
-  const live = ISSUES.concat(distOwed()).filter(is => !is.revokedAt), unpaid = live.filter(is => !is.paidAt);
+  const live = ISSUES.filter(is => !is.revokedAt), unpaid = live.filter(is => !is.paidAt);
   const sum = arr => arr.reduce((a, is) => a + billOf(is), 0);
   $('st-cards').innerHTML = [
     ['정산 금액 (VAT 포함)', Math.round(sum(live) * VAT), ''],
@@ -821,11 +836,11 @@ function renderSettle() {
     ['미입금 (VAT 포함)', Math.round(sum(unpaid) * VAT), '#b45309'],
   ].map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   const n = unpaid.length; $('nav-unpaid').textContent = n; $('nav-unpaid').style.display = n ? '' : 'none';
-  settleRows = ISSUES.concat(distOwed()).filter(is => !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)
+  settleRows = ISSUES.filter(is => !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)
     && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
-    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
       <td style="font-weight:700;color:var(--ok)">${won(b)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(b * VAT))}원</td>
       <td style="${refundOf(is) ? 'color:var(--danger);font-weight:700' : ''}">${refundOf(is) ? won(refundOf(is)) + '원' : '-'}</td><td><span class="badge ${c}">${l}</span></td></tr>`;
   }).join('') || '<tr><td colspan="8" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
@@ -850,23 +865,30 @@ $('settle-xlsx').onclick = () => saveXlsx('정산내역',
   [18, 10, 8, 6, 8, 12, 18, 18, 16, 10]);
 
 /* ── 변경 이력 ── */
-function renderHistory() {
-  const ev = [];
-  ISSUES.forEach(is => {
-    const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소';
-    ev.push([is.at, '<span class="badge b-req">접수</span>', `발급번호 #${is.no}`, `캠페인 ${is.qty0 || is.qty}건 접수 / ${span} (${termOf(is)})`]);
-    if (is.qty0 && is.qty0 > is.qty && !is.revokedAt) ev.push([is.droppedAt || is.at, '<span class="badge b-done">환불</span>', `발급번호 #${is.no}`, `진행 전 ${is.qty0 - is.qty}건 삭제(전액)`]);
-    if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge ${is.qty0 ? 'b-done' : 'b-end'}">${is.qty0 ? '환불' : cancel}</span>`, `발급번호 #${is.no}`, `캠페인 ${is.qty0 || is.qty}건 ${is.qty0 ? '삭제(전액)' : cancel} / ${span}`]);
-    if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
+// 변경 이력 줄 — 본인(내 캠페인)·하부점(총판 관리) 공용, withSub면 하부점 칸 추가
+function historyHtml(issues, slots, withSub) {
+  const ev = [], who = x => withSub ? [esc(subName(x.userId))] : [];
+  issues.forEach(is => {
+    const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소', tg = `발급번호 #${is.no}`;
+    ev.push([is.at, '<span class="badge b-req">접수</span>', ...who(is), tg, `캠페인 ${is.qty0 || is.qty}건 접수 / ${span} (${termOf(is)})`]);
+    if (is.qty0 && is.qty0 > is.qty && !is.revokedAt) ev.push([is.droppedAt || is.at, '<span class="badge b-done">환불</span>', ...who(is), tg, `진행 전 ${is.qty0 - is.qty}건 삭제(전액)`]);
+    if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge ${is.qty0 ? 'b-done' : 'b-end'}">${is.qty0 ? '환불' : cancel}</span>`, ...who(is), tg, `캠페인 ${is.qty0 || is.qty}건 ${is.qty0 ? '삭제(전액)' : cancel} / ${span}`]);
+    if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', ...who(is), tg, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
-  SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `캠페인 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
-  SLOTS.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', `캠페인 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
-  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', `캠페인 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
-  // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
+  slots.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', ...who(x), `캠페인 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  slots.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', ...who(x), `캠페인 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
+  slots.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', ...who(x), `캠페인 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
+  // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 접수→환불→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
-  ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
-  $('hist-rows').innerHTML = ev.map(([at, t, tg, c]) => `<tr><td>${md(at)}</td><td>${t}</td><td>${tg}</td><td>${c}</td></tr>`).join('')
-    || '<tr><td colspan="4" style="height:120px;color:var(--muted)">이력이 없습니다.</td></tr>';
+  ev.sort((a, b) => b[0].localeCompare(a[0]) || b.at(-1) - a.at(-1));
+  const n = withSub ? 5 : 4;
+  return ev.map(e => `<tr>${[md(e[0]), ...e.slice(1, n)].map(v => `<td>${v}</td>`).join('')}</tr>`).join('')
+    || `<tr><td colspan="${n}" style="height:120px;color:var(--muted)">이력이 없습니다.</td></tr>`;
+}
+function renderHistory() { $('hist-rows').innerHTML = historyHtml(ISSUES, SLOTS, false); }
+function renderDHistory() {
+  const uid = $('dh-user').value;
+  $('dh-rows').innerHTML = historyHtml(subIssues().filter(x => !uid || x.userId === uid), subSlots().filter(x => !uid || x.userId === uid), true);
 }
 
 /* ── 비밀번호 변경 ── */
@@ -879,7 +901,8 @@ $('pw-go').onclick = () => busy($('pw-go'), async () => {
 
 /* ── 총판 ── */
 // 하부점 발급분 = 총판이 하이어에 낼 돈(총판 단가·distPaidAt) — 내 정산 내역에 합침
-const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, unit: is.distUnit, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' }))) : [];
+// 하부점 건의 총판 쪽(하이어가 총판에 청구) — 총판 단가·총판 입금(distPaidAt), 하이어 추가 환불(adj·autoAdj)도 이쪽에서 뺌
+const distView = is => ({ ...is, price: is.distPrice || 0, unit: is.distUnit, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' });
 const subName = id => (SUBS.find(u => u.id === id) || {}).company || id;
 const subIssues = () => Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, userId: u })));
 const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => ({ ...x, userId: u })));
@@ -902,8 +925,8 @@ function renderDist() {
   if (USER.role !== 'dist') return;
   const opts = all => (all ? `<option value="">${all}</option>` : '') + SUBS.map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
   const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.selectedIndex < 0) el.selectedIndex = 0; };
-  keep('ds-user', opts('전체 하부점')); keep('dt-user', opts('전체 하부점'));
-  renderDSlots(); renderDSettle(); renderDUsers();
+  keep('ds-user', opts('전체 하부점')); keep('dt-user', opts('전체 하부점')); keep('dh-user', opts('전체 하부점'));
+  renderDSlots(); renderDSettle(); renderDHistory(); renderDUsers();
 }
 
 /* 하부점 접수 현황 */
@@ -924,6 +947,7 @@ $('ds-rows').onclick = e => {
   requestRefund(subSlots().filter(x => x.userId === uid && x.no === +no && canRefund(x)), btn);
 };
 ['ds-user', 'ds-q', 'ds-noend'].forEach(id => { $(id).oninput = renderDSlots; $(id).onchange = renderDSlots; });
+$('dh-user').onchange = renderDHistory;
 
 /* 하부점 정산(하부점 → 총판, 하부점 단가) */
 function renderDSettle() {
@@ -940,8 +964,9 @@ function renderDSettle() {
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td><input type="checkbox" class="dt-cb" value="${k}"${picked.has(`${is.userId}|${is.no}`) ? ' checked' : ''}></td><td>${md(is.at)}</td><td>${esc(subName(is.userId))}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
       <td style="font-weight:700;color:var(--ok)">${won(b)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(b * VAT))}원</td>
       <td style="${refundOf(is) ? 'color:var(--danger);font-weight:700' : ''}">${refundOf(is) ? won(refundOf(is)) + '원' : '-'}</td><td><span class="badge ${c}">${l}</span></td>
+      <td>${(d => `${won(billOf(d))}원<br><span class="badge ${settleState(d)[1]}" style="margin-top:3px">${settleState(d)[0]}</span>`)(distView(is))}</td>
       <td class="void-keep">${is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="11" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
+  }).join('') || '<tr><td colspan="12" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
   dtCount();
 }
 ['dt-user', 'dt-st'].forEach(id => $(id).onchange = renderDSettle);
