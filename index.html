@@ -128,7 +128,7 @@
   .empty { color:#cbd5e1; }
   .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
   .b-run { background:#ecfdf5; color:#059669; } .b-empty { background:#f1f5f9; color:#64748b; }
-  .b-ext { background:#fffbeb; color:#b45309; } .b-wait { background:#eff6ff; color:#2563eb; } .b-req { background:#eef2ff; color:var(--acc); } .b-end { background:#fef2f2; color:var(--danger); }
+  .b-ext { background:#fffbeb; color:#b45309; } .b-wait { background:#eff6ff; color:#2563eb; } .b-req { background:#eef2ff; color:var(--acc); } .b-end { background:#fef2f2; color:var(--danger); } .b-done { background:var(--danger); color:#fff; }
   .st-g { color:#059669; font-weight:600; } .st-n { color:#64748b; font-weight:600; } .st-r { color:var(--danger); font-weight:600; }
   .foot { display:flex; justify-content:flex-end; align-items:center; gap:12px; padding:10px 14px; color:var(--text2); font-size:12px; }
   .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
@@ -530,7 +530,7 @@ function parseMid(v) {
   return m ? m[1] : '';
 }
 // 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 환불(직원 중단 처리 완료) / 종료
-const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 캠페인', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-end'], end: ['종료', 'b-empty'] };
+const STATE = { wait: ['접수', 'b-wait'], run: ['진행중', 'b-run'], empty: ['빈 캠페인', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-done'], end: ['종료', 'b-empty'] };
 const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
 const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
 const closedState = st => st === 'end' || st === 'stop';
@@ -613,7 +613,7 @@ function visibleSlots() {
 function render() {
   if (!ME) return;
   const cnt = k => SLOTS.filter(x => slotState(x) === k).length;
-  $('st-chips').innerHTML = [['', `전체 (${SLOTS.length})`], ...Object.entries(STATE).map(([k, [n]]) => [k, `${n} (${cnt(k)})`])]
+  $('st-chips').innerHTML = [['', `전체 (${SLOTS.length})`], ...Object.entries(STATE).filter(([k]) => k !== 'empty' || cnt(k)).map(([k, [n]]) => [k, `${n} (${cnt(k)})`])]
     .map(([k, l]) => `<span class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${l}</span>`).join('');
   const rows = visibleSlots();
   const dash = '<span class="empty">미입력</span>';
@@ -855,13 +855,13 @@ function renderHistory() {
   ISSUES.forEach(is => {
     const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소';
     ev.push([is.at, '<span class="badge b-req">접수</span>', `발급번호 #${is.no}`, `캠페인 ${is.qty0 || is.qty}건 접수 / ${span} (${termOf(is)})`]);
-    if (is.qty0 && is.qty0 > is.qty && !is.revokedAt) ev.push([is.droppedAt || is.at, '<span class="badge b-end">환불</span>', `발급번호 #${is.no}`, `진행 전 ${is.qty0 - is.qty}건 삭제(전액)`]);
-    if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge b-end">${is.qty0 ? '환불' : cancel}</span>`, `발급번호 #${is.no}`, `캠페인 ${is.qty0 || is.qty}건 ${is.qty0 ? '삭제(전액)' : cancel} / ${span}`]);
+    if (is.qty0 && is.qty0 > is.qty && !is.revokedAt) ev.push([is.droppedAt || is.at, '<span class="badge b-done">환불</span>', `발급번호 #${is.no}`, `진행 전 ${is.qty0 - is.qty}건 삭제(전액)`]);
+    if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge ${is.qty0 ? 'b-done' : 'b-end'}">${is.qty0 ? '환불' : cancel}</span>`, `발급번호 #${is.no}`, `캠페인 ${is.qty0 || is.qty}건 ${is.qty0 ? '삭제(전액)' : cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
   SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `캠페인 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
   SLOTS.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', `캠페인 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
-  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-end">환불</span>', `캠페인 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
+  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', `캠페인 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
