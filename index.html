@@ -570,9 +570,11 @@ const closedState = st => st === 'end' || st === 'stop';
 // 환불 요청 = 직원이 작업을 시작한 슬롯 + 종료일 전날까지(서버 can_refund와 같음)
 const canRefund = sl => !!sl.runAt && sl.end > today() && !sl.refundAt;
 // 정산 금액 = 발급 금액 - 중단 슬롯 환불액
-const billOf = is => is.qty * is.price - (is.refund || 0);
-const refundNote = is => is.refund ? `<br><span style="font-size:11px;color:var(--danger);font-weight:600">환불 ${won(refundVat(is))}</span>` : '';
-const refundVat = is => Math.round((billOf(is) + (is.refund || 0)) * VAT) - Math.round(billOf(is) * VAT);
+// 환불 = 중단 슬롯 환불(refund) + 하이어가 넣은 추가 환불(adj·autoAdj — 하이어 청구 쪽이라 하부점 건은 총판 정산에만, distOwed가 refund에 합침)
+const refundOf = is => (is.refund || 0) + (is.dist ? 0 : (is.adj || 0) + (is.autoAdj || 0));
+const billOf = is => is.qty * is.price - refundOf(is);
+const refundNote = is => refundOf(is) ? `<br><span style="font-size:11px;color:var(--danger);font-weight:600">환불 ${won(refundVat(is))}</span>` : '';
+const refundVat = is => Math.round((billOf(is) + refundOf(is)) * VAT) - Math.round(billOf(is) * VAT);
 
 async function api(path, data) {
   const res = await fetch(API + path, {
@@ -905,7 +907,7 @@ $('pw-go').onclick = () => busy($('pw-go'), async () => {
 
 /* ── 총판 ── */
 // 하부점 발급분 = 총판이 하이어에 낼 돈(총판 단가·distPaidAt) — 내 정산 내역에 합침
-const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, refund: is.distRefund || 0, paidAt: is.distPaidAt || '' }))) : [];
+const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' }))) : [];
 const subName = id => (SUBS.find(u => u.id === id) || {}).company || id;
 const subIssues = () => Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, userId: u })));
 const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => ({ ...x, userId: u })));
