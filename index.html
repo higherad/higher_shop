@@ -315,7 +315,7 @@
         <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올림(엑셀 접수)<br>한 줄 = 캠페인 1개 · 시작일 당일·익일 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></li>
         <li><b>진행</b><span>접수 후 작업이 시작되면 <em>진행중</em><br>진행 전(<em>접수</em>)엔 옆 <em>수정</em>으로 키워드·URL 변경</span></li>
         <li><b>환불</b><span>진행 전(<em>접수</em>) = 옆 <em>환불</em>로 바로 삭제, 전액 정산에서 빠짐<br>진행중 = 환불 요청 → 처리되면 남은 일수 금액이 빠짐(종료일 전날까지)</span></li>
-        <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>입금이 확인되면 <em>입금 완료</em></span></li>
+        <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>입금이 확인되면 <em>정산완료</em></span></li>
       </ol>
     </details>
     <div class="chips" id="st-chips"></div>
@@ -325,8 +325,8 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>상태</th><th>관리</th></tr></thead>
-        <tbody id="slot-rows"><tr><td colspan="10" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
+        <thead><tr><th>접수일</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>상태</th><th>관리</th></tr></thead>
+        <tbody id="slot-rows"><tr><td colspan="11" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
     </div>
@@ -340,17 +340,17 @@
       <summary>이용 방법</summary>
       <ol>
         <li><b>금액 확인</b><span>접수하면 바로 정산 건이 생깁니다(단가 × 일수 × 일 목표)<br><em>결제 금액(VAT 포함)</em>을 입금해 주세요</span></li>
-        <li><b>입금 완료</b><span>입금이 확인되면<br>상태가 <em>입금 완료</em>로 바뀝니다</span></li>
+        <li><b>입금 완료</b><span>입금이 확인되면<br>상태가 <em>정산완료</em>로 바뀝니다</span></li>
         <li><b>환불</b><span>진행 전 환불은 수량·금액에서 바로 빠지고<br>진행중 환불 금액은 정산 금액 아래 <em>환불</em>로 표시</span></li>
       </ol>
     </details>
     <div class="summary" id="st-cards"></div>
     <div class="bar">
-      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option></select>
-      <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
+      <span style="color:var(--text2)">상태</span><select id="s-st"><option value="">정산 전체</option><option value="paid">정산완료</option><option value="unpaid">미정산</option></select>
+      <span style="color:var(--text2)">접수일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>캠페인 금액(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th></tr></thead>
+      <thead><tr><th>접수일시</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th></tr></thead>
       <tbody id="settle-rows"></tbody>
     </table></div>
   </section>
@@ -382,7 +382,7 @@
       <label><input type="checkbox" id="ds-noend" checked>종료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>하부점</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>세팅일시</th><th>시작일</th><th>종료일</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="ds-rows"></tbody>
     </table></div>
   </section>
@@ -400,12 +400,12 @@
     <div class="summary" id="dt-cards"></div>
     <div class="bar">
       <span style="color:var(--text2)">하부점</span><select id="dt-user"></select>
-      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">전체</option><option value="unpaid">미입금</option><option value="paid">입금 완료</option></select>
+      <span style="color:var(--text2)">상태</span><select id="dt-st"><option value="">정산 전체</option><option value="paid">정산완료</option><option value="unpaid">미정산</option></select>
       <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center"><span id="dt-n" style="color:var(--text2)"></span>
         <button class="btn pri" id="dt-pay">입금 확인</button><button class="btn" id="dt-unpay">입금 취소</button></span>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>캠페인 금액(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>접수일시</th><th>하부점</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th><th>액션</th></tr></thead>
       <tbody id="dt-rows"></tbody>
     </table></div>
   </section>
@@ -422,7 +422,7 @@
       </ol>
     </details>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>단가(1개, 원)</th><th>보유 캠페인</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>가입일</th><th>최종 접수일</th><th>대행사</th><th>단가(원)</th><th>아이디</th><th>캠페인 수</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="du-rows"></tbody>
     </table></div>
   </section>
@@ -519,6 +519,8 @@ const closedNow = () => kstNow().getUTCHours() >= CUTOFF_HOUR;
 const CLOSED_MSG = `접수는 ${CUTOFF_HOUR}시에 마감됩니다. 내일 0시부터 발급할 수 있습니다.`;
 // 일수 1~7·일 목표 최소 10 — 발급 건 price = 단가 × 일수 × 일 목표(슬롯 1개 금액). days 없는 옛 건 = 7일·100개
 const termOpts = (v = TERM_DAYS) => Array.from({ length: TERM_DAYS }, (_, i) => `<option value="${i + 1}"${i + 1 === v ? ' selected' : ''}>${i + 1}</option>`).join('');
+const goalOf = is => is.qty * (is.days || TERM_DAYS) * (is.daily || 100);
+const unitOf = is => is.unit ? won(is.unit) : '-';
 const termOf = x => `${x.days || TERM_DAYS}일 · 일 ${(x.daily || 100).toLocaleString()}개`;
 const md = s => (s || '').slice(5).replace('-', '/');
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
@@ -541,8 +543,6 @@ const canRefund = sl => !sl.refundAt && !sl.stoppedAt && (sl.runAt ? sl.end > to
 // 환불 = 중단 슬롯 환불(refund) + 하이어가 넣은 추가 환불(adj·autoAdj — 하이어 청구 쪽이라 하부점 건은 총판 정산에만, distOwed가 refund에 합침)
 const refundOf = is => (is.refund || 0) + (is.dist ? 0 : (is.adj || 0) + (is.autoAdj || 0));
 const billOf = is => is.qty * is.price - refundOf(is);
-const refundNote = is => refundOf(is) ? `<br><span style="font-size:11px;color:var(--danger);font-weight:600">환불 ${won(refundVat(is))}</span>` : '';
-const refundVat = is => Math.round((billOf(is) + refundOf(is)) * VAT) - Math.round(billOf(is) * VAT);
 
 async function api(path, data) {
   const res = await fetch(API + path, {
@@ -619,13 +619,13 @@ function render() {
   const dash = '<span class="empty">미입력</span>';
   $('slot-rows').innerHTML = rows.map(x => {
     const st = slotState(x), left = Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
-    return `<tr><td><b>${x.no}</b></td>
+    return `<tr><td>${md(x.setAt) || '-'}</td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
+      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
       <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td style="white-space:nowrap">${[canEdit(x) && `<button class="btn sm" data-edit="${x.no}">수정</button>`, canRefund(x) && `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>`].filter(Boolean).join(' ') || '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:160px;color:var(--muted)">캠페인이 없습니다. 오른쪽 위 \'접수\'로 접수해 주세요.</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="height:160px;color:var(--muted)">캠페인이 없습니다. 오른쪽 위 \'접수\'로 접수해 주세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   renderSettle(); renderHistory();
 }
@@ -808,7 +808,7 @@ $('or-go').onclick = () => busy($('or-go'), async () => {
 /* ── 정산 내역 ── */
 function settleState(is) {
   if (is.revokedAt) return ['취소', 'b-end'];
-  return is.paidAt ? ['입금 완료', 'b-run'] : ['미입금', 'b-ext'];
+  return is.paidAt ? ['정산완료', 'b-run'] : ['미정산', 'b-ext'];
 }
 let settleRows = [];
 function renderSettle() {
@@ -825,9 +825,9 @@ function renderSettle() {
     && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
-    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>#${is.no}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${is.qty}</td><td>${won(is.price)}</td>
-      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b>${refundNote(is)}</td>
-      <td>${md(is.start)} ~ ${md(is.end)}<br><span style="font-size:11px;color:var(--muted)">${termOf(is)}</span></td><td><span class="badge ${c}">${l}</span></td></tr>`;
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}${is._sub ? `<br><span style="font-size:11px;color:var(--muted)">하부점 ${esc(subName(is._sub))}</span>` : ''}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
+      <td style="font-weight:700;color:var(--ok)">${won(b)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(b * VAT))}원</td>
+      <td style="${refundOf(is) ? 'color:var(--danger);font-weight:700' : ''}">${refundOf(is) ? won(refundOf(is)) + '원' : '-'}</td><td><span class="badge ${c}">${l}</span></td></tr>`;
   }).join('') || '<tr><td colspan="8" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
 }
 ['s-st', 's-from', 's-to'].forEach(id => $(id).onchange = renderSettle);
@@ -841,13 +841,13 @@ function saveXlsx(name, header, rows, widths) {
   XLSX.writeFile(wb, `쇼핑슬롯_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
 $('slot-xlsx').onclick = () => saveXlsx('내캠페인',
-  ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '종료일', '일 목표', '남은 일', '상태'],
-  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
-  [8, 18, 14, 50, 12, 12, 8, 8, 10]);
+  ['접수일', '순위 키워드', 'MID', 'URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
+  visibleSlots().map(x => { const st = slotState(x); return [x.setAt || '', x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
+  [16, 18, 14, 50, 6, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
-  ['발급일시', '발급번호', '수량', '일수', '일 목표', '캠페인 금액(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '환불액(VAT 포함)', '시작일', '종료일', '상태'],
-  settleRows.map(is => [is.at, is.no, is.qty, is.days || TERM_DAYS, is.daily || 100, is.price, billOf(is), Math.round(billOf(is) * VAT), refundVat(is), is.start, is.end, settleState(is)[0]]),
-  [18, 10, 8, 6, 8, 12, 18, 18, 16, 12, 12, 12]);
+  ['접수일시', '단가(원)', '캠페인 수', '일수', '일 목표', '전체 목표 합산', '정산 금액(VAT 별도)', '입금액(VAT 포함)', '환불 금액(VAT 별도)', '정산상태'],
+  settleRows.map(is => [is.at, is.unit || '', is.qty, is.days || TERM_DAYS, is.daily || 100, goalOf(is), billOf(is), Math.round(billOf(is) * VAT), refundOf(is), settleState(is)[0]]),
+  [18, 10, 8, 6, 8, 12, 18, 18, 16, 10]);
 
 /* ── 변경 이력 ── */
 function renderHistory() {
@@ -879,7 +879,7 @@ $('pw-go').onclick = () => busy($('pw-go'), async () => {
 
 /* ── 총판 ── */
 // 하부점 발급분 = 총판이 하이어에 낼 돈(총판 단가·distPaidAt) — 내 정산 내역에 합침
-const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' }))) : [];
+const distOwed = () => USER.role === 'dist' ? Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, _sub: u, price: is.distPrice || 0, unit: is.distUnit, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' }))) : [];
 const subName = id => (SUBS.find(u => u.id === id) || {}).company || id;
 const subIssues = () => Object.entries(SUB_ISSUES).flatMap(([u, l]) => l.map(is => ({ ...is, userId: u })));
 const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => ({ ...x, userId: u })));
@@ -912,11 +912,11 @@ function renderDSlots() {
   const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => b.no - a.no);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
-    return `<tr><td><b>${x.no}</b><br><span style="font-size:10px;color:var(--muted)">#${x.issueNo}</span></td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    return `<tr><td>${md(x.setAt) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${md(x.setAt) || '-'}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
+      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
 }
 $('ds-rows').onclick = e => {
   const btn = e.target.closest('[data-refund]'); if (!btn) return;
@@ -937,10 +937,11 @@ function renderDSettle() {
   const picked = new Set([...document.querySelectorAll('.dt-cb:checked')].map(c => c.value));  // 실시간 갱신에도 체크 유지
   $('dt-rows').innerHTML = rows.map(is => {
     const [l, c] = settleState(is), b = billOf(is), k = `${esc(is.userId)}|${is.no}`;
-    return `<tr class="${is.revokedAt ? 'void' : ''}"><td><input type="checkbox" class="dt-cb" value="${k}"${picked.has(`${is.userId}|${is.no}`) ? ' checked' : ''}></td><td>${md(is.at)}</td><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}</td><td>${won(is.price)}</td>
-      <td>${won(b)}</td><td><b>${won(Math.round(b * VAT))}</b>${refundNote(is)}</td><td><span class="badge ${c}">${l}</span></td>
+    return `<tr class="${is.revokedAt ? 'void' : ''}"><td><input type="checkbox" class="dt-cb" value="${k}"${picked.has(`${is.userId}|${is.no}`) ? ' checked' : ''}></td><td>${md(is.at)}</td><td>${esc(subName(is.userId))}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
+      <td style="font-weight:700;color:var(--ok)">${won(b)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(b * VAT))}원</td>
+      <td style="${refundOf(is) ? 'color:var(--danger);font-weight:700' : ''}">${refundOf(is) ? won(refundOf(is)) + '원' : '-'}</td><td><span class="badge ${c}">${l}</span></td>
       <td class="void-keep">${is.revokedAt ? `<span style="color:var(--muted);font-weight:600">취소</span>` : is.paidAt ? `<button class="btn sm" data-paid="${k}|0">입금 취소</button>` : `<button class="btn sm pri" data-paid="${k}|1">입금 확인</button>`}</td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
   dtCount();
 }
 ['dt-user', 'dt-st'].forEach(id => $(id).onchange = renderDSettle);
@@ -971,14 +972,14 @@ $('dt-rows').onclick = e => {
 /* 하부점 관리 */
 function renderDUsers() {
   const iss = subIssues(), slots = subSlots();
-  $('du-rows').innerHTML = SUBS.filter(u => !u.deleted).map((u, i) => {
+  $('du-rows').innerHTML = SUBS.filter(u => !u.deleted).map(u => {
     const own = slots.filter(x => x.userId === u.id && !closedState(slotState(x))).length;
-    const unpaid = iss.filter(x => x.userId === u.id && !x.revokedAt && !x.paidAt).reduce((a, x) => a + billOf(x), 0);
-    return `<tr><td>${i + 1}</td><td>${esc(u.createdAt)}</td><td><b>${esc(u.company)}</b></td><td>${esc(u.id)}</td><td>${won(u.price)}</td><td>${own}</td>
-      <td style="color:${unpaid ? '#b45309' : 'inherit'}">${won(Math.round(unpaid * VAT))}</td><td>${esc(u.memo)}</td>
+    const last = iss.filter(x => x.userId === u.id).reduce((a, x) => x.at > a ? x.at : a, '');
+    return `<tr><td>${esc(u.createdAt)}</td><td>${last ? last.slice(0, 10) : '-'}</td><td><b data-supop="${esc(u.id)}" style="cursor:pointer;text-decoration:underline" title="정산 요약">${esc(u.company)}</b></td><td>${won(u.price)}</td><td>${esc(u.id)}</td><td>${own}</td>
+      <td>${esc(u.memo)}</td>
       <td><span class="badge ${u.blocked ? 'b-end' : 'b-run'}">${u.blocked ? '차단' : '사용'}</span></td>
       <td><button class="btn sm" data-sedit="${esc(u.id)}">수정</button> <button class="btn sm" data-sblock="${esc(u.id)}" style="color:${u.blocked ? '#059669' : 'var(--danger)'}">${u.blocked ? '해제' : '차단'}</button></td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">하부점이 없습니다. 오른쪽 위 \'하부점 추가\'로 만드세요.</td></tr>';
+  }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">하부점이 없습니다. 오른쪽 위 \'하부점 추가\'로 만드세요.</td></tr>';
 }
 function openSub(id) {
   subEditId = id || null;
@@ -990,7 +991,28 @@ function openSub(id) {
   $('m-sub').classList.add('show');
 }
 $('du-add').onclick = () => openSub(null);
+// 하부점 정산 요약 팝업 — 어드민 대행사 팝업과 같은 구성(하부점 → 총판 돈, 하부점 단가)
+function subPopup(id) {
+  const u = SUBS.find(x => x.id === id); if (!u) return;
+  const active = subSlots().filter(x => x.userId === id && slotState(x) === 'run');
+  const live = subIssues().filter(x => x.userId === id && !x.revokedAt), total = live.reduce((a, x) => a + billOf(x), 0), unpaid = live.reduce((a, x) => a + (x.paidAt ? 0 : billOf(x)), 0);
+  const byMonth = {};
+  live.forEach(x => { const m = x.at.slice(0, 7), v = byMonth[m] = byMonth[m] || { count: 0, target: 0, amt: 0 }; v.count += x.qty; v.target += goalOf(x); v.amt += billOf(x); });
+  const card = (k, v, unit, col) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${col}">${v.toLocaleString()}<span style="font-size:13px;color:var(--muted);font-weight:400"> ${unit}</span></div></div>`;
+  const ov = document.createElement('div');
+  ov.className = 'ov show';
+  ov.innerHTML = `<div class="box" style="width:860px"><h3>${esc(u.company)}</h3><div class="sub">아이디: ${esc(u.id)} · 단가: ${won(u.price)}원/개</div>
+    <div class="summary" style="grid-template-columns:repeat(5,1fr)">${card('진행중 캠페인', active.length, '건', 'var(--ok)')}${card('전체 목표', active.reduce((a, x) => a + (x.days || TERM_DAYS) * (x.daily || 100), 0), '개', 'var(--ok)')}
+      ${card('누적 정산(VAT 별도)', total, '원', 'var(--acc)')}${card('누적 입금액(VAT 포함)', Math.round(total * VAT), '원', 'var(--acc)')}${card('미입금(VAT 별도)', unpaid, '원', unpaid ? 'var(--danger)' : 'inherit')}</div>
+    <div class="tbl-wrap"><table><thead><tr><th>월</th><th>캠페인 수</th><th>월별 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th></tr></thead><tbody>
+      ${Object.keys(byMonth).sort().reverse().map(m => `<tr><td><b>${m}</b></td><td>${byMonth[m].count}</td><td>${byMonth[m].target.toLocaleString()}</td><td style="font-weight:700;color:var(--ok)">${won(byMonth[m].amt)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(byMonth[m].amt * VAT))}원</td></tr>`).join('')
+        || '<tr><td colspan="5" style="color:var(--muted);height:60px">데이터 없음</td></tr>'}</tbody></table></div>
+    <div class="fbtns"><button class="btn sp-x">닫기</button></div></div>`;
+  ov.addEventListener('click', e => { if (e.target === ov || e.target.classList.contains('sp-x')) ov.remove(); });
+  document.body.appendChild(ov);
+}
 $('du-rows').onclick = e => {
+  const pop = e.target.closest('[data-supop]'); if (pop) return subPopup(pop.dataset.supop);
   const ed = e.target.closest('[data-sedit]'), bl = e.target.closest('[data-sblock]');
   if (ed) openSub(ed.dataset.sedit);
   if (bl) {
