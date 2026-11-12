@@ -294,6 +294,8 @@
     <div class="nav" data-p="d-settle"><i data-lucide="wallet"></i> 하부점 정산 내역 <span id="nav-d-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
     <div class="nav" data-p="d-history"><i data-lucide="history"></i> 하부점 변경 이력</div>
     <div class="nav" data-p="d-users"><i data-lucide="users-round"></i> 하부점 관리</div>
+    <div class="nav-label">통합 관리</div>
+    <div class="nav" data-p="int-settle"><i data-lucide="layers"></i> 통합 정산 내역 <span id="nav-int-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
   </div>
   <div class="me">
     <div class="me-row"><div class="avatar" id="me-av"></div><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
@@ -420,6 +422,22 @@
     <div class="tbl-wrap"><table>
       <thead><tr><th>일시</th><th>구분</th><th>하부점</th><th>대상</th><th>내용</th></tr></thead>
       <tbody id="dh-rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- 총판: 통합 정산 내역 — 직접 접수 + 하부점 접수를 하이어에 낼 금액(총판 단가)으로 한 표에 -->
+  <section class="page" id="p-int-settle">
+    <div class="head"><div><h2>통합 정산 내역</h2><p>직접 접수한 캠페인과 하부점 캠페인을 하이어에 낼 금액(총판 단가)으로 한 번에 봅니다.</p></div>
+      <button class="btn" id="int-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
+    <div class="summary" id="int-cards"></div>
+    <div class="bar">
+      <span style="color:var(--text2)">구분</span><select id="int-who"></select>
+      <span style="color:var(--text2)">상태</span><select id="int-st"><option value="">정산 전체</option><option value="paid">정산완료</option><option value="unpaid">미정산</option></select>
+      <span style="color:var(--text2)">접수일</span><input id="int-from" type="date"> ~ <input id="int-to" type="date">
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>접수일시</th><th>구분</th><th>단가(원)</th><th>캠페인 수</th><th>전체 목표 합산</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>환불 금액</th><th>정산상태</th></tr></thead>
+      <tbody id="int-rows"></tbody>
     </table></div>
   </section>
 
@@ -641,7 +659,7 @@ function render() {
       <td style="white-space:nowrap">${[canEdit(x) && `<button class="btn sm" data-edit="${x.no}">수정</button>`, canRefund(x) && `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>`].filter(Boolean).join(' ') || '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="11" style="height:160px;color:var(--muted)">캠페인이 없습니다. 오른쪽 위 \'접수\'로 접수해 주세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
-  renderSettle(); renderHistory();
+  renderSettle(); renderHistory(); renderIntSettle();
 }
 $('st-chips').onclick = e => { const f = e.target.dataset.f; if (f !== undefined) { filter = f; render(); } };
 ['q', 'd-from', 'd-to'].forEach(id => $(id).oninput = render);
@@ -923,8 +941,35 @@ function renderDist() {
   const opts = all => (all ? `<option value="">${all}</option>` : '') + SUBS.map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
   const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.selectedIndex < 0) el.selectedIndex = 0; };
   keep('ds-user', opts('전체 하부점')); keep('dt-user', opts('전체 하부점')); keep('dh-user', opts('전체 하부점'));
-  renderDSlots(); renderDSettle(); renderDHistory(); renderDUsers();
+  keep('int-who', '<option value="">전체</option><option value="self">직접 접수</option><option value="sub">하부점 전체</option>' + SUBS.map(u => `<option value="${esc(u.id)}">하부점 · ${esc(u.company)}</option>`).join(''));
+  renderDSlots(); renderDSettle(); renderDHistory(); renderDUsers(); renderIntSettle();
 }
+
+/* 통합 정산 내역 — 직접 접수(본인 ISSUES) + 하부점 접수(총판 쪽 금액: 총판 단가·총판 입금 distPaidAt·하이어 추가 환불 adj·autoAdj) */
+const distView = is => ({ ...is, _sub: is.userId, price: is.distPrice || 0, unit: is.distUnit, refund: (is.distRefund || 0) + (is.adj || 0) + (is.autoAdj || 0), paidAt: is.distPaidAt || '' });
+let intRows = [];
+function renderIntSettle() {
+  if (USER.role !== 'dist') return;
+  const who = $('int-who').value, st = $('int-st').value, from = $('int-from').value, to = $('int-to').value;
+  const all = ISSUES.concat(subIssues().map(distView)).filter(is => !is.revokedAt), unpaid = all.filter(is => !is.paidAt);
+  const sum = arr => arr.reduce((a, is) => a + billOf(is), 0);
+  $('int-cards').innerHTML = [['정산 금액 (VAT 포함)', Math.round(sum(all) * VAT), ''], ['입금 완료 (VAT 포함)', Math.round(sum(all.filter(is => is.paidAt)) * VAT), '#059669'], ['미입금 (VAT 포함)', Math.round(sum(unpaid) * VAT), '#b45309']]
+    .map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
+  $('nav-int-unpaid').textContent = unpaid.length; $('nav-int-unpaid').style.display = unpaid.length ? '' : 'none';
+  intRows = all.filter(is => (!who || (who === 'self' ? !is._sub : who === 'sub' ? !!is._sub : is._sub === who)) && (!st || (st === 'paid') === !!is.paidAt)
+    && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.at.localeCompare(a.at) || b.no - a.no);
+  $('int-rows').innerHTML = intRows.map(is => {
+    const [l, c] = settleState(is), b = billOf(is);
+    return `<tr><td>${md(is.at)}</td><td>${is._sub ? `<span style="color:var(--text2)">하부점</span> ${esc(subName(is._sub))}` : '<b>직접 접수</b>'}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td><b>${goalOf(is).toLocaleString()}</b></td>
+      <td style="font-weight:700;color:var(--ok)">${won(b)}원</td><td style="font-weight:700;color:var(--acc)">${won(Math.round(b * VAT))}원</td>
+      <td style="${refundOf(is) ? 'color:var(--danger);font-weight:700' : ''}">${refundOf(is) ? won(refundOf(is)) + '원' : '-'}</td><td><span class="badge ${c}">${l}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="9" style="height:120px;color:var(--muted)">정산 내역이 없습니다.</td></tr>';
+}
+['int-who', 'int-st', 'int-from', 'int-to'].forEach(id => $(id).onchange = renderIntSettle);
+$('int-xlsx').onclick = () => saveXlsx('통합정산내역',
+  ['접수일시', '구분', '단가(원)', '캠페인 수', '일수', '일 목표', '전체 목표 합산', '정산 금액(VAT 별도)', '입금액(VAT 포함)', '환불 금액(VAT 별도)', '정산상태'],
+  intRows.map(is => [is.at, is._sub ? `하부점 ${subName(is._sub)}` : '직접 접수', is.unit || '', is.qty, is.days || TERM_DAYS, is.daily || 100, goalOf(is), billOf(is), Math.round(billOf(is) * VAT), refundOf(is), settleState(is)[0]]),
+  [18, 18, 10, 8, 6, 8, 12, 18, 18, 16, 10]);
 
 /* 하부점 접수 현황 */
 function renderDSlots() {
