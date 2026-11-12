@@ -201,7 +201,7 @@
       <p class="eyebrow">SHOPPING SLOT · 쇼핑슬롯</p>
       <h1 class="hero-h1">매출은, <span class="hl">순위</span>에서<br>시작됩니다.</h1>
       <div class="hero-tasklist">
-        <div class="task-item"><span class="task-num">01</span><span class="task-label">슬롯 발급</span></div>
+        <div class="task-item"><span class="task-num">01</span><span class="task-label">캠페인 접수</span></div>
         <div class="task-item"><span class="task-num">02</span><span class="task-label">키워드·URL 세팅</span></div>
         <div class="task-item"><span class="task-num">03</span><span class="task-label">정산 확인</span></div>
       </div>
@@ -283,12 +283,11 @@
 <div class="mtop"><button type="button" id="m-menu" aria-label="메뉴">☰</button>SHOPPING <span>SLOT</span></div>
 <aside>
   <div class="brand">SHOPPING <span>SLOT</span></div>
-  <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 슬롯 관리</div>
+  <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 캠페인 관리</div>
   <div class="nav" data-p="settle"><i data-lucide="receipt"></i> 정산 내역 <span id="nav-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
   <div class="nav" data-p="history"><i data-lucide="history"></i> 변경 이력</div>
   <div id="dist-nav" style="display:none">
     <div class="nav-label">총판 관리</div>
-    <div class="nav" data-p="d-issue"><i data-lucide="plus-square"></i> 하부점 슬롯 발급</div>
     <div class="nav" data-p="d-slots"><i data-lucide="layout-list"></i> 하부점 접수 현황</div>
     <div class="nav" data-p="d-settle"><i data-lucide="wallet"></i> 하부점 정산 <span id="nav-d-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
     <div class="nav" data-p="d-users"><i data-lucide="users-round"></i> 하부점 관리</div>
@@ -304,7 +303,7 @@
   <!-- 내 슬롯 관리 -->
   <section class="page show" id="p-slots">
     <div class="head">
-      <div><h2>내 슬롯 관리</h2><p><b>접수</b>에서 키워드·상품 URL을 넣으면 슬롯이 바로 발급됩니다. 진행 전 슬롯은 옆 <b>수정</b>으로 바꿀 수 있습니다.</p></div>
+      <div><h2>내 캠페인 관리</h2><p><b>접수</b>에서 키워드·상품 URL을 넣으면 캠페인이 바로 발급됩니다. 진행 전 캠페인은 옆 <b>수정</b>으로 바꿀 수 있습니다.</p></div>
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="order-open"><i data-lucide="clipboard-plus"></i>접수</button>
         <button class="btn" id="slot-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button>
@@ -313,8 +312,8 @@
     <details class="guide" id="g-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올리면(엑셀 접수) 슬롯이 바로 생성<br>한 줄 = 슬롯 1개 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></li>
-        <li><b>진행</b><span>작업이 시작되면 <em>진행중</em> — 이후 수정 불가, 옆 <em>환불</em>만 가능<br>진행 전(<em>접수</em>·<em>빈 슬롯</em>)은 옆 <em>수정</em>으로 변경</span></li>
+        <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올리면(엑셀 접수) 캠페인이 바로 생성<br>한 줄 = 캠페인 1개 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></li>
+        <li><b>진행</b><span>작업이 시작되면 <em>진행중</em> — 이후 수정 불가, 옆 <em>환불</em>만 가능<br>진행 전(<em>접수</em>·<em>빈 캠페인</em>)은 옆 <em>수정</em>으로 변경</span></li>
         <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>시작일 당일까지 취소 가능</span></li>
       </ol>
     </details>
@@ -334,7 +333,7 @@
 
   <!-- 정산 내역 -->
   <section class="page" id="p-settle">
-    <div class="head"><div><h2>정산 내역</h2><p>발급한 슬롯의 금액과 입금 상태입니다. 시작일 당일까지 취소할 수 있습니다.</p></div>
+    <div class="head"><div><h2>정산 내역</h2><p>발급한 캠페인의 금액과 입금 상태입니다. 시작일 당일까지 취소할 수 있습니다.</p></div>
       <button class="btn" id="settle-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
         <details class="guide" id="g-settle">
       <summary>이용 방법</summary>
@@ -350,46 +349,30 @@
       <span style="color:var(--text2)">발급일</span><input id="s-from" type="date"> ~ <input id="s-to" type="date">
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>슬롯 금액(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th></th></tr></thead>
+      <thead><tr><th>발급일시</th><th>발급번호</th><th>수량</th><th>캠페인 금액(원)</th><th>정산 금액(VAT 별도)</th><th>결제 금액(VAT 포함)</th><th>기간</th><th>상태</th><th></th></tr></thead>
       <tbody id="settle-rows"></tbody>
     </table></div>
   </section>
 
   <!-- 변경 이력 -->
   <section class="page" id="p-history">
-    <div class="head"><div><h2>변경 이력</h2><p>슬롯 발급·취소·수정 기록입니다.</p></div></div>
+    <div class="head"><div><h2>변경 이력</h2><p>캠페인 발급·취소·수정 기록입니다.</p></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>일시</th><th>구분</th><th>대상</th><th>내용</th></tr></thead>
       <tbody id="hist-rows"></tbody>
     </table></div>
   </section>
 
-  <!-- 총판: 하부점 슬롯 발급 -->
-  <section class="page" id="p-d-issue">
-    <div class="head"><div><h2>하부점 슬롯 발급</h2><p>하부점에 키워드·상품 URL이 들어간 슬롯을 바로 접수합니다. 시작일 당일까지 취소할 수 있습니다.</p></div>
-      <button class="btn pri" id="d-order-open"><i data-lucide="clipboard-plus"></i>접수</button></div>
-        <details class="guide" id="g-d-issue">
-      <summary>이용 방법</summary>
-      <ol>
-        <li><b>접수</b><span><em>접수</em>에서 하부점을 고르고 한 줄씩 입력하거나 엑셀로 올림<br>한 줄 = 슬롯 1개 · 하부점에 바로 생깁니다</span></li>
-        <li><b>수정</b><span>진행 전 슬롯의 키워드·URL은<br>하부점이 자기 계정에서 수정합니다</span></li>
-        <li><b>취소</b><span>시작일 당일까지 <em>취소</em> 가능<br>금액은 하부점 단가로 <em>하부점 정산</em>에 잡힙니다</span></li>
-      </ol>
-    </details>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>발급번호</th><th>하부점</th><th>수량</th><th>세팅 완료</th><th>발급일시</th><th>기간</th><th>상태</th><th>관리</th></tr></thead>
-      <tbody id="di-rows"></tbody>
-    </table></div>
-  </section>
-
   <!-- 총판: 하부점 접수 현황 -->
   <section class="page" id="p-d-slots">
-    <div class="head"><div><h2>하부점 접수 현황</h2><p>하부점이 입력한 키워드와 상품입니다.</p></div></div>
+    <div class="head"><div><h2>하부점 접수 현황</h2><p>하부점 캠페인을 접수하고 확인합니다. 진행 전 + 시작일 당일까지 취소할 수 있습니다.</p></div>
+      <button class="btn pri" id="d-order-open"><i data-lucide="clipboard-plus"></i>접수</button></div>
     <details class="guide" id="g-d-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>한눈에 확인</b><span>모든 하부점의 키워드·상품을 한곳에서 확인<br>수정은 하부점이 직접 합니다</span></li>
-        <li><b>상태</b><span><em>빈 슬롯</em> = 입력 전 · <em>접수</em> = 입력 완료(수정 가능)<br><em>진행중</em> = 작업 시작(수정 불가·환불만) · <em>종료</em> = 기간 끝</span></li>
+        <li><b>접수</b><span><em>접수</em>에서 하부점을 고르고 한 줄씩 입력하거나 엑셀로 올림<br>한 줄 = 캠페인 1개 · 금액은 하부점 단가로 <em>하부점 정산</em>에</span></li>
+        <li><b>취소·환불</b><span>진행 전 캠페인은 <em>취소</em>(같은 발급번호 캠페인 함께), 진행중은 <em>환불</em><br>키워드·URL 수정은 하부점이 직접 합니다</span></li>
+        <li><b>상태</b><span><em>빈 캠페인</em> = 입력 전 · <em>접수</em> = 입력 완료(수정 가능)<br><em>진행중</em> = 작업 시작(수정 불가·환불만) · <em>종료</em> = 기간 끝</span></li>
       </ol>
     </details>
     <div class="bar">
@@ -409,7 +392,7 @@
         <details class="guide" id="g-d-settle">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>받을 금액</b><span>하부점이 발급한 슬롯이<br><em>하부점 단가</em>로 이곳에 쌓입니다</span></li>
+        <li><b>받을 금액</b><span>하부점이 발급한 캠페인이<br><em>하부점 단가</em>로 이곳에 쌓입니다</span></li>
         <li><b>입금 확인</b><span>하부점에게 입금을 받으면<br><em>입금 확인</em>을 눌러 주세요</span></li>
       </ol>
     </details>
@@ -421,24 +404,24 @@
         <button class="btn pri" id="dt-pay">입금 확인</button><button class="btn" id="dt-unpay">입금 취소</button></span>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>슬롯 금액(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="dt-all"></th><th>발급일시</th><th>발급번호</th><th>하부점</th><th>수량</th><th>캠페인 금액(원)</th><th>정산 금액(VAT 별도)</th><th>입금액(VAT 포함)</th><th>상태</th><th></th></tr></thead>
       <tbody id="dt-rows"></tbody>
     </table></div>
   </section>
 
   <!-- 총판: 하부점 관리 -->
   <section class="page" id="p-d-users">
-    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 단가를 정합니다. 슬롯 금액 = 단가 × 일수 × 일 목표</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
+    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 단가를 정합니다. 캠페인 금액 = 단가 × 일수 × 일 목표</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
     <details class="guide" id="g-d-users">
       <summary>이용 방법</summary>
       <ol>
         <li><b>계정 만들기</b><span><em>하부점 추가</em>에서 계정을 만듭니다<br>업체명·아이디·비밀번호·단가(1개) 입력</span></li>
-        <li><b>하부점 사용</b><span>하부점은 그 아이디로 로그인해<br>슬롯 발급·키워드 입력을 직접 합니다</span></li>
+        <li><b>하부점 사용</b><span>하부점은 그 아이디로 로그인해<br>캠페인 발급·키워드 입력을 직접 합니다</span></li>
         <li><b>단가·차단</b><span>단가는 <em>수정</em>에서 변경(이후 발급분부터)<br>거래를 멈출 땐 <em>차단</em></span></li>
       </ol>
     </details>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>단가(1개, 원)</th><th>보유 슬롯</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>번호</th><th>가입일</th><th>업체명</th><th>아이디</th><th>단가(1개, 원)</th><th>보유 캠페인</th><th>미입금(VAT 포함)</th><th>메모</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="du-rows"></tbody>
     </table></div>
   </section>
@@ -472,21 +455,21 @@
 <!-- 접수(개별·엑셀) — 한 줄 = 정보가 들어간 슬롯 1개 -->
 <div class="ov" id="m-order"><div class="box" style="width:1000px">
   <h3>접수</h3>
-  <div class="sub">한 줄 = 슬롯 1개 · 시작일은 당일·익일 중 선택 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</div>
+  <div class="sub">한 줄 = 캠페인 1개 · 시작일은 당일·익일 중 선택 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</div>
   <select id="or-user" style="display:none;width:280px;margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
   <div class="chips" id="or-tabs"><span class="chip on" data-t="one">개별 접수</span><span class="chip" data-t="xlsx">엑셀 접수</span></div>
   <div id="or-one">
     <div class="tbl-wrap"><table>
-      <thead><tr><th style="width:34px">#</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th style="width:130px">시작일</th><th style="width:76px">일수</th><th style="width:90px">일 목표</th><th style="width:110px">슬롯 금액</th><th style="width:40px"></th></tr></thead>
+      <thead><tr><th style="width:34px">#</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th style="width:130px">시작일</th><th style="width:76px">일수</th><th style="width:90px">일 목표</th><th style="width:110px">캠페인 금액</th><th style="width:40px"></th></tr></thead>
       <tbody id="or-rows"></tbody>
     </table></div>
-    <button class="btn" id="or-add" style="margin-top:10px"><i data-lucide="plus"></i>슬롯 추가</button>
+    <button class="btn" id="or-add" style="margin-top:10px"><i data-lucide="plus"></i>캠페인 추가</button>
   </div>
   <div id="or-xlsx" style="display:none">
     <div class="bar"><button class="btn" id="or-tmpl"><i data-lucide="download"></i>양식 다운로드</button><button class="btn pri" id="or-pick"><i data-lucide="upload"></i>엑셀 선택</button>
       <input type="file" id="or-file" accept=".xlsx,.xls" style="display:none"><span id="or-xinfo" style="color:var(--text2)"></span></div>
     <div class="tbl-wrap" style="max-height:45vh"><table>
-      <thead><tr><th>#</th><th>순위 키워드</th><th>상품 URL</th><th>시작일</th><th>일수</th><th>일 목표</th><th>슬롯 금액</th><th>상태</th></tr></thead>
+      <thead><tr><th>#</th><th>순위 키워드</th><th>상품 URL</th><th>시작일</th><th>일수</th><th>일 목표</th><th>캠페인 금액</th><th>상태</th></tr></thead>
       <tbody id="or-xrows"></tbody>
     </table></div>
   </div>
@@ -546,7 +529,7 @@ function parseMid(v) {
   return m ? m[1] : '';
 }
 // 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 환불(직원 중단 처리 완료) / 종료
-const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-end'], end: ['종료', 'b-empty'] };
+const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 캠페인', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-end'], end: ['종료', 'b-empty'] };
 const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
 const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
 const closedState = st => st === 'end' || st === 'stop';
@@ -640,7 +623,7 @@ function render() {
       <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
       <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td>${canEdit(x) ? `<button class="btn sm" data-edit="${x.no}">수정</button>` : canRefund(x) ? `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:160px;color:var(--muted)">슬롯이 없습니다. 오른쪽 위 \'접수\'로 접수해 주세요.</td></tr>';
+  }).join('') || '<tr><td colspan="10" style="height:160px;color:var(--muted)">캠페인이 없습니다. 오른쪽 위 \'접수\'로 접수해 주세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   renderSettle(); renderHistory();
 }
@@ -655,11 +638,11 @@ $('slot-rows').onclick = e => {
 
 /* 환불 요청 */
 function requestRefund(list, btn) {
-  if (!list.length) return alert('환불 요청할 수 있는 슬롯이 없습니다. 작업 시작 전 슬롯은 정산 내역에서 취소해 주세요.');
-  if (!confirm(`슬롯 ${list.length}개를 환불 요청합니다. 요청은 철회할 수 없습니다.`)) return;
+  if (!list.length) return alert('환불 요청할 수 있는 캠페인이 없습니다. 작업 시작 전 캠페인은 정산 내역에서 취소해 주세요.');
+  if (!confirm(`캠페인 ${list.length}개를 환불 요청합니다. 요청은 철회할 수 없습니다.`)) return;
   busy(btn, async () => {
     const r = await api('/shop-refund', { items: list.map(x => ({ userId: x.userId || ME, no: x.no })) });
-    alert(r.skipped ? `${r.changed}개 요청, ${r.skipped}개는 요청할 수 없어 건너뛰었습니다.` : `${r.changed}개 슬롯을 환불 요청했습니다.`);
+    alert(r.skipped ? `${r.changed}개 요청, ${r.skipped}개는 요청할 수 없어 건너뛰었습니다.` : `${r.changed}개 캠페인을 환불 요청했습니다.`);
   });
 }
 
@@ -667,8 +650,8 @@ function requestRefund(list, btn) {
 function openEdit(nos) {
   nos = new Set(nos);
   editing = SLOTS.filter(x => nos.has(x.no) && canEdit(x)).sort((a, b) => b.no - a.no);
-  if (!editing.length) return alert('수정할 수 있는 슬롯이 없습니다. 진행중 슬롯은 수정할 수 없고 환불 요청만 가능합니다.');
-  if (editing.length < nos.size) alert(`진행중·환불·종료 슬롯 ${nos.size - editing.length}개는 수정할 수 없어 빼고 엽니다.`);
+  if (!editing.length) return alert('수정할 수 있는 캠페인이 없습니다. 진행중 캠페인은 수정할 수 없고 환불 요청만 가능합니다.');
+  if (editing.length < nos.size) alert(`진행중·환불·종료 캠페인 ${nos.size - editing.length}개는 수정할 수 없어 빼고 엽니다.`);
   $('ed-n').textContent = editing.length;
   $('ed-rows').innerHTML = editing.map(x => `<tr><td class="ed-period"><b>${x.no}</b><span class="ed-m"> · ${md(x.start)} ~ ${md(x.end)}</span></td><td class="ed-hide">${md(x.start)}</td><td class="ed-hide">${md(x.end)}</td>
     <td data-l="순위 키워드"><input class="ed-kw" maxlength="50" value="${esc(x.kw)}" placeholder="키워드"></td>
@@ -686,7 +669,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
     no: editing[i].no, kw: tr.querySelector('.ed-kw').value.trim(), url: tr.querySelector('.ed-url').value.trim() }));
   for (const [i, it] of items.entries()) {
     if (!it.kw && !it.url) {
-      if (editing[i].mid) throw new Error(`${it.no}번: 한 번 입력한 슬롯은 비울 수 없습니다. 키워드·URL 변경만 가능합니다.`);
+      if (editing[i].mid) throw new Error(`${it.no}번: 한 번 입력한 캠페인은 비울 수 없습니다. 키워드·URL 변경만 가능합니다.`);
       continue;
     }
     if (!it.kw || !it.url) throw new Error(`${it.no}번: 키워드와 상품 URL을 모두 입력해 주세요.`);
@@ -695,7 +678,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
   const r = await api('/shop-slots', { items });
   $('m-edit').classList.remove('show');
   const skip = r.bad.length + (r.locked || []).length;
-  alert(skip ? `${r.changed}개 저장, ${skip}개는 진행중·종료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 슬롯이 저장되었습니다.`);
+  alert(skip ? `${r.changed}개 저장, ${skip}개는 진행중·종료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 캠페인이 저장되었습니다.`);
 });
 
 /* ── 접수(개별·엑셀) — 한 줄 = 정보가 들어간 슬롯 1개. 서버 /shop-order가 같은 시작일·일수·일 목표끼리 발급 건 1개로 묶음
@@ -809,12 +792,12 @@ $('or-go').onclick = () => busy($('or-go'), async () => {
   if (bad >= 0) throw new Error(`${bad + 1}번째 줄: ${orderErr(rows[bad])}`);
   const u = orderUser(), amt = rows.reduce((a, r) => a + orderAmt(r), 0);
   if (!u) throw new Error('대상 하부점을 선택해 주세요.');
-  if (!confirm(orderSub === null ? `슬롯 ${rows.length}개를 접수합니다. (결제 금액 VAT 포함 ${won(Math.round(amt * VAT))}원)`
-    : `${u.company}에 슬롯 ${rows.length}개를 접수합니다. (하부점 금액 ${won(amt)}원 / 총판 정산 ${won(amt / u.price * USER.price)}원, VAT 별도)`)) return;
+  if (!confirm(orderSub === null ? `캠페인 ${rows.length}개를 접수합니다. (결제 금액 VAT 포함 ${won(Math.round(amt * VAT))}원)`
+    : `${u.company}에 캠페인 ${rows.length}개를 접수합니다. (하부점 금액 ${won(amt)}원 / 총판 정산 ${won(amt / u.price * USER.price)}원, VAT 별도)`)) return;
   const r = await api('/shop-order', { ...(orderSub === null ? {} : { userId: orderSub }), items: rows.map(({ kw, url, start, days, daily }) => ({ kw, url, start, days, daily })), reqId: newReqId() });
   $('m-order').classList.remove('show');
   if (orderSub === null) { filter = 'wait'; render(); }
-  alert(`${r.count}개 슬롯이 접수되었습니다.`);
+  alert(`${r.count}개 캠페인이 접수되었습니다.`);
 });
 
 
@@ -851,7 +834,7 @@ function renderSettle() {
 $('settle-rows').onclick = e => {
   const btn = e.target.closest('[data-cancel]'); if (!btn) return;
   const is = ISSUES.find(x => x.no === +btn.dataset.cancel);
-  if (!confirm(`발급번호 #${is.no} 슬롯 ${is.qty}건을 취소합니다.`)) return;
+  if (!confirm(`발급번호 #${is.no} 캠페인 ${is.qty}건을 취소합니다.`)) return;
   busy(btn, () => api('/shop-revoke', { issueNo: is.no }));
 };
 
@@ -863,12 +846,12 @@ function saveXlsx(name, header, rows, widths) {
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, name);
   XLSX.writeFile(wb, `쇼핑슬롯_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
-$('slot-xlsx').onclick = () => saveXlsx('내슬롯',
+$('slot-xlsx').onclick = () => saveXlsx('내캠페인',
   ['번호', '순위 키워드', '상품 MID', '상품 URL', '시작일', '종료일', '일 목표', '남은 일', '상태'],
   visibleSlots().map(x => { const st = slotState(x); return [x.no, x.kw || '', x.mid || '', x.url || '', x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
   [8, 18, 14, 50, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
-  ['발급일시', '발급번호', '수량', '일수', '일 목표', '슬롯 금액(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '환불액(VAT 포함)', '시작일', '종료일', '상태'],
+  ['발급일시', '발급번호', '수량', '일수', '일 목표', '캠페인 금액(원)', '정산 금액(VAT 별도)', '결제 금액(VAT 포함)', '환불액(VAT 포함)', '시작일', '종료일', '상태'],
   settleRows.map(is => [is.at, is.no, is.qty, is.days || TERM_DAYS, is.daily || 100, is.price, billOf(is), Math.round(billOf(is) * VAT), refundVat(is), is.start, is.end, settleState(is)[0]]),
   [18, 10, 8, 6, 8, 12, 18, 18, 16, 12, 12, 12]);
 
@@ -877,13 +860,13 @@ function renderHistory() {
   const ev = [];
   ISSUES.forEach(is => {
     const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소';
-    ev.push([is.at, '<span class="badge b-req">발급</span>', `발급번호 #${is.no}`, `슬롯 ${is.qty}건 발급 / ${span} (${termOf(is)})`]);
-    if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge b-end">${cancel}</span>`, `발급번호 #${is.no}`, `슬롯 ${is.qty}건 ${cancel} / ${span}`]);
+    ev.push([is.at, '<span class="badge b-req">발급</span>', `발급번호 #${is.no}`, `캠페인 ${is.qty}건 발급 / ${span} (${termOf(is)})`]);
+    if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge b-end">${cancel}</span>`, `발급번호 #${is.no}`, `캠페인 ${is.qty}건 ${cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', `발급번호 #${is.no}`, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
-  SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
-  SLOTS.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', `슬롯 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
-  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-end">환불</span>', `슬롯 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
+  SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `캠페인 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  SLOTS.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', `캠페인 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
+  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-end">환불</span>', `캠페인 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
@@ -925,40 +908,31 @@ function renderDist() {
   const opts = all => (all ? `<option value="">${all}</option>` : '') + SUBS.map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
   const keep = (id, html) => { const el = $(id), v = el.value; el.innerHTML = html; el.value = v; if (el.selectedIndex < 0) el.selectedIndex = 0; };
   keep('ds-user', opts('전체 하부점')); keep('dt-user', opts('전체 하부점'));
-  renderDIssues(); renderDSlots(); renderDSettle(); renderDUsers();
+  renderDSlots(); renderDSettle(); renderDUsers();
 }
-
-/* 하부점 슬롯 발급(접수는 openOrder) */
-function renderDIssues() {
-  const rows = subIssues().sort((a, b) => b.no - a.no), slots = subSlots();
-  $('di-rows').innerHTML = rows.map(is => {
-    const set = slots.filter(x => x.userId === is.userId && x.issueNo === is.no && x.mid).length;
-    const st = is.revokedAt ? `<span class="st-r">${is.revokedRole === 'user' ? '하부점 취소' : '취소'}</span>` : is.end < today() ? '<span class="st-n">종료</span>' : runningIn(slots, is) ? '<span class="st-g">진행중</span>' : set ? '접수' : '빈 슬롯';
-    return `<tr class="${is.revokedAt ? 'void' : ''}"><td>#${is.no}</td><td>${esc(subName(is.userId))}</td><td>${is.qty}개</td><td>${is.revokedAt ? '-' : `${set} / ${is.qty}`}</td>
-      <td>${md(is.at)}</td><td>${md(is.start)} ~ ${md(is.end)}<br><span style="font-size:11px;color:var(--muted)">${termOf(is)}</span></td><td>${st}</td>
-      <td class="void-keep">${!is.revokedAt && is.start >= today() && !runningIn(slots, is) ? `<button class="btn sm" data-revoke="${esc(is.userId)}|${is.no}" style="color:var(--danger)">취소</button>` : '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="8" style="height:120px;color:var(--muted)">발급 내역이 없습니다.</td></tr>';
-}
-$('di-rows').onclick = e => {
-  const btn = e.target.closest('[data-revoke]'); if (!btn) return;
-  const [uid, no] = btn.dataset.revoke.split('|'), is = subIssues().find(x => x.userId === uid && x.no === +no);
-  if (!confirm(`${subName(uid)} 발급번호 #${no} 슬롯 ${is.qty}건을 취소합니다.`)) return;
-  busy(btn, () => api('/shop-revoke', { userId: uid, issueNo: +no }));
-};
 
 /* 하부점 접수 현황 */
 function renderDSlots() {
   const uid = $('ds-user').value, q = $('ds-q').value.trim(), noEnd = $('ds-noend').checked, dash = '<span class="empty">미세팅</span>';
-  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => b.no - a.no);
+  const slots = subSlots(), rows = slots.filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => b.no - a.no);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
-    const st = slotState(x);
-    return `<tr><td><b>${x.no}</b></td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    const st = slotState(x), is = subIssues().find(i => i.userId === x.userId && i.no === x.issueNo);
+    // 취소 = 발급 건 단위(진행중 슬롯 없음 + 시작일 당일까지, 서버 can_cancel과 같음)
+    const cancel = is && !is.revokedAt && is.start >= today() && !runningIn(slots, is);
+    return `<tr><td><b>${x.no}</b><br><span style="font-size:10px;color:var(--muted)">#${x.issueNo}</span></td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${md(x.setAt) || '-'}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
-      <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">조회된 슬롯이 없습니다.</td></tr>';
+      <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>`
+        : cancel ? `<button class="btn sm" data-revoke="${esc(x.userId)}|${x.issueNo}" style="color:var(--danger)">취소</button>` : '-'}</td></tr>`;
+  }).join('') || '<tr><td colspan="10" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
 }
 $('ds-rows').onclick = e => {
+  const rv = e.target.closest('[data-revoke]');
+  if (rv) {
+    const [uid, no] = rv.dataset.revoke.split('|'), is = subIssues().find(x => x.userId === uid && x.no === +no);
+    if (!confirm(`${subName(uid)} 발급번호 #${no} 캠페인 ${is.qty}개를 취소합니다. 같은 발급번호 캠페인이 함께 지워집니다.`)) return;
+    return busy(rv, () => api('/shop-revoke', { userId: uid, issueNo: +no }));
+  }
   const btn = e.target.closest('[data-refund]'); if (!btn) return;
   const [uid, no] = btn.dataset.refund.split('|');
   requestRefund(subSlots().filter(x => x.userId === uid && x.no === +no && canRefund(x)), btn);
