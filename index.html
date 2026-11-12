@@ -9,7 +9,7 @@
   try { if (localStorage.getItem('shop_signed_in') === '1') document.documentElement.classList.add('boot'); } catch (e) {}
   setTimeout(() => document.documentElement.classList.remove('boot'), 5000);  // 복원이 안 끝나면(네트워크 등) 로그인 화면이라도 보이게
 </script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧺</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a5b4fc'/%3E%3Cstop offset='.45' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cg transform='translate(4 4)' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10 9 4M18.5 10 15 4'/%3E%3Cpath d='M3 10h18l-1.8 8.4a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z'/%3E%3Cpath d='M9.5 13.5v3M14.5 13.5v3'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -81,7 +81,12 @@
   /* 레이아웃 */
   aside { position:fixed; top:0; bottom:0; left:0; width:220px; background:var(--side); color:#fff; display:flex; flex-direction:column; padding:24px 14px; }
   .brand { font-size:18px; font-weight:900; padding:0 8px 22px; border-bottom:1px solid #1f2937; margin-bottom:16px; }
-  .brand span { color:#818cf8; }
+  .logo { display:flex; align-items:center; gap:11px; }
+  .logo-mark { flex:none; width:36px; height:36px; border-radius:11px; display:grid; place-items:center; color:#fff;
+    background:linear-gradient(135deg,#a5b4fc 0%,#6366f1 45%,#7c3aed 100%); box-shadow:0 6px 16px rgba(99,102,241,.4), inset 0 1px 0 rgba(255,255,255,.35); }
+  .logo-mark svg { width:20px; height:20px; }
+  .logo-txt b { display:block; font-size:19px; font-weight:900; letter-spacing:-.03em; line-height:1.05; color:#fff; }
+  .logo-txt small { display:block; margin-top:3px; font-size:9px; font-weight:700; letter-spacing:.28em; color:#a5b4fc; }
   .nav { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:var(--muted); cursor:pointer; font-weight:500; margin-bottom:2px; }
   .nav svg { width:16px; height:16px; }
   .nav:hover { color:#fff; background:rgba(255,255,255,.06); }
@@ -156,7 +161,7 @@
   .box { max-width:calc(100vw - 24px); }
   @media (max-width:768px) {
     .mtop { display:flex; position:sticky; top:0; z-index:70; align-items:center; gap:12px; height:56px; padding:0 14px; background:var(--side); color:#fff; font-weight:900; font-size:16px; }
-    .mtop span { color:#818cf8; }
+    .mtop .logo { gap:9px; } .mtop .logo-mark { width:30px; height:30px; border-radius:9px; } .mtop .logo-mark svg { width:17px; height:17px; } .mtop .logo-txt b { font-size:16px; } .mtop .logo-txt small { display:none; }
     .mtop button { width:40px; height:40px; border:none; border-radius:8px; background:rgba(255,255,255,.08); color:#fff; font-size:20px; cursor:pointer; }
     aside { z-index:60; top:56px; width:auto; right:0; padding:16px 18px 24px; overflow-y:auto; border-top:1px solid #1f2937;
       transform:translateY(-100%); visibility:hidden; transition:transform .3s ease, visibility 0s .3s; }
@@ -281,9 +286,9 @@
   </script>
 </div>
 
-<div class="mtop"><button type="button" id="m-menu" aria-label="메뉴">☰</button><span>바구니</span></div>
+<div class="mtop"><button type="button" id="m-menu" aria-label="메뉴">☰</button><div class="logo"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 10 9 4M18.5 10 15 4"/><path d="M3 10h18l-1.8 8.4a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z"/><path d="M9.5 13.5v3M14.5 13.5v3"/></svg></div><div class="logo-txt"><b>바구니</b><small>BAGUNI</small></div></div></div>
 <aside>
-  <div class="brand"><span>바구니</span></div>
+  <div class="brand"><div class="logo"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 10 9 4M18.5 10 15 4"/><path d="M3 10h18l-1.8 8.4a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z"/><path d="M9.5 13.5v3M14.5 13.5v3"/></svg></div><div class="logo-txt"><b>바구니</b><small>BAGUNI</small></div></div></div>
   <div class="nav-label" id="own-label" style="display:none;padding-top:0">접수 관리</div>
   <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 캠페인 관리</div>
   <div class="nav" data-p="settle"><i data-lucide="receipt"></i> 정산 내역 <span id="nav-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
