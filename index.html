@@ -546,7 +546,7 @@ function parseMid(v) {
   return m ? m[1] : '';
 }
 // 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 중단 / 종료
-const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['중단', 'b-end'], end: ['종료', 'b-empty'] };
+const STATE = { run: ['진행중', 'b-run'], wait: ['접수', 'b-wait'], empty: ['빈 슬롯', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-end'], end: ['종료', 'b-empty'] };
 const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
 const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
 const closedState = st => st === 'end' || st === 'stop';
@@ -883,7 +883,7 @@ function renderHistory() {
   });
   SLOTS.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', `슬롯 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
   SLOTS.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', `슬롯 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
-  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-end">중단</span>', `슬롯 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
+  SLOTS.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-end">환불</span>', `슬롯 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 발급→취소→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b[4] - a[4]);
