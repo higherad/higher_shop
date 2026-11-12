@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>쇼핑슬롯</title>
+<title>바구니</title>
 <script>
   // 로그인했던 브라우저면 세션 복원이 끝날 때까지 로그인 화면을 그리지 않음(새로고침 때 로그인 화면이 깜빡이는 것 방지)
   try { if (localStorage.getItem('shop_signed_in') === '1') document.documentElement.classList.add('boot'); } catch (e) {}
   setTimeout(() => document.documentElement.classList.remove('boot'), 5000);  // 복원이 안 끝나면(네트워크 등) 로그인 화면이라도 보이게
 </script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛍️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧺</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"/>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -199,7 +199,7 @@
   <div class="hero-spot" id="hero-spot"></div>
   <div class="hero-wrap">
     <div class="hero-left">
-      <p class="eyebrow">SHOPPING SLOT · 쇼핑슬롯</p>
+      <p class="eyebrow">BAGUNI · 바구니</p>
       <h1 class="hero-h1">매출은, <span class="hl">순위</span>에서<br>시작됩니다.</h1>
       <div class="hero-tasklist">
         <div class="task-item"><span class="task-num">01</span><span class="task-label">캠페인 접수</span></div>
@@ -281,9 +281,9 @@
   </script>
 </div>
 
-<div class="mtop"><button type="button" id="m-menu" aria-label="메뉴">☰</button>SHOPPING <span>SLOT</span></div>
+<div class="mtop"><button type="button" id="m-menu" aria-label="메뉴">☰</button><span>바구니</span></div>
 <aside>
-  <div class="brand">SHOPPING <span>SLOT</span></div>
+  <div class="brand"><span>바구니</span></div>
   <div class="nav-label" id="own-label" style="display:none;padding-top:0">접수 관리</div>
   <div class="nav active" data-p="slots"><i data-lucide="shopping-bag"></i> 내 캠페인 관리</div>
   <div class="nav" data-p="settle"><i data-lucide="receipt"></i> 정산 내역 <span id="nav-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
@@ -781,7 +781,7 @@ $('or-tmpl').onclick = () => {
   const ws = XLSX.utils.aoa_to_sheet([['순위키워드', '상품URL', '시작일\n(당일 or 익일)', '일수\n(1~7)', '일목표\n(최소 10)']]);
   ws['!cols'] = [{ wch: 24 }, { wch: 60 }, { wch: 16 }, { wch: 10 }, { wch: 12 }];
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, '접수');
-  XLSX.writeFile(wb, '쇼핑슬롯_접수양식.xlsx');
+  XLSX.writeFile(wb, '바구니_접수양식.xlsx');
 };
 $('or-pick').onclick = () => $('or-file').click();
 $('or-file').onchange = async e => {
@@ -870,7 +870,7 @@ function saveXlsx(name, header, rows, widths) {
   const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
   ws['!cols'] = widths.map(w => ({ wch: w }));
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, name);
-  XLSX.writeFile(wb, `쇼핑슬롯_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
+  XLSX.writeFile(wb, `바구니_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
 $('slot-xlsx').onclick = () => saveXlsx('내캠페인',
   ['접수일', '순위 키워드', 'MID', 'URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
