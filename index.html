@@ -313,7 +313,6 @@
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="issue-open"><i data-lucide="plus"></i>슬롯 발급</button>
         <button class="btn" id="edit-open"><i data-lucide="pencil"></i>일괄 정보 수정 <span id="sel-cnt"></span></button>
-        <button class="btn" id="refund-open" style="color:var(--danger)"><i data-lucide="undo-2"></i>환불 요청</button>
         <button class="btn" id="slot-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button>
       </div>
     </div>
@@ -332,7 +331,7 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>상태</th><th>수정</th></tr></thead>
+        <thead><tr><th><input type="checkbox" id="cb-all"></th><th>번호</th><th>순위 키워드</th><th>상품 MID</th><th>상품 URL</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>상태</th><th>관리</th></tr></thead>
         <tbody id="slot-rows"><tr><td colspan="11" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
@@ -649,7 +648,7 @@ function render() {
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
       <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
-      <td>${canEdit(x) ? `<button class="btn sm" data-edit="${x.no}">수정</button>` : '-'}</td></tr>`;
+      <td>${canEdit(x) ? `<button class="btn sm" data-edit="${x.no}">수정</button>` : canRefund(x) ? `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="11" style="height:160px;color:var(--muted)">슬롯이 없습니다. 오른쪽 위 \'슬롯 발급\'으로 발급받으세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   selCount(); renderSettle(); renderHistory();
@@ -659,23 +658,23 @@ $('st-chips').onclick = e => { const f = e.target.dataset.f; if (f !== undefined
 ['q', 'd-from', 'd-to'].forEach(id => $(id).oninput = render);
 $('cb-all').onclick = e => { document.querySelectorAll('.cb:not(:disabled)').forEach(c => c.checked = e.target.checked); selCount(); };
 $('slot-rows').onchange = selCount;
-$('slot-rows').onclick = e => { const no = e.target.closest('[data-edit]')?.dataset.edit; if (no) openEdit([+no]); };
+// 행 버튼: 접수 전 = 수정, 진행중 = 환불(슬롯 하나씩)
+$('slot-rows').onclick = e => {
+  const ed = e.target.closest('[data-edit]'), rf = e.target.closest('[data-refund]');
+  if (ed) openEdit([+ed.dataset.edit]);
+  if (rf) requestRefund(SLOTS.filter(x => x.no === +rf.dataset.refund && canRefund(x)), rf);
+};
 
 /* 환불 요청 */
 function requestRefund(list, btn) {
   if (!list.length) return alert('환불 요청할 수 있는 슬롯이 없습니다. 작업 시작 전 슬롯은 정산 내역에서 취소해 주세요.');
-  if (!confirm(`슬롯 ${list.length}개를 환불 요청합니다. 요청 후에는 정보를 수정할 수 없습니다.`)) return;
+  if (!confirm(`슬롯 ${list.length}개를 환불 요청합니다. 요청은 철회할 수 없습니다.`)) return;
   busy(btn, async () => {
     const r = await api('/shop-refund', { items: list.map(x => ({ userId: x.userId || ME, no: x.no })) });
     document.querySelectorAll('.cb:checked').forEach(c => c.checked = false); selCount();
     alert(r.skipped ? `${r.changed}개 요청, ${r.skipped}개는 요청할 수 없어 건너뛰었습니다.` : `${r.changed}개 슬롯을 환불 요청했습니다.`);
   });
 }
-$('refund-open').onclick = () => {
-  const nos = new Set([...document.querySelectorAll('.cb:checked')].map(c => +c.value));
-  if (!nos.size) return alert('환불 요청할 슬롯을 선택해 주세요.');
-  requestRefund(SLOTS.filter(x => nos.has(x.no) && canRefund(x)), $('refund-open'));
-};
 
 /* 일괄 정보 수정 */
 $('edit-open').onclick = () => {
