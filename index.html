@@ -489,7 +489,7 @@
   </div>
 </div></div>
 
-<!-- 접수(개별·엑셀) — 한 줄 = 정보가 들어간 슬롯 1개 -->
+<!-- 접수(개별·엑셀) -->
 <div class="ov" id="m-order"><div class="box" style="width:1000px">
   <h3>접수</h3>
   <div class="sub">시작일은 당일·익일 중 선택 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</div>
@@ -720,7 +720,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
   alert(skip ? `${r.changed}개 저장, ${skip}개는 진행중·종료·취소됐거나 입력된 정보를 비우려 해 저장하지 못했습니다.` : `${r.changed}개 캠페인이 저장되었습니다.`);
 });
 
-/* ── 접수(개별·엑셀) — 한 줄 = 정보가 들어간 슬롯 1개. 서버 /shop-order가 같은 시작일·일수·일 목표끼리 발급 건 1개로 묶음
+/* ── 접수(개별·엑셀) — 서버 /shop-order가 같은 시작일·일수·일 목표끼리 발급 건 1개로 묶음
    광고주 사이트(higher_shop index.html)·어드민(쇼핑관리.html)이 같은 로직 — 한쪽을 고치면 같이 고칠 것 ── */
 let orderTab = 'one', xRows = [];
 const newReqId = () => crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
