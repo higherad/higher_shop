@@ -550,7 +550,7 @@ const closedNow = () => kstNow().getUTCHours() >= CUTOFF_HOUR;
 const CLOSED_MSG = `접수는 ${CUTOFF_HOUR}시에 마감됩니다. 내일 0시부터 발급할 수 있습니다.`;
 const endOf = (s, days) => addDays(s, days - 1);
 // 일수 1~7·일 목표 최소 10 — 발급 건 price = 단가 × 일수 × 일 목표(슬롯 1개 금액). days 없는 옛 건 = 7일·100개
-const termOpts = (v = TERM_DAYS) => Array.from({ length: TERM_DAYS }, (_, i) => `<option value="${i + 1}"${i + 1 === v ? ' selected' : ''}>${i + 1}일</option>`).join('');
+const termOpts = (v = TERM_DAYS) => Array.from({ length: TERM_DAYS }, (_, i) => `<option value="${i + 1}"${i + 1 === v ? ' selected' : ''}>${i + 1}</option>`).join('');
 const fixDaily = inp => { inp.value = Math.max(MIN_DAILY, parseInt(inp.value) || MIN_DAILY); return +inp.value; };
 const termOf = x => `${x.days || TERM_DAYS}일 · 일 ${(x.daily || 100).toLocaleString()}개`;
 const md = s => (s || '').slice(5).replace('-', '/');
@@ -717,9 +717,8 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
    광고주 사이트(higher_shop index.html)·어드민(쇼핑관리.html)이 같은 로직 — 한쪽을 고치면 같이 고칠 것 ── */
 let orderTab = 'one', xRows = [];
 const newReqId = () => crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
-// 시작일 = 당일·익일 둘 중 하나(접수하면 그 날짜로 저장), 표시는 '당일 (11/12)'
-const slash = d => d.slice(5).replace('-', '/');
-const whenOpts = (v = 0) => [0, 1].map(n => `<option value="${n}"${n === v ? ' selected' : ''}>${n ? '익일' : '당일'} (${slash(addDays(today(), n))})</option>`).join('');
+// 시작일 = 당일·익일 둘 중 하나(접수하면 그 날짜로 저장)
+const whenOpts = (v = 0) => [0, 1].map(n => `<option value="${n}"${n === v ? ' selected' : ''}>${n ? '익일' : '당일'}</option>`).join('');
 const WHEN = { '당일': 0, '익일': 1 };
 // 한 줄 검사(서버 shop_order와 같음) → 오류 문구, 없으면 ''
 function orderErr(r) {
@@ -740,7 +739,7 @@ function orAddRow(base = {}) {
   tr.innerHTML = `<td class="or-n"></td><td><input class="or-kw" maxlength="50" placeholder="키워드"></td><td><input class="or-url" maxlength="500" placeholder="상품 URL"></td>
     <td><select class="or-when">${whenOpts(base.off)}</select></td><td><select class="or-days">${termOpts(base.days)}</select></td><td><input class="or-daily" type="number" style="text-align:center"></td>
     <td class="or-amt"></td><td><button class="btn sm or-del" title="줄 삭제">✕</button></td>`;
-  tr.querySelector('.or-daily').value = base.daily || 100;
+  tr.querySelector('.or-daily').value = base.daily || MIN_DAILY;
   $('or-rows').append(tr);
 }
 // 줄별 슬롯 금액·합계 다시 그림 — 틀린 칸은 빨간 테두리, 한 줄이라도 틀리면 접수 버튼 막음
@@ -754,7 +753,7 @@ function orSync() {
     tr.querySelector('.or-amt').textContent = errs[i] || !ok ? '-' : won(orderAmt(r)) + '원';
   });
   else $('or-xrows').innerHTML = rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.kw) || '-'}</td><td style="text-align:left;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.url) || '-'}</td>
-      <td>${r.start ? `${r.raw} (${slash(r.start)})` : esc(r.raw) || '-'}</td><td>${esc(r.daysRaw) || '-'}</td><td>${esc(r.dailyRaw) || '-'}</td>
+      <td>${esc(r.raw) || '-'}</td><td>${esc(r.daysRaw) || '-'}</td><td>${esc(r.dailyRaw) || '-'}</td>
       <td>${errs[i] || !ok ? '-' : won(orderAmt(r)) + '원'}</td><td>${errs[i] ? `<span class="badge b-end">${errs[i]}</span>` : '<span class="badge b-run">정상</span>'}</td></tr>`).join('')
     || '<tr><td colspan="8" style="height:100px;text-align:center;color:var(--muted)">양식에 맞춰 작성한 엑셀을 선택해 주세요.</td></tr>';
   const bad = errs.filter(Boolean).length, amt = rows.reduce((a, r, i) => a + (errs[i] ? 0 : orderAmt(r)), 0);
