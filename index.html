@@ -93,7 +93,6 @@
   .nav.active { color:#fff; background:var(--acc); }
   .me { margin-top:auto; border-top:1px solid #1f2937; padding:16px 8px 0; }
   .me-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-  .avatar { width:34px; height:34px; border-radius:50%; background:var(--acc); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
   .me-name { font-weight:700; } .me-role { font-size:11px; color:var(--muted); }
   .side-btn { width:100%; padding:8px; margin-top:6px; border-radius:7px; border:1px solid #374151; background:transparent; color:#cbd5e1; cursor:pointer; font-size:12px; }
   .side-btn.out { color:#fca5a5; border-color:#7f1d1d; }
@@ -303,7 +302,7 @@
     <div class="nav" data-p="int-settle"><i data-lucide="layers"></i> 통합 정산 내역 <span id="nav-int-unpaid" class="badge b-ext" style="margin-left:auto;display:none"></span></div>
   </div>
   <div class="me">
-    <div class="me-row"><div class="avatar" id="me-av"></div><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
+    <div class="me-row"><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
     <button class="side-btn" id="pw-open">비밀번호 변경</button>
     <button class="side-btn out" id="logout">로그아웃</button>
   </div>
@@ -629,7 +628,6 @@ onAuthStateChanged(auth, user => {
   unsubs.push(onValue(ref(db, `shop/users/${ME}`), s => {
     USER = s.val() || {};
     if (USER.blocked || USER.deleted) { alert('이용이 제한된 계정입니다. 관리자에게 문의해 주세요.'); signOut(auth); return; }
-    $('me-av').textContent = (USER.company || ME).slice(0, 2);
     $('me-id').textContent = ME;
     $('me-role').textContent = `${USER.company || ''} · ${USER.role === 'dist' ? '총판' : '사용자'}`;
     const isDist = USER.role === 'dist';
