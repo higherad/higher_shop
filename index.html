@@ -312,9 +312,10 @@
     <details class="guide" id="g-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올리면(엑셀 접수) 캠페인이 바로 생성<br>한 줄 = 캠페인 1개 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></li>
-        <li><b>진행</b><span>작업이 시작되면 <em>진행중</em> — 이후 수정 불가, 옆 <em>환불</em>만 가능<br>진행 전(<em>접수</em>·<em>빈 캠페인</em>)은 옆 <em>수정</em>으로 변경</span></li>
-        <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>시작일 당일까지 취소 가능</span></li>
+        <li><b>접수</b><span><em>접수</em>에서 한 줄씩 입력(개별 접수)하거나 양식 엑셀을 올림(엑셀 접수)<br>한 줄 = 캠페인 1개 · 시작일 당일·익일 · 일수 1~7일 · 일 목표 최소 10개 · 매일 17시 마감</span></li>
+        <li><b>진행</b><span>접수 후 작업이 시작되면 <em>진행중</em><br>진행 전(<em>접수</em>)엔 옆 <em>수정</em>으로 키워드·URL 변경</span></li>
+        <li><b>환불</b><span>진행중 캠페인은 옆 <em>환불</em>로 요청(종료일 전날까지)<br>처리되면 <em>환불</em> — 남은 일수 금액이 정산에서 빠집니다</span></li>
+        <li><b>입금·취소</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>진행 전 + 시작일 당일까지는 <em>취소</em> 가능</span></li>
       </ol>
     </details>
     <div class="chips" id="st-chips"></div>
@@ -338,9 +339,9 @@
         <details class="guide" id="g-settle">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>금액 확인</b><span>발급하면 바로 정산 건이 생깁니다<br><em>결제 금액(VAT 포함)</em>을 입금해 주세요</span></li>
+        <li><b>금액 확인</b><span>접수하면 바로 정산 건이 생깁니다(단가 × 일수 × 일 목표)<br><em>결제 금액(VAT 포함)</em>을 입금해 주세요</span></li>
         <li><b>입금 완료</b><span>입금이 확인되면<br>상태가 <em>입금 완료</em>로 바뀝니다</span></li>
-        <li><b>취소</b><span>시작일 당일까지 <em>취소</em> 가능<br>취소한 건은 정산에서 빠집니다</span></li>
+        <li><b>취소·환불</b><span>진행 전 + 시작일 당일까지 <em>취소</em> 가능(정산에서 빠짐)<br>환불된 금액은 정산 금액 아래 <em>환불</em>로 표시</span></li>
       </ol>
     </details>
     <div class="summary" id="st-cards"></div>
@@ -372,7 +373,7 @@
       <ol>
         <li><b>접수</b><span><em>접수</em>에서 하부점을 고르고 한 줄씩 입력하거나 엑셀로 올림<br>한 줄 = 캠페인 1개 · 금액은 하부점 단가로 <em>하부점 정산</em>에</span></li>
         <li><b>취소·환불</b><span>진행 전 캠페인은 <em>취소</em>(같은 발급번호 캠페인 함께), 진행중은 <em>환불</em><br>키워드·URL 수정은 하부점이 직접 합니다</span></li>
-        <li><b>상태</b><span><em>빈 캠페인</em> = 입력 전 · <em>접수</em> = 입력 완료(수정 가능)<br><em>진행중</em> = 작업 시작(수정 불가·환불만) · <em>종료</em> = 기간 끝</span></li>
+        <li><b>상태</b><span><em>접수</em> = 진행 전(수정·취소 가능) · <em>진행중</em> = 작업 시작<br><em>환불 요청</em> → <em>환불</em> · <em>종료</em> = 기간 끝</span></li>
       </ol>
     </details>
     <div class="bar">
@@ -392,7 +393,7 @@
         <details class="guide" id="g-d-settle">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>받을 금액</b><span>하부점이 발급한 캠페인이<br><em>하부점 단가</em>로 이곳에 쌓입니다</span></li>
+        <li><b>받을 금액</b><span>하부점 캠페인이 <em>하부점 단가</em>로 쌓입니다<br>환불된 금액은 빠집니다</span></li>
         <li><b>입금 확인</b><span>하부점에게 입금을 받으면<br><em>입금 확인</em>을 눌러 주세요</span></li>
       </ol>
     </details>
@@ -416,8 +417,8 @@
       <summary>이용 방법</summary>
       <ol>
         <li><b>계정 만들기</b><span><em>하부점 추가</em>에서 계정을 만듭니다<br>업체명·아이디·비밀번호·단가(1개) 입력</span></li>
-        <li><b>하부점 사용</b><span>하부점은 그 아이디로 로그인해<br>캠페인 발급·키워드 입력을 직접 합니다</span></li>
-        <li><b>단가·차단</b><span>단가는 <em>수정</em>에서 변경(이후 발급분부터)<br>거래를 멈출 땐 <em>차단</em></span></li>
+        <li><b>하부점 사용</b><span>하부점은 그 아이디로 로그인해 직접 접수하거나<br><em>하부점 접수 현황</em>에서 총판이 대신 접수</span></li>
+        <li><b>단가·차단</b><span>단가(1개)는 <em>수정</em>에서 변경(이후 접수분부터)<br>거래를 멈출 땐 <em>차단</em></span></li>
       </ol>
     </details>
     <div class="tbl-wrap"><table>
