@@ -746,7 +746,7 @@ function orSync() {
       <td>${errs[i] || !ok ? '-' : won(orderAmt(r)) + '원'}</td><td>${errs[i] ? `<span class="badge b-end">${errs[i]}</span>` : '<span class="badge b-run">정상</span>'}</td></tr>`).join('')
     || '<tr><td colspan="8" style="height:100px;text-align:center;color:var(--muted)">양식에 맞춰 작성한 엑셀을 선택해 주세요.</td></tr>';
   const bad = errs.filter(Boolean).length, amt = rows.reduce((a, r, i) => a + (errs[i] ? 0 : orderAmt(r)), 0);
-  $('or-sum').innerHTML = rows.length && ok ? `${bad ? `<b style="color:var(--danger)">오류 ${bad}건</b> · ` : ''}${rows.length}건 합계 <b style="color:var(--text);font-size:15px">${orderSub === null ? `${won(Math.round(amt * VAT))}원</b> (VAT 포함)` : `${won(amt)}원</b> (하부점 금액, VAT 별도) · 총판 정산 ${won(amt / orderUser().price * USER.price)}원`}` : '';
+  $('or-sum').innerHTML = rows.length && ok ? `${bad ? `<b style="color:var(--danger)">오류 ${bad}건</b> · ` : ''}${rows.length}건 합계 <b style="color:var(--text);font-size:15px">${orderSub === null ? `${won(Math.round(amt * VAT))}원</b> (VAT 포함)` : `${won(amt)}원</b> (하부점 금액, VAT 별도)`}` : '';
   $('or-go').disabled = !rows.length || bad > 0 || !ok;
 }
 function orTab(t) {
@@ -811,7 +811,7 @@ $('or-go').onclick = () => busy($('or-go'), async () => {
   const u = orderUser(), amt = rows.reduce((a, r) => a + orderAmt(r), 0);
   if (!u) throw new Error('대상 하부점을 선택해 주세요.');
   if (!confirm(orderSub === null ? `캠페인 ${rows.length}개를 접수합니다. (결제 금액 VAT 포함 ${won(Math.round(amt * VAT))}원)`
-    : `${u.company}에 캠페인 ${rows.length}개를 접수합니다. (하부점 금액 ${won(amt)}원 / 총판 정산 ${won(amt / u.price * USER.price)}원, VAT 별도)`)) return;
+    : `${u.company}에 캠페인 ${rows.length}개를 접수합니다. (하부점 금액 ${won(amt)}원, VAT 별도)`)) return;
   const r = await api('/shop-order', { ...(orderSub === null ? {} : { userId: orderSub }), items: rows.map(({ kw, url, start, days, daily }) => ({ kw, url, start, days, daily })), reqId: newReqId() });
   $('m-order').classList.remove('show');
   if (orderSub === null) { filter = 'wait'; render(); }
