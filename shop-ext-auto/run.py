@@ -6,10 +6,14 @@
 새 PC는 이 파일만 복사해 실행하면 빠진 것을 설치하거나 안내함: 파이썬 패키지·크롬(자동 설치), 전용 크롬 확장(웹스토어 열고 대기),
 확장 설정(파트너키·프록시 — 안내), 크롤 창 프로그램·브릿지(확장 폴더에서 자동 설치), 크롤 창 구성·네이버 계정 파일(안내).
 
+2번 뒤 행마다 유효키워드 개수를 일목표 기준 목표 범위로 맞춤(fit_keywords): 부족하면 추출 규칙을 늘려 그 행만 다시 추출
+(조합 검사 상한 +일목표 → 조합 단어수 최대 +1 → 조합 검사 상한 +50, 그래도 부족하면 그대로 진행 — 규칙은 끝나면 원래 값으로),
+넘치면 순위 낮은 키워드부터 삭제.
+
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
-영업점·등급은 어드민 엑셀 값 그대로(영업점 = 대행사 업체명[SR] — 하부점은 총판, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
+영업점·등급은 어드민 엑셀 값 그대로(영업점 = 대행사 업체명 — 하부점은 총판, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
 """
-import argparse, csv, glob, gzip, json, os, shutil, subprocess, sys, time, urllib.request, winreg
+import argparse, csv, glob, gzip, json, os, re, shutil, subprocess, sys, time, urllib.request, winreg
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True); sys.stderr.reconfigure(encoding="utf-8")  # 파이프 실행에서도 바로 출력
 try:
     import openpyxl
@@ -190,8 +194,9 @@ def close_alert(page):
 
 
 def run_step(page, btn, name, human=False):
+    """btn = 누를 버튼 선택자, 또는 시작 함수(행 지정 재추출처럼 버튼 없이 시작할 때)."""
     close_alert(page)
-    page.click(btn)
+    page.click(btn) if isinstance(btn, str) else btn()
     print(f'▶ {name} 시작')
     t0 = time.time()
     while not bulk(page).get('running'):  # 시작 대기
@@ -294,6 +299,110 @@ def crawl_with_retry(page):
         sys.exit(f'✖ {CRAWL_RETRY}번 재시도해도 정보 불러오기 실패한 행이 있습니다.')
 
 
+NO_VALID = '유효키워드 없음'
+RULE_DEFAULTS = {'checkCap': 300, 'wordMax': 4}  # 확장 rules.js DEFAULT_RULES와 같음(저장값 없을 때)
+# 부족할 때 규칙 늘리는 순서(누적) — 조합 검사 상한 +일목표 → 조합 단어수 최대 +1 → 조합 검사 상한 +50
+ESCALATE = [('조합 검사 상한 +일목표', lambda r, d: {'checkCap': r['checkCap'] + d}),
+            ('조합 단어수 최대 +1', lambda r, d: {'wordMax': r['wordMax'] + 1}),
+            ('조합 검사 상한 +50', lambda r, d: {'checkCap': r['checkCap'] + 50})]
+
+
+def kw_goal(daily):
+    """일목표 → (목표 개수, 허용 오차). 100 이상은 100 기준 80±5, 미만은 -20% ±1(넘치면 안 돼서 좁게)."""
+    return (80, 5) if daily >= 100 else (round(daily * 0.8), 1)
+
+
+def kws_of(r):
+    return [k for k in (x.strip() for x in re.split(r'[,\n]', str(r.get('valid') or ''))) if k and k != NO_VALID]
+
+
+def ranks_of(r):
+    out = {}
+    for ln in str(r.get('_validRanks') or '').split('\n'):
+        m = re.match(r'^(\d+)위\s+(.+)$', ln.strip())
+        if m:
+            out[m[2]] = int(m[1])
+    return out
+
+
+def kw_patch(kws, ranks):
+    """유효키워드 칸 값 — 확장 순위 창 ✕(키워드 삭제)와 같은 형식(valid 본문 + _validRanks 'N위 kw' 줄)."""
+    return {'valid': ', '.join(kws) or NO_VALID, '_validRanks': '\n'.join(f'{ranks[k]}위 {k}' for k in kws if k in ranks)}
+
+
+def grid(page):
+    return page.evaluate("chrome.storage.local.get('gridRows').then(o => o.gridRows || [])")
+
+
+def patch_grid(page, patch):
+    """gridRows 행 고치고 새로고침(확장 화면이 고친 시트를 다시 읽게) — patch = {행: {필드: 값}}."""
+    page.evaluate("""p => chrome.storage.local.get('gridRows').then(({ gridRows: g = [] }) => {
+      Object.entries(p).forEach(([i, v]) => Object.assign(g[i], v));
+      return chrome.storage.local.set({ gridRows: g });
+    })""", {str(i): v for i, v in patch.items()})
+    page.reload(); page.wait_for_selector('#btn-crawl'); time.sleep(1)
+
+
+def fit_keywords(page):
+    """행마다 유효키워드 개수를 목표 범위로. 부족 → 규칙 늘려 그 행만 재추출(이전 결과와 합침), 넘침 → 순위 낮은 것부터 삭제."""
+    def short_rows():
+        out = {}
+        for i, r in enumerate(grid(page)):
+            if not str(r.get('productUrl') or '').strip() or r.get('regState') in ('등록성공', '확인필요'):
+                continue
+            d = int(float(r.get('target') or 0))
+            goal, tol = kw_goal(d)
+            if len(kws_of(r)) < goal - tol:
+                out[i] = d
+        return out
+
+    rules0 = page.evaluate('d => chrome.storage.local.get(d)', RULE_DEFAULTS)
+    rules = dict(rules0)
+    try:
+        for label, step in ESCALATE:
+            short = short_rows()
+            if not short:
+                break
+            # ponytail: 규칙이 전역이라 부족한 행 중 가장 큰 일목표로 늘림 — 일목표가 섞여 문제되면 일목표별로 나눠 돌리기
+            rules.update(step(rules, max(short.values())))
+            page.evaluate('r => chrome.storage.local.set(r)', rules)
+            print(f'↻ 유효키워드 부족 {len(short)}행 — {label} (상한 {rules["checkCap"]} · 단어수 최대 {rules["wordMax"]}) 다시 추출')
+            before = {i: grid(page)[i] for i in short}
+            idx = sorted(short)
+            run_step(page, lambda: page.evaluate("ix => chrome.runtime.sendMessage({ type: 'extractAll', rowIndexes: ix })", idx),
+                     f'2. 유효키워드 추출({label})')
+            t0 = time.time()  # 확장 화면이 결과를 시트에 넣을 때까지(extractSeq 맞춰짐)
+            while time.time() - t0 < 30:
+                g, b = grid(page), bulk(page).get('rows') or []
+                if all(i < len(b) and g[i].get('extractSeq') == b[i].get('extractSeq') for i in idx):
+                    break
+                time.sleep(1)
+            g, patch = grid(page), {}
+            for i, old in before.items():  # 다시 뽑으면 무작위 조합이라 이전 결과와 합침(둘 다 순위 확인된 키워드)
+                ranks = {**ranks_of(old), **ranks_of(g[i])}
+                patch[i] = kw_patch(list(dict.fromkeys(kws_of(g[i]) + kws_of(old))), ranks)
+            patch_grid(page, patch)
+    finally:
+        page.evaluate('r => chrome.storage.local.set(r)', rules0)
+
+    patch, report = {}, []
+    for i, r in enumerate(grid(page)):
+        if not str(r.get('productUrl') or '').strip() or r.get('regState') in ('등록성공', '확인필요'):
+            continue
+        d = int(float(r.get('target') or 0))
+        goal, tol = kw_goal(d)
+        kws, ranks = kws_of(r), ranks_of(r)
+        if len(kws) > goal + tol:  # 순위 좋은 것부터 goal개만 남김(순위 모르는 키워드는 맨 뒤)
+            keep = set(sorted(kws, key=lambda k: ranks.get(k, 10 ** 6))[:goal])
+            patch[i] = kw_patch([k for k in kws if k in keep], ranks)
+            report.append(f'  {i + 1}행 {len(kws)} → {goal}개 (삭제 {len(kws) - goal})')
+        elif len(kws) < goal - tol:
+            report.append(f'  {i + 1}행 {len(kws)}개 — 목표 {goal}±{tol} 부족, 그대로 진행')
+    if patch:
+        patch_grid(page, patch)
+    print('✔ 유효키워드 개수 맞춤' + ('\n' + '\n'.join(report) if report else ' — 모두 목표 범위'))
+
+
 def slot_numbers(src):
     """엑셀의 슬롯번호를 (상품URL, 순위키워드)별 순서대로 — 확장은 모르는 열을 버려서 결과에 다시 붙임."""
     rows = list(openpyxl.load_workbook(src, read_only=True).active.iter_rows(values_only=True))
@@ -371,6 +480,7 @@ def main():
         ensure_logins(p)
         crawl_with_retry(page)
         run_step(page, '#btn-extract', '2. 유효키워드 추출')
+        fit_keywords(page)
         for ag in agencies:  # 확장은 상단 영업점과 같은 행만 등록 → 영업점마다 선택 후 등록(이미 등록된 행은 확장이 건너뜀)
             select_agency(page, ag)
             run_step(page, '#btn-register', f'3. 캠페인 등록({ag})', human=True)
