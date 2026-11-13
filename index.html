@@ -605,7 +605,7 @@ const rankPopup = (title, sub, r) => {
         <polyline points="${P.map(p => `${X(p.t).toFixed(1)},${Y(p.k).toFixed(1)}`).join(' ')}" fill="none" stroke="#8b5cf6" stroke-width="2"/>
         ${P.map(p => `<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="3" fill="#8b5cf6"/>`).join('')}
         <circle class="rp-act" r="5" fill="#8b5cf6" visibility="hidden"/></svg>
-        <div class="rp-tip" style="position:absolute;display:none;pointer-events:none;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:6px 9px;font-size:12px;white-space:nowrap"></div>`;
+        <div class="rp-tip" style="position:absolute;display:none;pointer-events:none;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;padding:6px 9px;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.08)"></div>`;
       // 그래프 안 어디든 마우스 = 가장 가까운 측정 시각의 순위(세로선·점·말풍선)
       const svg = el.querySelector('svg'), cur = el.querySelector('.rp-cur'), act = el.querySelector('.rp-act'), tip = el.querySelector('.rp-tip');
       svg.onmousemove = e => {
@@ -613,7 +613,7 @@ const rankPopup = (title, sub, r) => {
         const p = P.reduce((a, q) => Math.abs(X(q.t) - vx) < Math.abs(X(a.t) - vx) ? q : a), px = X(p.t), py = Y(p.k);
         cur.setAttribute('x1', px); cur.setAttribute('x2', px); act.setAttribute('cx', px); act.setAttribute('cy', py);
         cur.setAttribute('visibility', 'visible'); act.setAttribute('visibility', 'visible');
-        tip.innerHTML = `<div style="color:#94a3b8;margin-bottom:2px">${tLabel(p.t)}</div>순위 : ${rk(p.raw)}위`;
+        tip.innerHTML = `<div style="margin-bottom:2px">${tLabel(p.t)}</div><div style="color:#8b5cf6">순위 : ${rk(p.raw)}위</div>`;
         tip.style.display = 'block';
         const sx = px * b.width / W, sy = py * b.height / H;
         tip.style.left = `${sx + tip.offsetWidth + 16 > b.width ? sx - tip.offsetWidth - 10 : sx + 10}px`; tip.style.top = `${Math.max(0, sy - tip.offsetHeight - 8)}px`;
