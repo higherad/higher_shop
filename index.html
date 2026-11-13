@@ -335,8 +335,8 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>접수일</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
-        <tbody id="slot-rows"><tr><td colspan="15" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
+        <thead><tr><th>번호</th><th>접수일</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
+        <tbody id="slot-rows"><tr><td colspan="16" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
     </div>
@@ -394,7 +394,7 @@
       <label><input type="checkbox" id="ds-noend" checked>종료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>번호</th><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="ds-rows"></tbody>
     </table></div>
   </section>
@@ -748,13 +748,13 @@ function render() {
   const dash = '<span class="empty">미입력</span>';
   $('slot-rows').innerHTML = rows.map(x => {
     const st = slotState(x), left = Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
-    return `<tr><td>${md(x.setAt) || '-'}</td>
+    return `<tr><td>${x.no}</td><td>${md(x.setAt) || '-'}</td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
       ${rankCells(ME, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td style="white-space:nowrap">${[canEdit(x) && `<button class="btn sm" data-edit="${x.no}">수정</button>`, canRefund(x) && `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>`].filter(Boolean).join(' ') || '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="15" style="height:160px;color:var(--muted)">아직 캠페인이 없습니다. 오른쪽 위 접수 버튼으로 시작하세요.</td></tr>';
+  }).join('') || '<tr><td colspan="16" style="height:160px;color:var(--muted)">아직 캠페인이 없습니다. 오른쪽 위 접수 버튼으로 시작하세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   renderSettle(); renderHistory(); renderIntSettle();
 }
@@ -978,9 +978,9 @@ function saveXlsx(name, header, rows, widths) {
   XLSX.writeFile(wb, `바구니_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
 $('slot-xlsx').onclick = () => saveXlsx('내캠페인',
-  ['접수일', '순위 키워드', 'MID', 'URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
-  visibleSlots().map(x => { const st = slotState(x); return [x.setAt || '', x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
-  [16, 18, 14, 50, 6, 12, 12, 8, 8, 10]);
+  ['번호', '접수일', '순위 키워드', 'MID', 'URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
+  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.setAt || '', x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
+  [8, 16, 18, 14, 50, 6, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
   ['접수일시', '단가(원)', '캠페인 수', '일수', '일 목표', '전체 목표 합산', '정산 금액(VAT 별도)', '입금액(VAT 포함)', '환불 금액(VAT 별도)', '정산상태'],
   settleRows.map(is => [is.at, is.unit || '', is.qty, is.days || TERM_DAYS, is.daily || 100, goalOf(is), billOf(is), Math.round(billOf(is) * VAT), refundOf(is), settleState(is)[0]]),
@@ -988,18 +988,26 @@ $('settle-xlsx').onclick = () => saveXlsx('정산내역',
 
 /* ── 변경 이력 ── */
 // 변경 이력 줄 — 본인(내 캠페인)·하부점(총판 관리) 공용, withSub면 하부점 칸 추가
+// 대상 = 표 번호 열과 같은 접수번호(발급 묶음은 그 안의 캠페인 번호들)
+const noLabel = nos => {
+  nos = [...nos].sort((a, b) => a - b);
+  if (!nos.length) return '-';
+  return '접수번호 ' + (nos.length > 2 && nos.at(-1) - nos[0] + 1 === nos.length ? `${nos[0]}~${nos.at(-1)}` : nos.join(', '));
+};
 function historyHtml(issues, slots, withSub) {
   const ev = [], who = x => withSub ? [esc(subName(x.userId))] : [];
+  const slotNos = new Map();
+  slots.forEach(x => { const k = `${withSub ? x.userId : ''}|${x.issueNo}`; slotNos.set(k, [...(slotNos.get(k) || []), x.no]); });
   issues.forEach(is => {
-    const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소', tg = `발급번호 #${is.no}`;
+    const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소', tg = noLabel(slotNos.get(`${withSub ? is.userId : ''}|${is.no}`) || []);
     ev.push([is.at, '<span class="badge b-req">접수</span>', ...who(is), tg, `캠페인 ${is.qty0 || is.qty}건 접수 / ${span} (${termOf(is)})`]);
     if (is.qty0 && is.qty0 > is.qty && !is.revokedAt) ev.push([is.droppedAt || is.at, '<span class="badge b-done">환불</span>', ...who(is), tg, `진행 전 ${is.qty0 - is.qty}건 삭제(전액)`]);
     if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge ${is.qty0 ? 'b-done' : 'b-end'}">${is.qty0 ? '환불' : cancel}</span>`, ...who(is), tg, `캠페인 ${is.qty0 || is.qty}건 ${is.qty0 ? '삭제(전액)' : cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', ...who(is), tg, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
-  slots.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', ...who(x), `캠페인 ${x.no}`, x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
-  slots.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', ...who(x), `캠페인 ${x.no}`, `키워드 '${esc(x.kw)}'`]));
-  slots.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', ...who(x), `캠페인 ${x.no}`, `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
+  slots.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', ...who(x), noLabel([x.no]), x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  slots.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', ...who(x), noLabel([x.no]), `키워드 '${esc(x.kw)}'`]));
+  slots.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', ...who(x), noLabel([x.no]), `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 접수→환불→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b.at(-1) - a.at(-1));
@@ -1083,11 +1091,11 @@ function renderDSlots() {
   const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
-    return `<tr><td>${md(x.setAt) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    return `<tr><td>${x.no}</td><td>${md(x.setAt) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="15" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
+  }).join('') || '<tr><td colspan="16" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
 }
 $('ds-rows').onclick = e => {
   if (openRank(e)) return;
