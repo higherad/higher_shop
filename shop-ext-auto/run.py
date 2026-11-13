@@ -13,7 +13,7 @@
 3번은 확장의 '이대로 등록할까요?(예상 차감액)' 창에서 사람이 '등록하기'를 눌러야 진행(과금 확인).
 영업점·등급은 어드민 엑셀 값 그대로(영업점 = 대행사 업체명 — 하부점은 총판, 등급 스모키). 영업점이 여러 개면 영업점마다 상단 선택 후 3번.
 """
-import argparse, csv, glob, gzip, json, os, re, shutil, subprocess, sys, time, urllib.request, winreg
+import argparse, csv, glob, gzip, json, os, random, re, shutil, subprocess, sys, time, urllib.request, winreg
 sys.stdout.reconfigure(encoding="utf-8", line_buffering=True); sys.stderr.reconfigure(encoding="utf-8")  # 파이프 실행에서도 바로 출력
 try:
     import openpyxl
@@ -423,10 +423,13 @@ def finish_fit(page):
         d = int(float(r.get('target') or 0))
         goal, tol = kw_goal(d)
         kws, ranks = kws_of(r), ranks_of(r)
-        if len(kws) > goal + tol:  # 순위 좋은 것부터 goal개만 남김(순위 모르는 키워드는 맨 뒤)
-            keep = set(sorted(kws, key=lambda k: ranks.get(k, 10 ** 6))[:goal])
+        if len(kws) > goal + tol:
+            # 남길 개수 = 목표 범위 안에서 행마다 무작위(80·40처럼 딱 떨어지지 않게), 순위 좋은 것부터 남김 —
+            #   같은 순위끼리는 무작위로 고름, 순위 모르는 키워드는 맨 뒤
+            n = random.randint(goal - tol, goal + tol)
+            keep = set(sorted(kws, key=lambda k: (ranks.get(k, 10 ** 6), random.random()))[:n])
             patch[i] = kw_patch([k for k in kws if k in keep], ranks)
-            report.append(f'  {i + 1}행 {len(kws)} → {goal}개 (삭제 {len(kws) - goal})')
+            report.append(f'  {i + 1}행 {len(kws)} → {n}개 (삭제 {len(kws) - n})')
         elif len(kws) < goal - tol:
             report.append(f'  {i + 1}행 {len(kws)}개 — 목표 {goal}±{tol} 부족, 그대로 진행')
     if patch:
