@@ -6,7 +6,7 @@
 <title>바구니</title>
 <script>
   // 로그인했던 브라우저면 세션 복원이 끝날 때까지 로그인 화면을 그리지 않음(새로고침 때 로그인 화면이 깜빡이는 것 방지)
-  try { if (localStorage.getItem('shop_signed_in') === '1') document.documentElement.classList.add('boot'); } catch (e) {}
+  try { if (localStorage.getItem('shop_signed_in') === '1' || location.hash.includes('imp=')) document.documentElement.classList.add('boot'); } catch (e) {}
   setTimeout(() => document.documentElement.classList.remove('boot'), 5000);  // 복원이 안 끝나면(네트워크 등) 로그인 화면이라도 보이게
 </script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a5b4fc'/%3E%3Cstop offset='.45' stop-color='%236366f1'/%3E%3Cstop offset='1' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cg transform='translate(4 4)' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 10 9 4M18.5 10 15 4'/%3E%3Cpath d='M3 10h18l-1.8 8.4a2 2 0 0 1-2 1.6H6.8a2 2 0 0 1-2-1.6z'/%3E%3Cpath d='M9.5 13.5v3M14.5 13.5v3'/%3E%3C/g%3E%3C/svg%3E">
@@ -528,7 +528,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getDatabase, ref, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
-import { getAuth, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+import { getAuth, signInWithCustomToken, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
 // 웹 apiKey는 공개 키(보안은 RTDB 규칙 + 서버)
 const app = initializeApp({
@@ -540,6 +540,13 @@ const app = initializeApp({
 });
 const db = getDatabase(app), auth = getAuth(app);
 const API = 'https://higherad-shop-938928195180.asia-northeast3.run.app';
+// 어드민 접수 현황에서 영업점 클릭 → #imp=커스텀 토큰: 이 탭에서만 그 영업점으로 로그인(세션 저장), 주소의 토큰은 바로 지움
+let impPending = new URLSearchParams(location.hash.slice(1)).get('imp');
+if (impPending) {
+  history.replaceState(null, '', location.pathname + location.search);
+  setPersistence(auth, browserSessionPersistence).then(() => signInWithCustomToken(auth, impPending))
+    .catch(() => { impPending = null; document.documentElement.classList.remove('boot'); alert('자동 로그인에 실패했습니다. 어드민에서 다시 눌러 주세요.'); });
+}
 
 const TERM_DAYS = 7, MAX_QTY = 500, CUTOFF_HOUR = 17, MIN_DAILY = 10, VAT = 1.1;
 const $ = id => document.getElementById(id);
@@ -694,6 +701,8 @@ $('login-form').onsubmit = e => {
 $('logout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, user => {
+  if (impPending && !(user && user.uid.startsWith('shop_'))) return;  // 자동 로그인 중엔 예전 로그인·빈 상태를 그리지 않음
+  impPending = null;
   unsubs.forEach(u => u()); unsubs = [];
   if (distUnsub) { distUnsub(); distUnsub = null; SUBS = []; SUB_ISSUES = {}; SUB_SLOTS = {}; }
   ME = user && user.uid.startsWith('shop_') ? user.uid.slice(5) : null;
