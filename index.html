@@ -113,6 +113,7 @@
   .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
   .chip { padding:7px 14px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text2); }
   .chip.on { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .chip-sep { width:1px; align-self:stretch; margin:4px 4px; background:var(--border); flex:none; }
   .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
   .bar input[type=text], .bar input[type=date], .bar select { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; outline:none; }
   .bar .grow { flex:1; min-width:220px; }
@@ -321,7 +322,7 @@
     <details class="guide" id="g-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>접수</b><span><em>접수</em> 버튼 → 한 건씩 입력하거나 엑셀로 한 번에 등록<br><span class="g-red">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 매일 17시 마감</span></span></li>
+        <li><b>접수</b><span><em>접수</em> 버튼 → 한 건씩 입력하거나 엑셀로 한 번에 등록<br><span class="g-red">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</span></span></li>
         <li><b>진행</b><span>작업이 시작되면 상태가 진행중으로 바뀝니다<br>그 전에는 <em>수정</em>으로 키워드·URL 변경 가능</span></li>
         <li><b>순위</b><span>진행중 캠페인의 순위가 하루 6번 (4시간마다) 업데이트됩니다<br><em>순위 그래프</em>를 누르면 날짜별 순위 확인</span></li>
         <li><b>환불</b><span>진행 전: <em>환불</em>을 누르면 바로 취소, 전액 환불<br>진행중: 환불 요청 → 남은 일수만큼 환불 (종료 전날까지)</span></li>
@@ -381,7 +382,7 @@
     <details class="guide" id="g-d-slots">
       <summary>이용 방법</summary>
       <ol>
-        <li><b>접수</b><span><em>접수</em> 버튼 → 하부점 선택 후 입력하거나 엑셀로 등록<br><span class="g-red">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 매일 17시 마감</span></span></li>
+        <li><b>접수</b><span><em>접수</em> 버튼 → 하부점 선택 후 입력하거나 엑셀로 등록<br><span class="g-red">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</span></span></li>
         <li><b>순위</b><span>진행중 캠페인의 순위가 하루 6번 (4시간마다) 업데이트됩니다<br><em>순위 그래프</em>를 누르면 날짜별 순위 확인</span></li>
         <li><b>환불</b><span>진행 전: <em>환불</em>을 누르면 바로 취소, 전액 환불<br>진행중: 환불 요청 → 남은 일수만큼 환불</span></li>
         <li><b>상태</b><span>접수: 진행 전 · 진행중: 작업 중 · 종료: 기간 끝<br>환불 요청: 처리 대기 · 환불: 처리 완료</span></li>
@@ -495,7 +496,7 @@
 <!-- 접수(개별·엑셀) -->
 <div class="ov" id="m-order"><div class="box" style="width:1000px">
   <h3>접수</h3>
-  <div class="sub">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 매일 17시 마감</div>
+  <div class="sub">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</div>
   <select id="or-user" style="display:none;width:280px;margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
   <div class="chips" id="or-tabs"><span class="chip on" data-t="one">개별 접수</span><span class="chip" data-t="xlsx">엑셀 접수</span></div>
   <div id="or-one">
@@ -563,9 +564,11 @@ const kstNow = () => new Date(Date.now() + 9 * 3600e3);
 const today = () => kstNow().toISOString().slice(0, 10);
 const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5);
-// 접수 마감 = 17시~자정엔 발급 불가(서버 closed_now와 같음)
-const closedNow = () => kstNow().getUTCHours() >= CUTOFF_HOUR;
-const CLOSED_MSG = `오늘 접수는 ${CUTOFF_HOUR}시에 마감되었습니다. 내일 0시부터 접수할 수 있습니다.`;
+// 접수 마감 = 평일 17시~자정 + 주말(토·일) 종일 발급 불가(서버 closed_now와 같음) — 금 17시 이후는 월요일 0시부터
+const weekendNow = () => [0, 6].includes(kstNow().getUTCDay());
+const closedNow = () => weekendNow() || kstNow().getUTCHours() >= CUTOFF_HOUR;
+const closedMsg = () => { const reopen = [5, 6, 0].includes(kstNow().getUTCDay()) ? '월요일' : '내일';
+  return `${weekendNow() ? '주말(토·일)에는 접수할 수 없습니다.' : `오늘 접수는 ${CUTOFF_HOUR}시에 마감되었습니다.`} ${reopen} 0시부터 접수할 수 있습니다.`; };
 // 일수 1~7·일 목표 최소 10 — 발급 건 price = 단가 × 일수 × 일 목표(슬롯 1개 금액). days 없는 옛 건 = 7일·100개
 const termOpts = (v = TERM_DAYS) => Array.from({ length: TERM_DAYS }, (_, i) => `<option value="${i + 1}"${i + 1 === v ? ' selected' : ''}>${i + 1}</option>`).join('');
 const goalOf = is => is.qty * (is.days || TERM_DAYS) * (is.daily || 100);
@@ -662,6 +665,12 @@ const STATE = { wait: ['접수', 'b-wait'], run: ['진행중', 'b-run'], empty: 
 const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
 const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
 const closedState = st => st === 'end' || st === 'stop';
+// 남은 일 = 시작 전이면 시작일부터, 진행중이면 오늘부터 종료일까지(종료일 포함)
+const leftOf = x => Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
+// 내 캠페인 필터 — 상태 + 남은 일(d1 = 1일 남음, d3 = 3일 이하, 환불·종료 제외)
+const CHIP = { '': '전체', d1: '1일', d3: '3일' };
+const slotMatch = (x, f) => { const st = slotState(x);
+  return !f || (f === 'd1' || f === 'd3' ? !closedState(st) && leftOf(x) <= (f === 'd1' ? 1 : 3) : st === f); };
 // 환불 요청 = 직원이 작업을 시작한 슬롯 + 종료일 전날까지(서버 can_refund와 같음)
 // 환불 = 진행 전(runAt 없음, 기간 안) → 바로 삭제·전액 / 진행중 → 환불 요청(종료일 전날까지) — 서버 can_drop·can_refund와 같음
 const canRefund = sl => !sl.refundAt && !sl.stoppedAt && (sl.runAt ? sl.end > today() : sl.end >= today());
@@ -734,21 +743,32 @@ onAuthStateChanged(auth, user => {
 });
 
 /* ── 내 슬롯 관리 ── */
+// 접수일 = 발급(접수) 시각 — setAt은 정보 수정 때 바뀜. uid 없으면 본인
+const own = uid => !uid || uid === ME;
+const atOf = (x, uid = x.userId) => ((own(uid) ? ISSUES : SUB_ISSUES[uid] || []).find(is => is.no === x.issueNo) || {}).at || x.setAt || '';
+// 순서 = 접수일 → 캠페인 번호(이관 건은 x.no와 접수일 순서가 달라서 x.no만으로 정렬 금지)
+const orderKey = (x, uid = x.userId) => `${atOf(x, uid)}|${String(x.no).padStart(9, '0')}`;
+const newestFirst = (a, b) => orderKey(b).localeCompare(orderKey(a));
+// 화면 번호 = 영업점마다 1번부터 접수 순서(x.no는 전체 캠페인 번호라 총 물량이 보여서 안 보여 줌) — 하부점 건은 그 하부점 안에서
+// ponytail: 행마다 목록을 세는 O(n²) — 영업점당 캠페인이 수천 개를 넘으면 번호표 캐시로
+const seqNo = x => { const uid = x.userId, k = orderKey(x); return (own(uid) ? SLOTS : SUB_SLOTS[uid] || []).filter(y => orderKey(y, uid) <= k).length; };
 function visibleSlots() {
   const q = $('q').value.trim(), from = $('d-from').value, to = $('d-to').value;
-  return SLOTS.filter(x => (!filter || slotState(x) === filter) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q))
-    && (!from || x.start >= from) && (!to || x.start <= to)).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
+  return SLOTS.filter(x => slotMatch(x, filter) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q))
+    && (!from || x.start >= from) && (!to || x.start <= to)).sort(newestFirst);
 }
 function render() {
   if (!ME) return;
-  const cnt = k => SLOTS.filter(x => slotState(x) === k).length;
-  $('st-chips').innerHTML = [['', `전체 (${SLOTS.length})`], ...Object.entries(STATE).filter(([k]) => k !== 'empty' || cnt(k)).map(([k, [n]]) => [k, `${n} (${cnt(k)})`])]
-    .map(([k, l]) => `<span class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${l}</span>`).join('');
+  const cnt = k => SLOTS.filter(x => slotMatch(x, k)).length;
+  // 전체 | 접수·진행중(·빈 캠페인) | 환불 요청·환불 | 남은 1일·3일·종료 — 묶음 사이 구분선
+  const groups = [[''], ['wait', 'run', ...(cnt('empty') ? ['empty'] : [])], ['refund', 'stop'], ['d1', 'd3', 'end']];
+  $('st-chips').innerHTML = groups.map(g => g.map(k => `<span class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${CHIP[k] || STATE[k][0]} (${cnt(k)})</span>`).join(''))
+    .join('<span class="chip-sep"></span>');
   const rows = visibleSlots();
   const dash = '<span class="empty">미입력</span>';
   $('slot-rows').innerHTML = rows.map(x => {
-    const st = slotState(x), left = Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
-    return `<tr><td>${x.no}</td><td>${md(x.setAt) || '-'}</td>
+    const st = slotState(x), left = leftOf(x);
+    return `<tr><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
@@ -790,11 +810,11 @@ function requestRefund(list, btn) {
 /* 정보 수정(행별, 진행 전 슬롯) */
 function openEdit(nos) {
   nos = new Set(nos);
-  editing = SLOTS.filter(x => nos.has(x.no) && canEdit(x)).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
+  editing = SLOTS.filter(x => nos.has(x.no) && canEdit(x)).sort(newestFirst);
   if (!editing.length) return alert('수정할 수 있는 캠페인이 없습니다. 진행이 시작된 캠페인은 수정할 수 없습니다.');
   if (editing.length < nos.size) alert(`진행이 시작된 캠페인 ${nos.size - editing.length}개는 빼고 엽니다.`);
   $('ed-n').textContent = editing.length;
-  $('ed-rows').innerHTML = editing.map(x => `<tr><td class="ed-period"><b>${x.no}</b><span class="ed-m"> · ${md(x.start)} ~ ${md(x.end)}</span></td><td class="ed-hide">${md(x.start)}</td><td class="ed-hide">${md(x.end)}</td>
+  $('ed-rows').innerHTML = editing.map(x => `<tr><td class="ed-period"><b>${seqNo(x)}</b><span class="ed-m"> · ${md(x.start)} ~ ${md(x.end)}</span></td><td class="ed-hide">${md(x.start)}</td><td class="ed-hide">${md(x.end)}</td>
     <td data-l="순위 키워드"><input class="ed-kw" maxlength="50" value="${esc(x.kw)}" placeholder="키워드"></td>
     <td data-l="상품 URL"><input class="ed-url" maxlength="500" value="${esc(x.url)}" placeholder="상품 URL 또는 MID"></td><td class="l ed-chk"></td></tr>`).join('');
   document.querySelectorAll('.ed-url').forEach(verify);
@@ -810,11 +830,11 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
     no: editing[i].no, kw: tr.querySelector('.ed-kw').value.trim(), url: tr.querySelector('.ed-url').value.trim() }));
   for (const [i, it] of items.entries()) {
     if (!it.kw && !it.url) {
-      if (editing[i].mid) throw new Error(`${it.no}번: 키워드·URL은 비울 수 없습니다.`);
+      if (editing[i].mid) throw new Error(`${seqNo(editing[i])}번: 키워드·URL은 비울 수 없습니다.`);
       continue;
     }
-    if (!it.kw || !it.url) throw new Error(`${it.no}번: 키워드와 상품 URL을 모두 입력해 주세요.`);
-    if (!parseMid(it.url)) throw new Error(`${it.no}번: 네이버 상품 URL 또는 MID를 확인해 주세요.`);
+    if (!it.kw || !it.url) throw new Error(`${seqNo(editing[i])}번: 키워드와 상품 URL을 모두 입력해 주세요.`);
+    if (!parseMid(it.url)) throw new Error(`${seqNo(editing[i])}번: 네이버 상품 URL 또는 MID를 확인해 주세요.`);
   }
   const r = await api('/shop-slots', { items });
   $('m-edit').classList.remove('show');
@@ -915,7 +935,7 @@ $('or-file').onchange = async e => {
 };
 function openOrder(sub) {
   if (!(USER.price > 0)) return alert('단가가 설정되지 않았습니다. 관리자에게 문의해 주세요.');
-  if (closedNow()) return alert(CLOSED_MSG);
+  if (closedNow()) return alert(closedMsg());
   orderSub = sub;
   $('or-user').style.display = sub === null ? 'none' : '';
   if (sub !== null) $('or-user').innerHTML = '<option value="">-- 하부점 선택 --</option>' + SUBS.filter(u => !u.blocked && !u.deleted).map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
@@ -927,7 +947,7 @@ $('d-order-open').onclick = () => openOrder('');
 $('or-user').onchange = () => { orderSub = $('or-user').value; orSync(); };
 $('or-tabs').onclick = e => { const t = e.target.dataset.t; if (t) orTab(t); };
 $('or-go').onclick = () => busy($('or-go'), async () => {
-  if (closedNow()) throw new Error(CLOSED_MSG);
+  if (closedNow()) throw new Error(closedMsg());
   const rows = orderRows(), bad = rows.findIndex(orderErr);
   if (!rows.length) throw new Error('접수할 줄이 없습니다.');
   if (bad >= 0) throw new Error(`${bad + 1}번째 줄: ${orderErr(rows[bad])}`);
@@ -979,7 +999,7 @@ function saveXlsx(name, header, rows, widths) {
 }
 $('slot-xlsx').onclick = () => saveXlsx('내캠페인',
   ['번호', '접수일', '순위 키워드', 'MID', 'URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
-  visibleSlots().map(x => { const st = slotState(x); return [x.no, x.setAt || '', x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, closedState(st) ? 0 : Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1), STATE[st][0]]; }),
+  visibleSlots().map(x => { const st = slotState(x); return [seqNo(x), atOf(x), x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, closedState(st) ? 0 : leftOf(x), STATE[st][0]]; }),
   [8, 16, 18, 14, 50, 6, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
   ['접수일시', '단가(원)', '캠페인 수', '일수', '일 목표', '전체 목표 합산', '정산 금액(VAT 별도)', '입금액(VAT 포함)', '환불 금액(VAT 별도)', '정산상태'],
@@ -997,7 +1017,7 @@ const noLabel = nos => {
 function historyHtml(issues, slots, withSub) {
   const ev = [], who = x => withSub ? [esc(subName(x.userId))] : [];
   const slotNos = new Map();
-  slots.forEach(x => { const k = `${withSub ? x.userId : ''}|${x.issueNo}`; slotNos.set(k, [...(slotNos.get(k) || []), x.no]); });
+  slots.forEach(x => { const k = `${withSub ? x.userId : ''}|${x.issueNo}`; slotNos.set(k, [...(slotNos.get(k) || []), seqNo(x)]); });
   issues.forEach(is => {
     const span = `${is.start.slice(2)} ~ ${is.end.slice(2)}`, cancel = '취소', tg = noLabel(slotNos.get(`${withSub ? is.userId : ''}|${is.no}`) || []);
     ev.push([is.at, '<span class="badge b-req">접수</span>', ...who(is), tg, `캠페인 ${is.qty0 || is.qty}건 접수 / ${span} (${termOf(is)})`]);
@@ -1005,9 +1025,9 @@ function historyHtml(issues, slots, withSub) {
     if (is.revokedAt) ev.push([is.revokedAt, `<span class="badge ${is.qty0 ? 'b-done' : 'b-end'}">${is.qty0 ? '환불' : cancel}</span>`, ...who(is), tg, `캠페인 ${is.qty0 || is.qty}건 ${is.qty0 ? '삭제(전액)' : cancel} / ${span}`]);
     if (is.paidAt) ev.push([is.paidAt, '<span class="badge b-run">입금 확인</span>', ...who(is), tg, `${won(Math.round(billOf(is) * VAT))}원`]);
   });
-  slots.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', ...who(x), noLabel([x.no]), x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
-  slots.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', ...who(x), noLabel([x.no]), `키워드 '${esc(x.kw)}'`]));
-  slots.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', ...who(x), noLabel([x.no]), `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
+  slots.filter(x => x.setAt).forEach(x => ev.push([x.setAt, '<span class="badge b-empty">정보 수정</span>', ...who(x), noLabel([seqNo(x)]), x.mid ? `키워드 '${esc(x.kw)}' · MID ${esc(x.mid)}` : '정보 비움']));
+  slots.filter(x => x.refundAt).forEach(x => ev.push([x.refundAt, '<span class="badge b-end">환불 요청</span>', ...who(x), noLabel([seqNo(x)]), `키워드 '${esc(x.kw)}'`]));
+  slots.filter(x => x.stoppedAt).forEach(x => ev.push([x.stoppedAt, '<span class="badge b-done">환불</span>', ...who(x), noLabel([seqNo(x)]), `남은 ${x.refundDays}일 환불 ${won(x.refundAmt)}원 (VAT 별도)`]));
   // 시각이 분 단위라 같은 분이면 나중에 넣은(= 나중에 일어난: 접수→환불→입금) 이벤트가 위로
   ev.forEach((e, i) => e.push(i));
   ev.sort((a, b) => b[0].localeCompare(a[0]) || b.at(-1) - a.at(-1));
@@ -1088,10 +1108,10 @@ $('int-xlsx').onclick = () => saveXlsx('통합정산내역',
 /* 하부점 접수 현황 */
 function renderDSlots() {
   const uid = $('ds-user').value, q = $('ds-q').value.trim(), noEnd = $('ds-noend').checked, dash = '<span class="empty">미세팅</span>';
-  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
+  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort(newestFirst);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
-    return `<tr><td>${x.no}</td><td>${md(x.setAt) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    return `<tr><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
@@ -1146,7 +1166,7 @@ $('dt-rows').onchange = dtCount;
 $('dt-rows').onclick = e => {
   const btn = e.target.closest('[data-paid]'); if (!btn) return;
   const [uid, no, on] = btn.dataset.paid.split('|'), is = subIssues().find(x => x.userId === uid && x.no === +no);
-  if (!confirm(on === '1' ? `${subName(uid)} #${no} ${won(Math.round(billOf(is) * VAT))}원 입금 확인 처리합니다.` : `#${no} 입금 확인을 취소합니다.`)) return;
+  if (!confirm(on === '1' ? `${subName(uid)} ${md(is.at)} 접수 ${won(Math.round(billOf(is) * VAT))}원 입금 확인 처리합니다.` : `${subName(uid)} ${md(is.at)} 접수 입금 확인을 취소합니다.`)) return;
   busy(btn, () => api('/shop-paid', { userId: uid, issueNo: +no, paid: on === '1' }));
 };
 
