@@ -357,34 +357,41 @@ def fit_keywords(page):
         return out
 
     rules0 = page.evaluate('d => chrome.storage.local.get(d)', RULE_DEFAULTS)
-    rules = dict(rules0)
     try:
-        for label, step in ESCALATE:
-            short = short_rows()
-            if not short:
-                break
-            # ponytail: 규칙이 전역이라 부족한 행 중 가장 큰 일목표로 늘림 — 일목표가 섞여 문제되면 일목표별로 나눠 돌리기
-            rules.update(step(rules, max(short.values())))
-            page.evaluate('r => chrome.storage.local.set(r)', rules)
-            print(f'↻ 유효키워드 부족 {len(short)}행 — {label} (상한 {rules["checkCap"]} · 단어수 최대 {rules["wordMax"]}) 다시 추출')
-            before = {i: grid(page)[i] for i in short}
-            idx = sorted(short)
-            run_step(page, lambda: page.evaluate("ix => chrome.runtime.sendMessage({ type: 'extractAll', rowIndexes: ix })", idx),
-                     f'2. 유효키워드 추출({label})')
-            t0 = time.time()  # 확장 화면이 결과를 시트에 넣을 때까지(extractSeq 맞춰짐)
-            while time.time() - t0 < 30:
-                g, b = grid(page), bulk(page).get('rows') or []
-                if all(i < len(b) and g[i].get('extractSeq') == b[i].get('extractSeq') for i in idx):
+        # 규칙이 확장 전체에 하나라 일목표별로 따로 — 일목표마다 원래 규칙에서 다시 늘려 감
+        for d in sorted(set(short_rows().values())):
+            rules = dict(rules0)
+            for label, step in ESCALATE:
+                short = {i: v for i, v in short_rows().items() if v == d}
+                if not short:
                     break
-                time.sleep(1)
-            g, patch = grid(page), {}
-            for i, old in before.items():  # 다시 뽑으면 무작위 조합이라 이전 결과와 합침(둘 다 순위 확인된 키워드)
-                ranks = {**ranks_of(old), **ranks_of(g[i])}
-                patch[i] = kw_patch(list(dict.fromkeys(kws_of(g[i]) + kws_of(old))), ranks)
-            patch_grid(page, patch)
+                rules.update(step(rules, d))
+                page.evaluate('r => chrome.storage.local.set(r)', rules)
+                print(f'↻ 일목표 {d} 유효키워드 부족 {len(short)}행 — {label} (상한 {rules["checkCap"]} · 단어수 최대 {rules["wordMax"]}) 다시 추출')
+                reextract(page, sorted(short), f'2. 유효키워드 추출(일목표 {d} · {label})')
     finally:
         page.evaluate('r => chrome.storage.local.set(r)', rules0)
 
+    finish_fit(page)
+
+
+def reextract(page, idx, name):
+    """그 행만 다시 추출하고 이전 결과와 합침(다시 뽑으면 무작위 조합이라 — 둘 다 순위 확인된 키워드)."""
+    before = {i: grid(page)[i] for i in idx}
+    run_step(page, lambda: page.evaluate("ix => chrome.runtime.sendMessage({ type: 'extractAll', rowIndexes: ix })", idx), name)
+    t0 = time.time()  # 확장 화면이 결과를 시트에 넣을 때까지(extractSeq 맞춰짐)
+    while time.time() - t0 < 30:
+        g, b = grid(page), bulk(page).get('rows') or []
+        if all(i < len(b) and g[i].get('extractSeq') == b[i].get('extractSeq') for i in idx):
+            break
+        time.sleep(1)
+    g = grid(page)
+    patch_grid(page, {i: kw_patch(list(dict.fromkeys(kws_of(g[i]) + kws_of(old))), {**ranks_of(old), **ranks_of(g[i])})
+                      for i, old in before.items()})
+
+
+def finish_fit(page):
+    """넘친 행은 순위 낮은 것부터 삭제, 부족한 행은 그대로 두고 보고."""
     patch, report = {}, []
     for i, r in enumerate(grid(page)):
         if not str(r.get('productUrl') or '').strip() or r.get('regState') in ('등록성공', '확인필요'):
