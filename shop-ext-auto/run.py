@@ -201,11 +201,17 @@ def run_step(page, btn, name, human=False):
     t0 = time.time()
     while not bulk(page).get('running'):  # 시작 대기
         if page.is_visible('#result-overlay') and not page.is_visible('#result-cancel'):  # 시작 못 한 안내창
-            sys.exit(f"✖ {name} 시작 안 됨: {page.inner_text('#result-body').strip()}")
+            sys.exit(f"✖ {name} 시작 안 됨: {page.inner_text('#result-body').strip()[:300]}")
         if human and page.is_visible('#result-cancel'):
             print('  ⏸ 브라우저 확인창에서 금액 확인 후 「등록하기」를 눌러 주세요.')
             while page.is_visible('#result-cancel'):
                 time.sleep(1)
+            for _ in range(10):  # 등록하기면 곧 running — 아니면 취소·닫기(과금 없음)
+                if bulk(page).get('running'):
+                    break
+                time.sleep(1)
+            else:
+                sys.exit(f'✖ {name}: 「등록하기」를 누르지 않아 등록하지 않았습니다 (과금 없음).')
             continue
         if time.time() - t0 > (600 if human else 20):
             msg = page.inner_text('#result-body') if page.is_visible('#result-overlay') else page.inner_text('#status')
