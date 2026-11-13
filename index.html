@@ -543,10 +543,13 @@ const app = initializeApp({
 const db = getDatabase(app), auth = getAuth(app);
 const API = 'https://higherad-shop-938928195180.asia-northeast3.run.app';
 // 어드민 접수 현황에서 영업점 클릭 → #imp=커스텀 토큰: 이 탭에서만 그 영업점으로 로그인(세션 저장), 주소의 토큰은 바로 지움
-let impPending = new URLSearchParams(location.hash.slice(1)).get('imp');
+// 브라우저에 남은 예전 로그인(먼저 클릭한 영업점 등)을 먼저 지우고, 토큰의 영업점(impUid)으로 바뀐 뒤에만 화면을 그림
+let impPending = new URLSearchParams(location.hash.slice(1)).get('imp'), impUid = null;
+const impTab = !!impPending;  // 자동 로그인 탭 = 창 닫으면 로그인 사라짐, 브라우저에 로그인 기록도 안 남김
 if (impPending) {
   history.replaceState(null, '', location.pathname + location.search);
-  setPersistence(auth, browserSessionPersistence).then(() => signInWithCustomToken(auth, impPending))
+  try { impUid = JSON.parse(atob(impPending.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).uid; } catch (e) {}
+  signOut(auth).then(() => setPersistence(auth, browserSessionPersistence)).then(() => signInWithCustomToken(auth, impPending))
     .catch(() => { impPending = null; document.documentElement.classList.remove('boot'); alert('자동 로그인에 실패했습니다. 어드민에서 다시 눌러 주세요.'); });
 }
 
@@ -703,14 +706,14 @@ $('login-form').onsubmit = e => {
 $('logout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, user => {
-  if (impPending && !(user && user.uid.startsWith('shop_'))) return;  // 자동 로그인 중엔 예전 로그인·빈 상태를 그리지 않음
+  if (impPending && (impUid ? user?.uid !== impUid : !user?.uid.startsWith('shop_'))) return;  // 자동 로그인 중엔 예전 로그인·빈 상태를 그리지 않음
   impPending = null;
   unsubs.forEach(u => u()); unsubs = [];
   if (distUnsub) { distUnsub(); distUnsub = null; SUBS = []; SUB_ISSUES = {}; SUB_SLOTS = {}; }
   ME = user && user.uid.startsWith('shop_') ? user.uid.slice(5) : null;
   document.body.classList.toggle('in', !!ME);
   document.documentElement.classList.remove('boot');
-  try { ME ? localStorage.setItem('shop_signed_in', '1') : localStorage.removeItem('shop_signed_in'); } catch (e) {}
+  if (!impTab) try { ME ? localStorage.setItem('shop_signed_in', '1') : localStorage.removeItem('shop_signed_in'); } catch (e) {}
   $('login').classList.toggle('hide', !!ME);
   if (!ME) { if (user) signOut(auth); return; }
   const fail = e => { console.error(e); alert('데이터를 불러오지 못했습니다. 다시 로그인해 주세요.'); signOut(auth); };
