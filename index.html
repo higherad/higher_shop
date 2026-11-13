@@ -660,10 +660,10 @@ function parseMid(v) {
   const m = v.match(/(?:products|catalog)\/(\d{6,})/) || v.match(/[?&](?:nvMid|nv_mid)=(\d{6,})/);
   return m ? m[1] : '';
 }
-// 상태 = 빈 슬롯 / 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 환불(직원 중단 처리 완료) / 종료
-const STATE = { wait: ['접수', 'b-wait'], run: ['진행중', 'b-run'], empty: ['빈 캠페인', 'b-ext'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-done'], end: ['종료', 'b-empty'] };
-const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : sl.mid ? 'wait' : 'empty';
-const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
+// 상태 = 접수(정보 입력, 수정 가능) / 진행중(직원이 작업 시작 = runAt, 수정 불가·환불만) / 환불 요청 / 환불(직원 중단 처리 완료) / 종료
+const STATE = { wait: ['접수', 'b-wait'], run: ['진행중', 'b-run'], refund: ['환불 요청', 'b-end'], stop: ['환불', 'b-done'], end: ['종료', 'b-empty'] };
+const slotState = sl => sl.stoppedAt ? 'stop' : sl.end < today() ? 'end' : sl.refundAt ? 'refund' : sl.runAt ? 'run' : 'wait';
+const canEdit = sl => slotState(sl) === 'wait';
 const closedState = st => st === 'end' || st === 'stop';
 // 남은 일 = 시작 전이면 시작일부터, 진행중이면 오늘부터 종료일까지(종료일 포함)
 const leftOf = x => Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
@@ -762,8 +762,8 @@ function visibleSlots() {
 function render() {
   if (!ME) return;
   const cnt = k => SLOTS.filter(x => slotMatch(x, k)).length;
-  // 전체 | 접수·진행중(·빈 캠페인) | 환불 요청·환불 | 남은 1일·3일·종료 — 묶음 사이 구분선
-  const groups = [[''], ['wait', 'run', ...(cnt('empty') ? ['empty'] : [])], ['refund', 'stop'], ['d1', 'd3', 'end']];
+  // 전체 | 접수·진행중 | 환불 요청·환불 | 남은 1일·3일·종료 — 묶음 사이 구분선
+  const groups = [[''], ['wait', 'run'], ['refund', 'stop'], ['d1', 'd3', 'end']];
   $('st-chips').innerHTML = groups.map(g => g.map(k => `<span class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${CHIP[k] || STATE[k][0]} (${cnt(k)})</span>`).join(''))
     .join('<span class="chip-sep"></span>');
   const rows = visibleSlots();
