@@ -325,7 +325,7 @@
         <li><b>접수</b><span><em>접수</em> 버튼 → 한 건씩 입력하거나 엑셀로 한 번에 등록<br><span class="g-red">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</span></span></li>
         <li><b>진행</b><span>작업이 시작되면 상태가 진행중으로 바뀝니다<br>그 전에는 <em>수정</em>으로 키워드·URL 변경 가능</span></li>
         <li><b>순위</b><span>진행중 캠페인의 순위가 하루 6번 (4시간마다) 업데이트됩니다<br><em>순위 그래프</em>를 누르면 날짜별 순위 확인</span></li>
-        <li><b>환불</b><span>진행 전: <em>환불</em>을 누르면 바로 취소, 전액 환불<br>진행중: 환불 요청 → 남은 일수만큼 환불 (종료 전날까지)</span></li>
+        <li><b>환불</b><span>진행 전: <em>환불</em>을 누르면 바로 취소, 전액 환불<br>진행중: 환불 요청 → 남은 일수만큼 환불</span></li>
         <li><b>입금</b><span><em>정산 내역</em>에서 금액 확인 후 입금<br>입금이 확인되면 정산완료로 바뀝니다</span></li>
       </ol>
     </details>
@@ -667,8 +667,10 @@ const canEdit = sl => ['empty', 'wait'].includes(slotState(sl));
 const closedState = st => st === 'end' || st === 'stop';
 // 남은 일 = 시작 전이면 시작일부터, 진행중이면 오늘부터 종료일까지(종료일 포함)
 const leftOf = x => Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
-// 내 캠페인 필터 — 상태 + 남은 일(d1 = 1일 남음, d3 = 3일 이하, 환불·종료 제외)
-const CHIP = { '': '전체', d1: '1일', d3: '3일' };
+// 표 남은 일 = 환불은 환불된 일수로 고정(처리 뒤에도 며칠 환불됐는지 보이게), 종료는 '-'
+const leftText = (x, st) => st === 'stop' ? `${x.refundDays || 0}일` : st === 'end' ? '-' : leftOf(x) + '일';
+// 내 캠페인 필터 — 상태 + 남은 일(d1 = 1일 남음, d3 = 1~3일 남음, 환불·종료 제외)
+const CHIP = { '': '전체', d1: '1일 전', d3: '3일 전' };
 const slotMatch = (x, f) => { const st = slotState(x);
   return !f || (f === 'd1' || f === 'd3' ? !closedState(st) && leftOf(x) <= (f === 'd1' ? 1 : 3) : st === f); };
 // 환불 요청 = 직원이 작업을 시작한 슬롯 + 종료일 전날까지(서버 can_refund와 같음)
@@ -767,13 +769,13 @@ function render() {
   const rows = visibleSlots();
   const dash = '<span class="empty">미입력</span>';
   $('slot-rows').innerHTML = rows.map(x => {
-    const st = slotState(x), left = leftOf(x);
-    return `<tr><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td>
+    const st = slotState(x);
+    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
-      ${rankCells(ME, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
-      <td style="white-space:nowrap">${[canEdit(x) && `<button class="btn sm" data-edit="${x.no}">수정</button>`, canRefund(x) && `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>`].filter(Boolean).join(' ') || '-'}</td></tr>`;
+      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${leftText(x, st)}</td>
+      ${rankCells(ME, x.no)}<td class="void-keep"><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
+      <td class="void-keep" style="white-space:nowrap">${[canEdit(x) && `<button class="btn sm" data-edit="${x.no}">수정</button>`, canRefund(x) && `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>`].filter(Boolean).join(' ') || '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="16" style="height:160px;color:var(--muted)">아직 캠페인이 없습니다. 오른쪽 위 접수 버튼으로 시작하세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   renderSettle(); renderHistory(); renderIntSettle();
@@ -999,7 +1001,7 @@ function saveXlsx(name, header, rows, widths) {
 }
 $('slot-xlsx').onclick = () => saveXlsx('내캠페인',
   ['번호', '접수일', '순위 키워드', 'MID', 'URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
-  visibleSlots().map(x => { const st = slotState(x); return [seqNo(x), atOf(x), x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, closedState(st) ? 0 : leftOf(x), STATE[st][0]]; }),
+  visibleSlots().map(x => { const st = slotState(x); return [seqNo(x), atOf(x), x.kw || '', x.mid || '', x.url || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, st === 'stop' ? x.refundDays || 0 : st === 'end' ? 0 : leftOf(x), STATE[st][0]]; }),
   [8, 16, 18, 14, 50, 6, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
   ['접수일시', '단가(원)', '캠페인 수', '일수', '일 목표', '전체 목표 합산', '정산 금액(VAT 별도)', '입금액(VAT 포함)', '환불 금액(VAT 별도)', '정산상태'],
@@ -1111,10 +1113,10 @@ function renderDSlots() {
   const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort(newestFirst);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
-    return `<tr><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
-      <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
+      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td class="void-keep"><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
+      <td class="void-keep">${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
   }).join('') || '<tr><td colspan="16" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
 }
 $('ds-rows').onclick = e => {
