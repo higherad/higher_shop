@@ -560,11 +560,11 @@ const goalOf = is => is.qty * (is.days || TERM_DAYS) * (is.daily || 100);
 const unitOf = is => is.unit ? won(is.unit) : '-';
 const termOf = x => `${x.days || TERM_DAYS}일 · 일 ${(x.daily || 100).toLocaleString()}개`;
 const md = s => (s || '').slice(5).replace('-', '/');
-// 순위 = 서버 /shop-ranks(스마트 리다이렉트, MID+키워드 매칭) — 로그인 때 한 번, 키 = 영업점id|번호
+// 순위 = shop/ranks/{id}/s{no}(서버가 측정 5분 뒤 스마트 리다이렉트에서 수집, MID+키워드 매칭) — {영업점id: {s번호: 순위}}
 let RANKS = {};
 const rk = r => r == null ? '-' : r >= 101 ? '100+' : r;
 const rankCells = (uid, no) => {
-  const r = RANKS[`${uid}|${no}`] || {}, d = r.delta, h = r.hist || [];
+  const r = RANKS[uid]?.[`s${no}`] || {}, d = r.delta, h = r.hist || [];
   let g = '-';
   if (h.length > 1) {  // 위 = 높은 순위, 100위 밖은 101로
     const v = h.map(x => Math.min(x, 101)), lo = Math.min(...v), hi = Math.max(...v);
@@ -651,9 +651,8 @@ onAuthStateChanged(auth, user => {
   }, fail));
   unsubs.push(onValue(ref(db, `shop/issues/${ME}`), s => { ISSUES = Object.values(s.val() || {}); render(); }, fail));
   unsubs.push(onValue(ref(db, `shop/slots/${ME}`), s => { SLOTS = Object.values(s.val() || {}); render(); }, fail));
-  const me = ME;
   RANKS = {};
-  api('/shop-ranks').then(r => { if (ME !== me) return; RANKS = r.ranks || {}; render(); renderDSlots(); }).catch(e => console.error('shop-ranks', e));
+  unsubs.push(onValue(ref(db, `shop/ranks/${ME}`), s => { RANKS[ME] = s.val() || {}; render(); }, fail));
 });
 
 /* ── 내 슬롯 관리 ── */
@@ -950,7 +949,8 @@ function watchSubs(fail) {
     for (const id of ids) if (!per[id]) {
       const a = onValue(ref(db, `shop/issues/${id}`), x => { SUB_ISSUES[id] = Object.values(x.val() || {}); renderDist(); render(); }, fail);
       const b = onValue(ref(db, `shop/slots/${id}`), x => { SUB_SLOTS[id] = Object.values(x.val() || {}); renderDist(); }, fail);
-      per[id] = () => { a(); b(); };
+      const c = onValue(ref(db, `shop/ranks/${id}`), x => { RANKS[id] = x.val() || {}; renderDSlots(); }, fail);
+      per[id] = () => { a(); b(); c(); };
     }
     renderDist();
   }, fail);
