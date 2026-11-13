@@ -669,10 +669,10 @@ const closedState = st => st === 'end' || st === 'stop';
 const leftOf = x => Math.max(0, daysBetween(x.start > today() ? x.start : today(), x.end) + 1);
 // 표 남은 일 = 환불은 환불된 일수로 고정(처리 뒤에도 며칠 환불됐는지 보이게), 종료는 '-'
 const leftText = (x, st) => st === 'stop' ? `${x.refundDays || 0}일` : st === 'end' ? '-' : leftOf(x) + '일';
-// 내 캠페인 필터 — 상태 + 남은 일(d1 = 1일 남음, d3 = 1~3일 남음, 환불·종료 제외)
+// 내 캠페인 필터 — 상태 + 남은 일(d1 = 1일 남음, d3 = 1~3일 남음 — 접수·진행중만, 환불 요청·환불·종료는 자기 필터로)
 const CHIP = { '': '전체', d1: '1일 전', d3: '3일 전' };
 const slotMatch = (x, f) => { const st = slotState(x);
-  return !f || (f === 'd1' || f === 'd3' ? !closedState(st) && leftOf(x) <= (f === 'd1' ? 1 : 3) : st === f); };
+  return !f || (f === 'd1' || f === 'd3' ? (st === 'wait' || st === 'run') && leftOf(x) <= (f === 'd1' ? 1 : 3) : st === f); };
 // 환불 요청 = 직원이 작업을 시작한 슬롯 + 종료일 전날까지(서버 can_refund와 같음)
 // 환불 = 진행 전(runAt 없음, 기간 안) → 바로 삭제·전액 / 진행중 → 환불 요청(종료일 전날까지) — 서버 can_drop·can_refund와 같음
 const canRefund = sl => !sl.refundAt && !sl.stoppedAt && (sl.runAt ? sl.end > today() : sl.end >= today());
