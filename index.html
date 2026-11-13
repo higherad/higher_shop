@@ -334,8 +334,8 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>접수일</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>상태</th><th>관리</th></tr></thead>
-        <tbody id="slot-rows"><tr><td colspan="11" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
+        <thead><tr><th>접수일</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
+        <tbody id="slot-rows"><tr><td colspan="15" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
     </div>
@@ -392,7 +392,7 @@
       <label><input type="checkbox" id="ds-noend" checked>종료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="ds-rows"></tbody>
     </table></div>
   </section>
@@ -560,6 +560,19 @@ const goalOf = is => is.qty * (is.days || TERM_DAYS) * (is.daily || 100);
 const unitOf = is => is.unit ? won(is.unit) : '-';
 const termOf = x => `${x.days || TERM_DAYS}일 · 일 ${(x.daily || 100).toLocaleString()}개`;
 const md = s => (s || '').slice(5).replace('-', '/');
+// 순위 = 서버 /shop-ranks(스마트 리다이렉트, MID+키워드 매칭) — 로그인 때 한 번, 키 = 영업점id|번호
+let RANKS = {};
+const rk = r => r == null ? '-' : r >= 101 ? '100+' : r;
+const rankCells = (uid, no) => {
+  const r = RANKS[`${uid}|${no}`] || {}, d = r.delta, h = r.hist || [];
+  let g = '-';
+  if (h.length > 1) {  // 위 = 높은 순위, 100위 밖은 101로
+    const v = h.map(x => Math.min(x, 101)), lo = Math.min(...v), hi = Math.max(...v);
+    const pts = v.map((x, i) => `${(i * 60 / (v.length - 1)).toFixed(1)},${(2 + (hi === lo ? 8 : (x - lo) * 16 / (hi - lo))).toFixed(1)}`).join(' ');
+    g = `<svg width="60" height="20" style="vertical-align:middle"><title>${h.map(rk).join(' → ')}</title><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="1.5"/></svg>`;
+  }
+  return `<td>${rk(r.prev)}</td><td>${rk(r.rank)}</td><td>${!d ? '-' : d > 0 ? `<span style="color:var(--ok)">▲${d}</span>` : `<span style="color:var(--danger)">▼${-d}</span>`}</td><td>${g}</td>`;
+};
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
 function parseMid(v) {
   v = (v || '').trim();
@@ -638,6 +651,9 @@ onAuthStateChanged(auth, user => {
   }, fail));
   unsubs.push(onValue(ref(db, `shop/issues/${ME}`), s => { ISSUES = Object.values(s.val() || {}); render(); }, fail));
   unsubs.push(onValue(ref(db, `shop/slots/${ME}`), s => { SLOTS = Object.values(s.val() || {}); render(); }, fail));
+  const me = ME;
+  RANKS = {};
+  api('/shop-ranks').then(r => { if (ME !== me) return; RANKS = r.ranks || {}; render(); renderDSlots(); }).catch(e => console.error('shop-ranks', e));
 });
 
 /* ── 내 슬롯 관리 ── */
@@ -659,9 +675,9 @@ function render() {
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:340px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${closedState(st) ? '-' : left + '일'}</td>
-      <td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
+      ${rankCells(ME, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td style="white-space:nowrap">${[canEdit(x) && `<button class="btn sm" data-edit="${x.no}">수정</button>`, canRefund(x) && `<button class="btn sm" data-refund="${x.no}" style="color:var(--danger)">환불</button>`].filter(Boolean).join(' ') || '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="11" style="height:160px;color:var(--muted)">아직 캠페인이 없습니다. 오른쪽 위 접수 버튼으로 시작하세요.</td></tr>';
+  }).join('') || '<tr><td colspan="15" style="height:160px;color:var(--muted)">아직 캠페인이 없습니다. 오른쪽 위 접수 버튼으로 시작하세요.</td></tr>';
   $('slot-count').textContent = `총 ${rows.length}개`;
   renderSettle(); renderHistory(); renderIntSettle();
 }
@@ -983,9 +999,9 @@ function renderDSlots() {
     const st = slotState(x);
     return `<tr><td>${md(x.setAt) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       <td><span class="pname" style="max-width:300px">${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(x.url)}</a>` : x.url ? esc(x.url) : dash}</span></td>
-      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
+      <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td>${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
-  }).join('') || '<tr><td colspan="11" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
+  }).join('') || '<tr><td colspan="15" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
 }
 $('ds-rows').onclick = e => {
   const btn = e.target.closest('[data-refund]'); if (!btn) return;
