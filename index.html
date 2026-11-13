@@ -563,6 +563,54 @@ const md = s => (s || '').slice(5).replace('-', '/');
 // 순위 = shop/ranks/{id}/s{no}(서버가 측정 5분 뒤 스마트 리다이렉트에서 수집, MID+키워드 매칭) — {영업점id: {s번호: 순위}}
 let RANKS = {};
 const rk = r => r == null ? '-' : r >= 101 ? '100+' : r;
+// 순위 추이 팝업(스마트 리다이렉트 상세와 같은 구성) — r.pts = [[측정 epoch초, 순위]], 기간 = 3일·7일(오늘 포함 KST 날짜)·전체
+const rankPopup = (title, sub, kw, r) => {
+  const DAY = 864e5, KST = 9 * 36e5, pts = (r && r.pts) || [];
+  const kd = ms => new Date(ms + KST), pad = n => String(n).padStart(2, '0');
+  const dLabel = ms => `${kd(ms).getUTCMonth() + 1}/${kd(ms).getUTCDate()}`;
+  const tLabel = ms => `${dLabel(ms)} ${pad(kd(ms).getUTCHours())}:${pad(kd(ms).getUTCMinutes())}`;
+  const to = (Math.floor((Date.now() + KST) / DAY) + 1) * DAY - KST;
+  const m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  m.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#111827);border-radius:14px;padding:22px;width:640px;max-width:100%;max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700">${esc(title)}</div><div style="font-size:12px;opacity:.6;margin-top:2px">${esc(sub)}</div></div>
+      <button class="rp-x" style="border:none;background:none;font-size:20px;cursor:pointer;color:inherit;line-height:1">×</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:13px">지표</b><div class="rp-tabs" style="display:flex;gap:4px"></div></div>
+    <div style="border:1px solid var(--border,#e5e7eb);border-radius:10px;padding:12px;margin-bottom:10px"><div style="font-size:12px;opacity:.6;margin-bottom:6px">순위 추이</div><div class="rp-chart"></div></div>
+    <div class="rp-stats" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px"></div>
+    <div style="margin-top:12px;font-size:13px;font-weight:600;word-break:break-all">순위키워드 : ${esc(kw || '—')}</div></div>`;
+  m.addEventListener('click', e => { if (e.target === m || e.target.closest('.rp-x')) m.remove(); });
+  document.body.appendChild(m);
+  const draw = range => {
+    const from = range === '3d' ? to - 3 * DAY : range === '7d' ? to - 7 * DAY : null;
+    const P = pts.map(([t, k]) => ({ t: t * 1000, k: Math.min(k, 101), raw: k })).filter(p => (from == null || p.t >= from) && p.t < to);
+    m.querySelector('.rp-tabs').innerHTML = [['3d', '3일'], ['7d', '7일'], ['all', '전체']].map(([k, l]) =>
+      `<button data-r="${k}" style="padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:600;${k === range ? 'background:#f59e0b;color:#fff' : 'background:var(--border,#e5e7eb);color:inherit'}">${l}</button>`).join('');
+    const ks = P.map(p => p.k), has = ks.length > 0;
+    const lo = has ? Math.min(...ks) : null, hi = has ? Math.max(...ks) : null, avg = has ? Math.floor(ks.reduce((a, b) => a + b, 0) / ks.length) : null;
+    const W = 600, H = 220, L = 48, R = 18, T = 14, B = 22;
+    if (!has) m.querySelector('.rp-chart').innerHTML = `<div style="text-align:center;font-size:12px;opacity:.6;padding:40px 0">${pts.length ? '이 기간에 잰 순위가 없습니다' : '아직 잰 순위가 없습니다'}</div>`;
+    else {
+      const x0 = from ?? P[0].t, x1 = to, y0 = Math.max(1, lo - 2), y1 = hi + 2;
+      const X = t => L + (t - x0) / (x1 - x0 || 1) * (W - L - R), Y = k => T + (k - y0) / (y1 - y0 || 1) * (H - T - B);
+      const yt = [...new Set([0, 1, 2, 3, 4].map(i => Math.round(y0 + (y1 - y0) * i / 4)))];
+      let days = [];
+      for (let d = Math.ceil((x0 + KST) / DAY) * DAY - KST; d < x1; d += DAY) days.push(d);
+      const step = Math.max(1, Math.ceil(days.length / 8));
+      days = days.filter((_, i) => i % step === 0);
+      m.querySelector('.rp-chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;font-size:10px">
+        ${yt.map(k => `<line x1="${L}" x2="${W - R}" y1="${Y(k)}" y2="${Y(k)}" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="2 3"/><text x="${L - 6}" y="${Y(k) + 3}" text-anchor="end" fill="currentColor" fill-opacity=".55">${rk(k)}위</text>`).join('')}
+        ${days.map(d => `<text x="${X(d)}" y="${H - 6}" text-anchor="middle" fill="currentColor" fill-opacity=".55">${dLabel(d)}</text>`).join('')}
+        <polyline points="${P.map(p => `${X(p.t).toFixed(1)},${Y(p.k).toFixed(1)}`).join(' ')}" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+        ${P.map(p => `<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="3.5" fill="#8b5cf6"><title>${tLabel(p.t)} · ${rk(p.raw)}위</title></circle>`).join('')}</svg>`;
+    }
+    const v = n => n == null ? '–' : `${rk(n)}위`;
+    m.querySelector('.rp-stats').innerHTML = [['최초순위', v(has ? ks[0] : null), 'inherit'], ['최고순위', v(lo), '#ef4444'], ['최저순위', v(hi), '#3b82f6'], ['평균순위', v(avg), '#0ea5e9'], ['변동폭', has ? hi - lo : '–', '#f59e0b']]
+      .map(([l, val, c]) => `<div style="border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:8px 10px"><div style="font-size:10px;opacity:.6">${l}</div><div style="font-size:15px;font-weight:700;margin-top:2px;color:${c}">${val}</div></div>`).join('');
+  };
+  m.querySelector('.rp-tabs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) draw(b.dataset.r); });
+  draw('3d');
+};
 const rankCells = (uid, no) => {
   const r = RANKS[uid]?.[`s${no}`] || {}, d = r.delta, h = r.hist || [];
   let g = '-';
@@ -571,7 +619,7 @@ const rankCells = (uid, no) => {
     const pts = v.map((x, i) => `${(i * 60 / (v.length - 1)).toFixed(1)},${(2 + (hi === lo ? 8 : (x - lo) * 16 / (hi - lo))).toFixed(1)}`).join(' ');
     g = `<svg width="60" height="20" style="vertical-align:middle"><title>${h.map(rk).join(' → ')}</title><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="1.5"/></svg>`;
   }
-  return `<td>${rk(r.prev)}</td><td>${rk(r.rank)}</td><td>${!d ? '-' : d > 0 ? `<span style="color:var(--ok)">▲${d}</span>` : `<span style="color:var(--danger)">▼${-d}</span>`}</td><td>${g}</td>`;
+  return `<td>${rk(r.prev)}</td><td>${rk(r.rank)}</td><td>${!d ? '-' : d > 0 ? `<span style="color:var(--ok)">▲${d}</span>` : `<span style="color:var(--danger)">▼${-d}</span>`}</td><td${h.length ? ` data-rk="${esc(uid)}|${no}" style="cursor:pointer" title="클릭하면 순위 추이 상세"` : ''}>${g}</td>`;
 };
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
 function parseMid(v) {
@@ -683,7 +731,15 @@ function render() {
 $('st-chips').onclick = e => { const f = e.target.dataset.f; if (f !== undefined) { filter = f; render(); } };
 ['q', 'd-from', 'd-to'].forEach(id => $(id).oninput = render);
 // 행 버튼: 접수 전 = 수정, 진행중 = 환불(슬롯 하나씩)
+// 순위 그래프 칸 클릭 = 순위 추이 팝업(내 캠페인·하부점 표 공용)
+const openRank = e => {
+  const td = e.target.closest('[data-rk]'); if (!td) return false;
+  const [uid, no] = td.dataset.rk.split('|'), x = (uid === ME ? SLOTS : SUB_SLOTS[uid] || []).find(y => y.no === +no);
+  if (x) rankPopup(x.kw, `MID ${x.mid}`, x.kw, RANKS[uid]?.[`s${no}`]);
+  return true;
+};
 $('slot-rows').onclick = e => {
+  if (openRank(e)) return;
   const ed = e.target.closest('[data-edit]'), rf = e.target.closest('[data-refund]');
   if (ed) openEdit([+ed.dataset.edit]);
   if (rf) requestRefund(SLOTS.filter(x => x.no === +rf.dataset.refund && canRefund(x)), rf);
@@ -1004,6 +1060,7 @@ function renderDSlots() {
   }).join('') || '<tr><td colspan="15" style="height:120px;color:var(--muted)">조회된 캠페인이 없습니다.</td></tr>';
 }
 $('ds-rows').onclick = e => {
+  if (openRank(e)) return;
   const btn = e.target.closest('[data-refund]'); if (!btn) return;
   const [uid, no] = btn.dataset.refund.split('|');
   requestRefund(subSlots().filter(x => x.userId === uid && x.no === +no && canRefund(x)), btn);
