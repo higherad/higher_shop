@@ -181,6 +181,24 @@ def select_agency(page, name):
         sys.exit(f'영업점 {name} 선택 실패')
 
 
+def answer_ask(page, timeout=5):
+    """확장 확인창(#amodal, 1.69~)에서 실행 버튼(#am-ok) — 시트 초기화·교체처럼 과금 없는 확인에만 씀."""
+    try:
+        page.wait_for_selector('#amodal.show', timeout=timeout * 1000)
+    except Exception:
+        return False
+    page.click('#am-ok'); time.sleep(0.5)
+    return True
+
+
+def reset_sheet(page):
+    """시트 초기화 — 입력·추출 결과·등록 기록을 지움(이미 등록된 캠페인은 그대로). 데이터가 없어도 눌러 확인창만 답함."""
+    page.click('#btn-reset')
+    answer_ask(page)
+    page.wait_for_function("chrome.storage.local.get('gridRows').then(o => !(o.gridRows || []).some(r => String(r.productUrl || '').trim()))", timeout=10000)
+    print('시트 초기화')
+
+
 def bulk(page):
     return page.evaluate("chrome.storage.session.get('bulk').then(o => o.bulk || {})")
 
@@ -466,7 +484,7 @@ def main():
             sys.exit('✖ 전용 크롬에 연결하지 못했습니다. 크롬 창을 모두 닫고 다시 실행해 주세요.')
         ctx = br.contexts[0]
         page = next((pg for pg in ctx.pages if pg.url.startswith(f'chrome-extension://{EXT_ID}/popup.html')), None) or ctx.new_page()
-        page.on('dialog', lambda d: d.accept())  # '시트 내용 교체' 확인(과금 무관)
+        page.on('dialog', lambda d: d.accept())  # 옛 버전 확장의 브라우저 확인창(과금 무관)
         wait_extension(page)
         page.wait_for_selector('#btn-crawl'); time.sleep(1)
         check_ext_settings(page)
@@ -487,6 +505,7 @@ def main():
             sys.exit('확장에서 이미 작업이 진행 중입니다.')
         check_agencies(page, agencies)  # 시작 전에 확인(중간에 멈추지 않게)
         close_alert(page)
+        reset_sheet(page)  # 남은 시트가 있으면 업로드 때 '시트를 바꿀까요?'가 떠서 먼저 비움
         page.set_input_files('#excel-file', src)
         print('엑셀 업로드')
         time.sleep(3)
