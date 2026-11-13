@@ -737,7 +737,7 @@ onAuthStateChanged(auth, user => {
 function visibleSlots() {
   const q = $('q').value.trim(), from = $('d-from').value, to = $('d-to').value;
   return SLOTS.filter(x => (!filter || slotState(x) === filter) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q))
-    && (!from || x.start >= from) && (!to || x.start <= to)).sort((a, b) => b.no - a.no);
+    && (!from || x.start >= from) && (!to || x.start <= to)).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
 }
 function render() {
   if (!ME) return;
@@ -790,7 +790,7 @@ function requestRefund(list, btn) {
 /* 정보 수정(행별, 진행 전 슬롯) */
 function openEdit(nos) {
   nos = new Set(nos);
-  editing = SLOTS.filter(x => nos.has(x.no) && canEdit(x)).sort((a, b) => b.no - a.no);
+  editing = SLOTS.filter(x => nos.has(x.no) && canEdit(x)).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
   if (!editing.length) return alert('수정할 수 있는 캠페인이 없습니다. 진행이 시작된 캠페인은 수정할 수 없습니다.');
   if (editing.length < nos.size) alert(`진행이 시작된 캠페인 ${nos.size - editing.length}개는 빼고 엽니다.`);
   $('ed-n').textContent = editing.length;
@@ -959,7 +959,7 @@ function renderSettle() {
   ].map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   const n = unpaid.length; $('nav-unpaid').textContent = n; $('nav-unpaid').style.display = n ? '' : 'none';
   settleRows = ISSUES.filter(is => !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)
-    && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.no - a.no);
+    && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => (b.at || '').localeCompare(a.at || '') || b.no - a.no);
   $('settle-rows').innerHTML = settleRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
     return `<tr class="${is.revokedAt ? 'void' : ''}"><td>${md(is.at)}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td>${goalOf(is).toLocaleString()}</td>
@@ -1029,7 +1029,7 @@ const subSlots = () => Object.entries(SUB_SLOTS).flatMap(([u, l]) => l.map(x => 
 function watchSubs(fail) {
   const per = {};
   const stopAll = onValue(query(ref(db, 'shop/users'), orderByChild('parent'), equalTo(ME)), s => {
-    SUBS = Object.entries(s.val() || {}).map(([id, u]) => ({ id, ...u })).sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+    SUBS = Object.entries(s.val() || {}).map(([id, u]) => ({ id, ...u })).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     const ids = new Set(SUBS.map(u => u.id));
     for (const id of Object.keys(per)) if (!ids.has(id)) { per[id](); delete per[id]; delete SUB_ISSUES[id]; delete SUB_SLOTS[id]; }
     for (const id of ids) if (!per[id]) {
@@ -1063,7 +1063,7 @@ function renderIntSettle() {
     .map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   $('nav-int-unpaid').textContent = unpaid.length; $('nav-int-unpaid').style.display = unpaid.length ? '' : 'none';
   intRows = all.filter(is => (!who || (who === 'self' ? !is._sub : who === 'sub' ? !!is._sub : is._sub === who)) && (!st || (st === 'paid') === !!is.paidAt)
-    && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => b.at.localeCompare(a.at) || b.no - a.no);
+    && (!from || is.at.slice(0, 10) >= from) && (!to || is.at.slice(0, 10) <= to)).sort((a, b) => (b.at || '').localeCompare(a.at || '') || b.no - a.no);
   $('int-rows').innerHTML = intRows.map(is => {
     const [l, c] = settleState(is), b = billOf(is);
     return `<tr><td>${md(is.at)}</td><td>${is._sub ? `<span style="color:var(--text2)">하부점</span> ${esc(subName(is._sub))}` : '직접 접수'}</td><td>${unitOf(is)}</td><td>${is.qty}건</td><td>${goalOf(is).toLocaleString()}</td>
@@ -1080,7 +1080,7 @@ $('int-xlsx').onclick = () => saveXlsx('통합정산내역',
 /* 하부점 접수 현황 */
 function renderDSlots() {
   const uid = $('ds-user').value, q = $('ds-q').value.trim(), noEnd = $('ds-noend').checked, dash = '<span class="empty">미세팅</span>';
-  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => b.no - a.no);
+  const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort((a, b) => (b.setAt || '').localeCompare(a.setAt || '') || b.no - a.no);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
     return `<tr><td>${md(x.setAt) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
@@ -1106,7 +1106,7 @@ function renderDSettle() {
     .map(([k, v, c]) => `<div class="card"><div class="k">${k}</div><div class="v" style="color:${c || 'inherit'}">${won(v)}<span style="font-size:13px;color:var(--muted);font-weight:400">원</span></div></div>`).join('');
   $('nav-d-unpaid').textContent = unpaid.length; $('nav-d-unpaid').style.display = unpaid.length ? '' : 'none';
   const uid = $('dt-user').value, st = $('dt-st').value;
-  const rows = all.filter(is => (!uid || is.userId === uid) && !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)).sort((a, b) => b.no - a.no);
+  const rows = all.filter(is => (!uid || is.userId === uid) && !is.revokedAt && (!st || (st === 'paid') === !!is.paidAt)).sort((a, b) => (b.at || '').localeCompare(a.at || '') || b.no - a.no);
   const picked = new Set([...document.querySelectorAll('.dt-cb:checked')].map(c => c.value));  // 실시간 갱신에도 체크 유지
   $('dt-rows').innerHTML = rows.map(is => {
     const [l, c] = settleState(is), b = billOf(is), k = `${esc(is.userId)}|${is.no}`;
