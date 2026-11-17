@@ -332,8 +332,8 @@ ESCALATE = [('조합 검사 상한 +일목표', lambda r, d: {'checkCap': r['che
 
 
 def kw_goal(daily):
-    """일목표 → (목표 개수, 허용 오차). 100 이상은 100 기준 80±5, 미만은 -20% ±1(넘치면 안 돼서 좁게)."""
-    return (80, 5) if daily >= 100 else (round(daily * 0.8), 1)
+    """일목표 → (목표 개수, 허용 오차). 100 이상은 40±5, 미만은 -20% ±1(넘치면 안 돼서 좁게)."""
+    return (40, 5) if daily >= 100 else (round(daily * 0.8), 1)
 
 
 def kws_of(r):
@@ -424,7 +424,7 @@ def finish_fit(page):
         goal, tol = kw_goal(d)
         kws, ranks = kws_of(r), ranks_of(r)
         if len(kws) > goal + tol:
-            # 남길 개수 = 목표 범위 안에서 행마다 무작위(80·40처럼 딱 떨어지지 않게), 순위 좋은 것부터 남김 —
+            # 남길 개수 = 목표 범위 안에서 행마다 무작위(40처럼 딱 떨어지지 않게), 순위 좋은 것부터 남김 —
             #   같은 순위끼리는 무작위로 고름, 순위 모르는 키워드는 맨 뒤
             n = random.randint(goal - tol, goal + tol)
             keep = set(sorted(kws, key=lambda k: (ranks.get(k, 10 ** 6), random.random()))[:n])
