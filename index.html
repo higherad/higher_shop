@@ -786,7 +786,7 @@ function render() {
   const dash = '<span class="empty">미입력</span>';
   $('slot-rows').innerHTML = rows.map(x => {
     const st = slotState(x);
-    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td>
+    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x).slice(0, 10)) || '-'}</td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       ${urlCell(x.url, 300, dash)}${urlCell(x.ourl, 260, '-')}
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${leftText(x, st)}</td>
@@ -1115,7 +1115,7 @@ function renderDSlots() {
   const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort(newestFirst);
   $('ds-rows').innerHTML = rows.slice(0, 1000).map(x => {
     const st = slotState(x);
-    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x).slice(0, 10)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       ${urlCell(x.url, 300, dash)}${urlCell(x.ourl, 260, '-')}
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td class="void-keep"><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td class="void-keep">${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
