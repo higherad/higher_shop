@@ -336,7 +336,7 @@
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr><th>번호</th><th>접수일</th><th>순위 키워드</th><th>MID</th><th>단독 URL</th><th>원부 URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
+        <thead><tr><th>번호</th><th>접수일</th><th>순위 키워드</th><th>MID</th><th>상품 URL</th><th>원부 URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>남은 일</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
         <tbody id="slot-rows"><tr><td colspan="17" style="height:160px;color:var(--muted)">불러오는 중…</td></tr></tbody>
       </table>
       <div class="foot"><span id="slot-count"></span></div>
@@ -395,7 +395,7 @@
       <label><input type="checkbox" id="ds-noend" checked>종료 제외</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>번호</th><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>단독 URL</th><th>원부 URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
+      <thead><tr><th>번호</th><th>접수일</th><th>하부점</th><th>순위 키워드</th><th>MID</th><th>상품 URL</th><th>원부 URL</th><th>일 수</th><th>시작일</th><th>종료일</th><th>일 목표</th><th>전일 순위</th><th>현재 순위</th><th>순위 변동</th><th>순위 그래프</th><th>상태</th><th>관리</th></tr></thead>
       <tbody id="ds-rows"></tbody>
     </table></div>
   </section>
@@ -485,7 +485,7 @@
 <div class="ov" id="m-edit"><div class="box" style="width:900px">
   <h3>정보 수정 (<span id="ed-n"></span>개)</h3>
   <div class="tbl-wrap"><table>
-    <thead><tr><th style="width:60px">번호</th><th style="width:70px">시작일</th><th style="width:70px">종료일</th><th style="width:170px">순위 키워드</th><th>단독 URL</th><th>원부 URL</th><th style="width:150px">확인</th></tr></thead>
+    <thead><tr><th style="width:60px">번호</th><th style="width:70px">시작일</th><th style="width:70px">종료일</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th>원부 URL</th><th style="width:150px">확인</th></tr></thead>
     <tbody id="ed-rows"></tbody>
   </table></div>
   <div class="fbtns">
@@ -501,7 +501,7 @@
   <div class="chips" id="or-tabs"><span class="chip on" data-t="one">개별 접수</span><span class="chip" data-t="xlsx">엑셀 접수</span></div>
   <div id="or-one">
     <div class="tbl-wrap"><table>
-      <thead><tr><th style="width:34px">#</th><th style="width:170px">순위 키워드</th><th>단독 URL</th><th>원부 URL</th><th style="width:130px">시작일</th><th style="width:76px">일수</th><th style="width:90px">일 목표</th><th style="width:110px">캠페인 금액</th><th style="width:40px"></th></tr></thead>
+      <thead><tr><th style="width:34px">#</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th>원부 URL</th><th style="width:130px">시작일</th><th style="width:76px">일수</th><th style="width:90px">일 목표</th><th style="width:110px">캠페인 금액</th><th style="width:40px"></th></tr></thead>
       <tbody id="or-rows"></tbody>
     </table></div>
     <button class="btn" id="or-add" style="margin-top:10px"><i data-lucide="plus"></i>캠페인 추가</button>
@@ -510,7 +510,7 @@
     <div class="bar" style="justify-content:flex-end"><span id="or-xinfo" style="color:var(--text2)"></span><button class="btn" id="or-tmpl"><i data-lucide="download"></i>양식 다운로드</button><button class="btn pri" id="or-pick"><i data-lucide="upload"></i>엑셀 선택</button>
       <input type="file" id="or-file" accept=".xlsx,.xls" style="display:none"></div>
     <div class="tbl-wrap" style="max-height:45vh"><table>
-      <thead><tr><th>#</th><th>순위 키워드</th><th>단독 URL</th><th>원부 URL</th><th>시작일</th><th>일수</th><th>일 목표</th><th>캠페인 금액</th><th>상태</th></tr></thead>
+      <thead><tr><th>#</th><th>순위 키워드</th><th>상품 URL</th><th>원부 URL</th><th>시작일</th><th>일수</th><th>일 목표</th><th>캠페인 금액</th><th>상태</th></tr></thead>
       <tbody id="or-xrows"></tbody>
     </table></div>
   </div>
@@ -652,7 +652,7 @@ const rankCells = (uid, no) => {
   }
   return `<td>${rk(r.prev)}</td><td>${rk(r.rank)}</td><td>${!d ? '-' : d > 0 ? `<span style="color:var(--ok)">▲${d}</span>` : `<span style="color:var(--danger)">▼${-d}</span>`}</td><td${h.length ? ` data-rk="${esc(uid)}|${no}" style="cursor:pointer" title="클릭하면 순위 추이 상세"` : ''}>${g}</td>`;
 };
-// URL 칸(링크, 네이버 주소만) — 단독·원부 공용
+// URL 칸(링크, 네이버 주소만) — 상품·원부 공용
 const urlCell = (u, w, empty) => `<td><span class="pname" style="max-width:${w}px">${safeUrl(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(u)}</a>` : u ? esc(u) : empty}</span></td>`;
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
 function parseMid(v) {
@@ -820,7 +820,7 @@ function openEdit(nos) {
   $('ed-n').textContent = editing.length;
   $('ed-rows').innerHTML = editing.map(x => `<tr><td class="ed-period"><b>${seqNo(x)}</b><span class="ed-m"> · ${md(x.start)} ~ ${md(x.end)}</span></td><td class="ed-hide">${md(x.start)}</td><td class="ed-hide">${md(x.end)}</td>
     <td data-l="순위 키워드"><input class="ed-kw" maxlength="50" value="${esc(x.kw)}" placeholder="키워드"></td>
-    <td data-l="단독 URL"><input class="ed-url" maxlength="500" value="${esc(x.url)}" placeholder="단독 URL 또는 MID"></td>
+    <td data-l="상품 URL"><input class="ed-url" maxlength="500" value="${esc(x.url)}" placeholder="상품 URL 또는 MID"></td>
     <td data-l="원부 URL"><input class="ed-ourl" maxlength="500" value="${esc(x.ourl || '')}" placeholder="가격비교 상품만"></td><td class="l ed-chk"></td></tr>`).join('');
   document.querySelectorAll('.ed-url').forEach(verify);
   $('m-edit').classList.add('show');
@@ -875,7 +875,7 @@ const orderRows = () => orderTab === 'one' ? [...$('or-rows').children].map(tr =
   start: addDays(today(), +tr.querySelector('.or-when').value), days: +tr.querySelector('.or-days').value, daily: Number(tr.querySelector('.or-daily').value) })) : xRows;
 function orAddRow(base = {}) {
   const tr = document.createElement('tr');
-  tr.innerHTML = `<td class="or-n"></td><td><input class="or-kw" maxlength="50" placeholder="키워드"></td><td><input class="or-url" maxlength="500" placeholder="단독 URL"></td><td><input class="or-ourl" maxlength="500" placeholder="가격비교 상품만"></td>
+  tr.innerHTML = `<td class="or-n"></td><td><input class="or-kw" maxlength="50" placeholder="키워드"></td><td><input class="or-url" maxlength="500" placeholder="상품 URL"></td><td><input class="or-ourl" maxlength="500" placeholder="가격비교 상품만"></td>
     <td><select class="or-when">${whenOpts(base.off)}</select></td><td><select class="or-days">${termOpts(base.days)}</select></td><td><input class="or-daily" type="number" style="text-align:center"></td>
     <td class="or-amt"></td><td><button class="btn sm or-del" title="줄 삭제">✕</button></td>`;
   tr.querySelector('.or-daily').value = base.daily || MIN_DAILY;
@@ -922,7 +922,7 @@ $('or-file').onchange = async e => {
     const [head = [], ...data] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', range });
     const hdr = head.map(h => String(h).replace(/\s+/g, '')), col = re => hdr.findIndex(h => re.test(h));
     const c = { kw: col(/키워드/), url: col(/단독|상품url/i), ourl: col(/원부/), start: col(/시작일|진행여부/), days: col(/일수/), daily: col(/일목표/) };
-    const miss = [['순위키워드', c.kw], ['단독 URL', c.url], ['당일 진행 여부', c.start], ['일수', c.days], ['일목표', c.daily]].filter(([, i]) => i < 0).map(([n]) => n);
+    const miss = [['순위키워드', c.kw], ['상품URL', c.url], ['당일 진행 여부', c.start], ['일수', c.days], ['일목표', c.daily]].filter(([, i]) => i < 0).map(([n]) => n);
     if (miss.length) throw new Error(`엑셀 첫 줄(헤더)에서 다음 항목을 찾을 수 없습니다: ${miss.join(', ')}\n양식 다운로드로 받은 파일에 작성해 주세요.`);
     const num = v => String(v).trim() === '' ? NaN : Number(v);
     xRows = data.filter(r => String(r[c.kw]).trim() || String(r[c.url]).trim()).map(r => {
@@ -1001,7 +1001,7 @@ function saveXlsx(name, header, rows, widths) {
   XLSX.writeFile(wb, `바구니_${name}_${today().slice(2).replace(/-/g, '')}.xlsx`);
 }
 $('slot-xlsx').onclick = () => saveXlsx('내캠페인',
-  ['번호', '접수일', '순위 키워드', 'MID', '단독 URL', '원부 URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
+  ['번호', '접수일', '순위 키워드', 'MID', '상품 URL', '원부 URL', '일 수', '시작일', '종료일', '일 목표', '남은 일', '상태'],
   visibleSlots().map(x => { const st = slotState(x); return [seqNo(x), atOf(x), x.kw || '', x.mid || '', x.url || '', x.ourl || '', x.days || TERM_DAYS, x.start, x.end, x.daily || 100, st === 'stop' ? x.refundDays || 0 : st === 'end' ? 0 : leftOf(x), STATE[st][0]]; }),
   [8, 16, 18, 14, 50, 40, 6, 12, 12, 8, 8, 10]);
 $('settle-xlsx').onclick = () => saveXlsx('정산내역',
