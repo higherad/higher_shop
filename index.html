@@ -498,7 +498,7 @@
   <h3>접수</h3>
   <div class="sub" style="color:var(--danger)">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</div>
   <select id="or-user" style="display:none;width:280px;margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
-  <div class="chips" id="or-tabs"><span class="chip on" data-t="one">개별 접수</span><span class="chip" data-t="xlsx">엑셀 접수</span></div>
+  <div class="chips" id="or-tabs"><span class="chip" data-t="one">개별 접수</span><span class="chip on" data-t="xlsx">엑셀 접수</span></div>
   <div id="or-one">
     <div class="tbl-wrap"><table>
       <thead><tr><th style="width:34px">#</th><th style="width:170px">순위 키워드</th><th>상품 URL</th><th>원부 URL</th><th style="width:130px">시작일</th><th style="width:76px">일수</th><th style="width:90px">일 목표</th><th style="width:110px">캠페인 금액</th><th style="width:40px"></th></tr></thead>
@@ -864,7 +864,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
 
 /* ── 접수(개별·엑셀) — 서버 /shop-order가 같은 시작일·일수·일 목표끼리 발급 건 1개로 묶음
    광고주 사이트(higher_shop index.html)·어드민(쇼핑관리.html)이 같은 로직 — 한쪽을 고치면 같이 고칠 것 ── */
-let orderTab = 'one', xRows = [];
+let orderTab = 'xlsx', xRows = [];
 const newReqId = () => crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
 // 시작일 = 당일·익일 둘 중 하나(접수하면 그 날짜로 저장)
 const whenOpts = (v = 0) => [0, 1].map(n => `<option value="${n}"${n === v ? ' selected' : ''}>${n ? '익일' : '당일'}</option>`).join('');
@@ -956,7 +956,7 @@ function openOrder(sub) {
   orderSub = sub;
   $('or-user').style.display = sub === null ? 'none' : '';
   if (sub !== null) $('or-user').innerHTML = '<option value="">-- 하부점 선택 --</option>' + SUBS.filter(u => !u.blocked && !u.deleted).map(u => `<option value="${esc(u.id)}">${esc(u.company)} (${esc(u.id)})</option>`).join('');
-  xRows = []; $('or-xinfo').textContent = ''; $('or-rows').innerHTML = ''; orAddRow(); orTab('one');
+  xRows = []; $('or-xinfo').textContent = ''; $('or-rows').innerHTML = ''; orAddRow(); orTab('xlsx');  // 기본 = 엑셀 접수 탭
   $('m-order').classList.add('show');
 }
 $('order-open').onclick = () => openOrder(null);
