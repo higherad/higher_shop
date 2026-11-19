@@ -496,7 +496,7 @@
 <!-- 접수(개별·엑셀) -->
 <div class="ov" id="m-order"><div class="box" style="width:1000px">
   <h3>접수</h3>
-  <div class="sub">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</div>
+  <div class="sub" style="color:var(--danger)">시작일 당일·익일 · 일수 1~7일 · 일 목표 10개 이상 · 평일 17시 마감 · 주말 접수 불가</div>
   <select id="or-user" style="display:none;width:280px;margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);border-radius:7px"></select>
   <div class="chips" id="or-tabs"><span class="chip on" data-t="one">개별 접수</span><span class="chip" data-t="xlsx">엑셀 접수</span></div>
   <div id="or-one">
@@ -507,8 +507,8 @@
     <button class="btn" id="or-add" style="margin-top:10px"><i data-lucide="plus"></i>캠페인 추가</button>
   </div>
   <div id="or-xlsx" style="display:none">
-    <div class="bar"><button class="btn" id="or-tmpl"><i data-lucide="download"></i>양식 다운로드</button><button class="btn pri" id="or-pick"><i data-lucide="upload"></i>엑셀 선택</button>
-      <input type="file" id="or-file" accept=".xlsx,.xls" style="display:none"><span id="or-xinfo" style="color:var(--text2)"></span></div>
+    <div class="bar" style="justify-content:flex-end"><span id="or-xinfo" style="color:var(--text2)"></span><button class="btn" id="or-tmpl"><i data-lucide="download"></i>양식 다운로드</button><button class="btn pri" id="or-pick"><i data-lucide="upload"></i>엑셀 선택</button>
+      <input type="file" id="or-file" accept=".xlsx,.xls" style="display:none"></div>
     <div class="tbl-wrap" style="max-height:45vh"><table>
       <thead><tr><th>#</th><th>순위 키워드</th><th>단독 URL</th><th>원부 URL</th><th>시작일</th><th>일수</th><th>일 목표</th><th>캠페인 금액</th><th>상태</th></tr></thead>
       <tbody id="or-xrows"></tbody>
