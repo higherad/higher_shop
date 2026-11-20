@@ -19,7 +19,7 @@
   :root { --bg:#f4f6fb; --side:#111827; --acc:#4f46e5; --acc2:#4338ca; --muted:#94a3b8; --border:#e2e8f0; --text:#1e293b; --text2:#64748b; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444; --panel:#fff; --panel2:#f8fafc; }
   /* 접수 화면 블랙 — 로그인 화면 전환 버튼과 같은 선택(shop_login_theme)을 씀 */
   html[data-theme="dark"] { color-scheme:dark; --bg:#0f1117; --side:#0a0c10; --border:#2a2f3a; --text:#e5e7eb; --text2:#9ca3af; --muted:#6b7280; --panel:#171a22; --panel2:#1f2330; }
-  #app-theme { margin-left:6px; padding:0 10px; font-size:14px; line-height:1; } #app-theme::after { content:'🌙'; } html[data-theme="dark"] #app-theme::after { content:'☀️'; }
+  .app-theme { padding:0 10px; font-size:14px; line-height:1; } .app-theme:not(:first-child) { margin-left:6px; } .app-theme::after { content:'🌙'; } html[data-theme="dark"] .app-theme::after { content:'☀️'; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:'Pretendard',sans-serif; background:var(--bg); color:var(--text); font-size:13px; }
   button, input, select { font-family:inherit; }
@@ -281,7 +281,7 @@
     try { apply(localStorage.getItem('shop_login_theme')); } catch (e) {}
     const set = t => { apply(t); try { localStorage.setItem('shop_login_theme', t); } catch (e) {} };
     btn.onclick = () => set(box.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
-    document.addEventListener('click', e => { if (e.target.closest('#app-theme')) set(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
+    document.addEventListener('click', e => { if (e.target.closest('.app-theme')) set(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
   })();
   // 마우스 스포트라이트(아티팩트 히어로와 같음)
   (() => {
@@ -323,7 +323,7 @@
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="order-open"><i data-lucide="clipboard-plus"></i>접수</button>
         <button class="btn" id="slot-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button>
-        <button class="btn" id="app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button>
+        <button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button>
       </div>
     </div>
     <details class="guide" id="g-slots">
@@ -353,7 +353,7 @@
   <!-- 정산 내역 -->
   <section class="page" id="p-settle">
     <div class="head"><div><h2>정산 내역</h2><p>접수한 캠페인의 결제 금액과 입금 상태입니다.</p></div>
-      <button class="btn" id="settle-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
+      <div style="display:flex;gap:8px"><button class="btn" id="settle-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
         <details class="guide" id="g-settle">
       <summary>이용 방법</summary>
       <ol>
@@ -375,7 +375,7 @@
 
   <!-- 변경 이력 -->
   <section class="page" id="p-history">
-    <div class="head"><div><h2>변경 이력</h2><p>캠페인 접수·수정·환불·입금 기록입니다.</p></div></div>
+    <div class="head"><div><h2>변경 이력</h2><p>캠페인 접수·수정·환불·입금 기록입니다.</p></div><div style="display:flex;gap:8px"><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>일시</th><th>구분</th><th>대상</th><th>내용</th></tr></thead>
       <tbody id="hist-rows"></tbody>
@@ -385,7 +385,7 @@
   <!-- 총판: 하부점 접수 현황 -->
   <section class="page" id="p-d-slots">
     <div class="head"><div><h2>하부점 접수 현황</h2><p>하부점 캠페인을 대신 접수하고 진행 상황을 확인합니다.</p></div>
-      <button class="btn pri" id="d-order-open"><i data-lucide="clipboard-plus"></i>접수</button></div>
+      <div style="display:flex;gap:8px"><button class="btn pri" id="d-order-open"><i data-lucide="clipboard-plus"></i>접수</button><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <details class="guide" id="g-d-slots">
       <summary>이용 방법</summary>
       <ol>
@@ -409,7 +409,7 @@
 
   <!-- 총판: 하부점 정산 -->
   <section class="page" id="p-d-settle">
-    <div class="head"><div><h2>하부점 정산 내역</h2><p>하부점에게 받을 금액과 입금 상태입니다.</p></div></div>
+    <div class="head"><div><h2>하부점 정산 내역</h2><p>하부점에게 받을 금액과 입금 상태입니다.</p></div><div style="display:flex;gap:8px"><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
         <details class="guide" id="g-d-settle">
       <summary>이용 방법</summary>
       <ol>
@@ -432,7 +432,7 @@
 
   <!-- 총판: 하부점 변경 이력 -->
   <section class="page" id="p-d-history">
-    <div class="head"><div><h2>하부점 변경 이력</h2><p>하부점 캠페인 접수·환불·수정·입금 기록입니다.</p></div></div>
+    <div class="head"><div><h2>하부점 변경 이력</h2><p>하부점 캠페인 접수·환불·수정·입금 기록입니다.</p></div><div style="display:flex;gap:8px"><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <div class="bar"><span style="color:var(--text2)">하부점</span><select id="dh-user"></select></div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>일시</th><th>구분</th><th>하부점</th><th>대상</th><th>내용</th></tr></thead>
@@ -443,7 +443,7 @@
   <!-- 총판: 통합 정산 내역 — 직접 접수 + 하부점 접수를 하이어에 낼 금액(총판 단가)으로 한 표에 -->
   <section class="page" id="p-int-settle">
     <div class="head"><div><h2>통합 정산 내역</h2><p>직접 접수한 캠페인과 하부점 캠페인을 합쳐, 본사에 낼 금액(총판 단가 기준)을 보여 줍니다.</p></div>
-      <button class="btn" id="int-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button></div>
+      <div style="display:flex;gap:8px"><button class="btn" id="int-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <div class="summary" id="int-cards"></div>
     <div class="bar">
       <span style="color:var(--text2)">구분</span><select id="int-who"></select>
@@ -458,7 +458,7 @@
 
   <!-- 총판: 하부점 관리 -->
   <section class="page" id="p-d-users">
-    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 단가를 정합니다.</p></div><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button></div>
+    <div class="head"><div><h2>하부점 관리</h2><p>하부점 계정을 만들고 단가를 정합니다.</p></div><div style="display:flex;gap:8px"><button class="btn pri" id="du-add"><i data-lucide="user-plus"></i>하부점 추가</button><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <details class="guide" id="g-d-users">
       <summary>이용 방법</summary>
       <ol>
