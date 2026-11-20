@@ -382,7 +382,7 @@
   <section class="page" id="p-history">
     <div class="head"><div><h2>변경 이력</h2><p>캠페인 접수·수정·환불·입금 기록입니다.</p></div><div style="display:flex;gap:8px"><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>일시</th><th>구분</th><th>대상</th><th>내용</th></tr></thead>
+      <thead><tr><th>일시</th><th>구분</th><th>접수번호</th><th>내용</th></tr></thead>
       <tbody id="hist-rows"></tbody>
     </table></div>
     <div class="pagination" id="hist-pg"></div>
@@ -443,7 +443,7 @@
     <div class="head"><div><h2>하부점 변경 이력</h2><p>하부점 캠페인 접수·환불·수정·입금 기록입니다.</p></div><div style="display:flex;gap:8px"><button class="btn app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button></div></div>
     <div class="bar"><span style="color:var(--text2)">하부점</span><select id="dh-user"></select></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>일시</th><th>구분</th><th>하부점</th><th>대상</th><th>내용</th></tr></thead>
+      <thead><tr><th>일시</th><th>구분</th><th>하부점</th><th>접수번호</th><th>내용</th></tr></thead>
       <tbody id="dh-rows"></tbody>
     </table></div>
     <div class="pagination" id="dh-pg"></div>
@@ -787,6 +787,8 @@ const orderKey = (x, uid = x.userId) => `${atOf(x, uid)}|${String(x.no).padStart
 const newestFirst = (a, b) => orderKey(b).localeCompare(orderKey(a));
 // 화면 번호 = 영업점마다 1번부터 접수 순서(x.no는 전체 캠페인 번호라 총 물량이 보여서 안 보여 줌) — 하부점 건은 그 하부점 안에서
 // ponytail: 행마다 목록을 세는 O(n²) — 영업점당 캠페인이 수천 개를 넘으면 번호표 캐시로
+// 표 번호 = 필터 결과 안 접수 순서(맨 위 = 걸린 건수), 아래 작은 '#접수번호'(seqNo) — rows는 최신순
+const posOf = (rows, x) => rows.length - rows.indexOf(x);
 const seqNo = x => { const uid = x.userId, k = orderKey(x); return (own(uid) ? SLOTS : SUB_SLOTS[uid] || []).filter(y => orderKey(y, uid) <= k).length; };
 // 표 20개씩 페이지(플레이스 접수관리와 같은 크기·버튼) — PAGE[key] = 현재 페이지, 필터 바뀌면 1로, 실시간 갱신은 그 페이지 유지
 const PER_PAGE = 20, PAGE = {};
@@ -816,7 +818,7 @@ function render() {
   const dash = '<span class="empty">미입력</span>';
   $('slot-rows').innerHTML = pageOf(rows, 'slot', render).map(x => {
     const st = slotState(x);
-    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x).slice(0, 10)) || '-'}</td>
+    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${posOf(rows, x)}<div style="font-size:10px;color:#94a3b8" title="접수번호(변경 이력·환불 안내에 쓰는 번호)">#${seqNo(x)}</div></td><td>${md(atOf(x).slice(0, 10)) || '-'}</td>
       <td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       ${urlCell(x.url, 300, dash)}${urlCell(x.ourl, 260, '-')}
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td><td>${leftText(x, st)}</td>
@@ -1046,11 +1048,17 @@ $('settle-xlsx').onclick = () => saveXlsx('정산내역',
 
 /* ── 변경 이력 ── */
 // 변경 이력 줄 — 본인(내 캠페인)·하부점(총판 관리) 공용, withSub면 하부점 칸 추가
-// 대상 = 표 번호 열과 같은 접수번호(발급 묶음은 그 안의 캠페인 번호들)
+// 접수번호 열 = 표 번호 열 아래 '#n'과 같은 번호(발급 묶음은 그 안의 캠페인 번호들) — 3개 이상 이어지면 '#n~m'(어드민 쇼핑관리와 같은 표기)
 const noLabel = nos => {
-  nos = [...nos].sort((a, b) => a - b);
+  nos = [...new Set(nos)].sort((a, b) => a - b);
   if (!nos.length) return '-';
-  return '접수번호 ' + (nos.length > 2 && nos.at(-1) - nos[0] + 1 === nos.length ? `${nos[0]}~${nos.at(-1)}` : nos.join(', '));
+  const out = [];
+  for (let i = 0; i < nos.length;) {
+    let j = i; while (j + 1 < nos.length && nos[j + 1] === nos[j] + 1) j++;
+    if (j - i >= 2) out.push(`#${nos[i]}~${nos[j]}`); else for (let k = i; k <= j; k++) out.push(`#${nos[k]}`);
+    i = j + 1;
+  }
+  return out.join(', ');
 };
 function historyHtml(issues, slots, withSub, key, rerender) {
   const ev = [], who = x => withSub ? [esc(subName(x.userId))] : [];
@@ -1145,7 +1153,7 @@ function renderDSlots() {
   const rows = subSlots().filter(x => (!uid || x.userId === uid) && (!q || (x.kw || '').includes(q) || (x.mid || '').includes(q)) && !(noEnd && closedState(slotState(x)))).sort(newestFirst);
   $('ds-rows').innerHTML = pageOf(rows, 'ds', renderDSlots).map(x => {
     const st = slotState(x);
-    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${seqNo(x)}</td><td>${md(atOf(x).slice(0, 10)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
+    return `<tr${st === 'stop' ? ' class="void"' : ''}><td>${posOf(rows, x)}<div style="font-size:10px;color:#94a3b8" title="접수번호(변경 이력·환불 안내에 쓰는 번호)">#${seqNo(x)}</div></td><td>${md(atOf(x).slice(0, 10)) || '-'}</td><td>${esc(subName(x.userId))}</td><td>${esc(x.kw) || dash}</td><td>${x.mid ? `<span class="mid">${esc(x.mid)}</span>` : dash}</td>
       ${urlCell(x.url, 300, dash)}${urlCell(x.ourl, 260, '-')}
       <td>${x.days || TERM_DAYS}</td><td>${md(x.start)}</td><td>${md(x.end)}</td><td>${(x.daily || 100).toLocaleString()}</td>${rankCells(x.userId, x.no)}<td class="void-keep"><span class="badge ${STATE[st][1]}">${STATE[st][0]}</span></td>
       <td class="void-keep">${canRefund(x) ? `<button class="btn sm" data-refund="${esc(x.userId)}|${x.no}" style="color:var(--danger)">환불</button>` : '-'}</td></tr>`;
