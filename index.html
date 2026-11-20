@@ -19,7 +19,7 @@
   :root { --bg:#f4f6fb; --side:#111827; --acc:#4f46e5; --acc2:#4338ca; --muted:#94a3b8; --border:#e2e8f0; --text:#1e293b; --text2:#64748b; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444; --panel:#fff; --panel2:#f8fafc; }
   /* 접수 화면 블랙 — 로그인 화면 전환 버튼과 같은 선택(shop_login_theme)을 씀 */
   html[data-theme="dark"] { color-scheme:dark; --bg:#0f1117; --side:#0a0c10; --border:#2a2f3a; --text:#e5e7eb; --text2:#9ca3af; --muted:#6b7280; --panel:#171a22; --panel2:#1f2330; }
-  #app-theme::after { content:'블랙으로 보기'; } html[data-theme="dark"] #app-theme::after { content:'화이트로 보기'; }
+  #app-theme { margin-left:6px; padding:0 10px; font-size:14px; line-height:1; } #app-theme::after { content:'🌙'; } html[data-theme="dark"] #app-theme::after { content:'☀️'; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:'Pretendard',sans-serif; background:var(--bg); color:var(--text); font-size:13px; }
   button, input, select { font-family:inherit; }
@@ -310,7 +310,6 @@
   </div>
   <div class="me">
     <div class="me-row"><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
-    <button class="side-btn" id="app-theme"></button>
     <button class="side-btn" id="pw-open">비밀번호 변경</button>
     <button class="side-btn out" id="logout">로그아웃</button>
   </div>
@@ -324,6 +323,7 @@
       <div style="display:flex;gap:8px">
         <button class="btn pri" id="order-open"><i data-lucide="clipboard-plus"></i>접수</button>
         <button class="btn" id="slot-xlsx"><i data-lucide="download"></i>엑셀 다운로드</button>
+        <button class="btn" id="app-theme" type="button" title="블랙/화이트 전환" aria-label="블랙/화이트 전환"></button>
       </div>
     </div>
     <details class="guide" id="g-slots">
