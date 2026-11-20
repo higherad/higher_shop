@@ -16,7 +16,10 @@
 <style>
   input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
   input[type=number] { -moz-appearance:textfield; appearance:textfield; }
-  :root { --bg:#f4f6fb; --side:#111827; --acc:#4f46e5; --acc2:#4338ca; --muted:#94a3b8; --border:#e2e8f0; --text:#1e293b; --text2:#64748b; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444; }
+  :root { --bg:#f4f6fb; --side:#111827; --acc:#4f46e5; --acc2:#4338ca; --muted:#94a3b8; --border:#e2e8f0; --text:#1e293b; --text2:#64748b; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444; --panel:#fff; --panel2:#f8fafc; }
+  /* 접수 화면 블랙 — 로그인 화면 전환 버튼과 같은 선택(shop_login_theme)을 씀 */
+  html[data-theme="dark"] { color-scheme:dark; --bg:#0f1117; --side:#0a0c10; --border:#2a2f3a; --text:#e5e7eb; --text2:#9ca3af; --muted:#6b7280; --panel:#171a22; --panel2:#1f2330; }
+  #app-theme::after { content:'블랙으로 보기'; } html[data-theme="dark"] #app-theme::after { content:'화이트로 보기'; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:'Pretendard',sans-serif; background:var(--bg); color:var(--text); font-size:13px; }
   button, input, select { font-family:inherit; }
@@ -100,10 +103,10 @@
   .head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
   .head h2 { margin:0; font-size:21px; font-weight:800; }
   .head p { margin:4px 0 0; color:var(--text2); font-size:12px; }
-  .guide { background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:16px; width:fit-content; max-width:100%; }
+  .guide { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:16px; width:fit-content; max-width:100%; }
   .guide summary { cursor:pointer; font-weight:700; font-size:13px; color:var(--acc); }
   .guide ol { list-style:none; counter-reset:g; display:flex; flex-wrap:wrap; gap:12px; margin:12px 0 2px; padding:0; }
-  .guide li { counter-increment:g; display:flex; flex-direction:column; gap:4px; padding:12px 16px; border-radius:10px; background:#f8fafc; font-size:12px; color:var(--text2); line-height:1.6; word-break:keep-all; }
+  .guide li { counter-increment:g; display:flex; flex-direction:column; gap:4px; padding:12px 16px; border-radius:10px; background:var(--panel2); font-size:12px; color:var(--text2); line-height:1.6; word-break:keep-all; }
   .guide li b { color:var(--text); font-size:13px; } .guide li b::before { content:counter(g); display:inline-grid; place-items:center; width:20px; height:20px; margin-right:7px; border-radius:50%; background:var(--acc); color:#fff; font-size:11px; }
   .guide em { font-style:normal; font-weight:700; color:var(--text); }
   .guide .g-red { color:var(--danger); font-weight:700; }  /* 접수 규칙 강조 */
@@ -111,23 +114,23 @@
 
   /* 공통 */
   .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-  .chip { padding:7px 14px; border:1px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; font-weight:600; color:var(--text2); }
+  .chip { padding:7px 14px; border:1px solid var(--border); background:var(--panel); border-radius:8px; cursor:pointer; font-weight:600; color:var(--text2); }
   .chip.on { background:var(--acc); border-color:var(--acc); color:#fff; }
   .chip-sep { width:1px; align-self:stretch; margin:4px 4px; background:var(--border); flex:none; }
-  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
+  .bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:14px; }
   .bar input[type=text], .bar input[type=date], .bar select { padding:7px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; outline:none; }
   .bar .grow { flex:1; min-width:220px; }
   .bar label { display:inline-flex; align-items:center; gap:5px; color:var(--text2); cursor:pointer; }
   .bar label input { margin:0; }
-  .btn { padding:7px 14px; border-radius:7px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:600; font-size:12px; color:var(--text); display:inline-flex; align-items:center; gap:5px; }
+  .btn { padding:7px 14px; border-radius:7px; border:1px solid var(--border); background:var(--panel); cursor:pointer; font-weight:600; font-size:12px; color:var(--text); display:inline-flex; align-items:center; gap:5px; }
   .btn svg { width:14px; height:14px; }
   .btn.pri { background:var(--acc); border-color:var(--acc); color:#fff; }
   .btn.sm { padding:4px 9px; font-size:11px; }
-  .tbl-wrap { background:#fff; border:1px solid var(--border); border-radius:10px; overflow:auto; }
+  .tbl-wrap { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:auto; }
   table { width:100%; border-collapse:collapse; }
   thead th { background:#1e293b; color:#fff; padding:11px 10px; font-weight:500; white-space:nowrap; font-size:12px; }
   tbody td { padding:10px; border-bottom:1px solid var(--border); text-align:center; white-space:nowrap; }
-  tbody tr:hover { background:#f8fafc; }
+  tbody tr:hover { background:var(--panel2); }
   td.l { text-align:left; }
   .mid { color:var(--acc); font-weight:600; text-decoration:none; }
   .pname { max-width:260px; overflow:hidden; text-overflow:ellipsis; display:inline-block; vertical-align:middle; }
@@ -138,13 +141,13 @@
   .st-g { color:#059669; font-weight:600; } .st-n { color:#64748b; font-weight:600; } .st-r { color:var(--danger); font-weight:600; }
   .foot { display:flex; justify-content:flex-end; align-items:center; gap:12px; padding:10px 14px; color:var(--text2); font-size:12px; }
   .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
-  .card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
   .card .k { font-size:11px; color:var(--text2); font-weight:600; } .card .v { font-size:24px; font-weight:800; margin-top:6px; }
 
   /* 모달 */
   .ov { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:60; }
   .ov.show { display:flex; }
-  .box { background:#fff; border-radius:14px; padding:24px 26px; width:760px; max-height:85vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+  .box { background:var(--panel); border-radius:14px; padding:24px 26px; width:760px; max-height:85vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
   .box h3 { margin:0 0 4px; font-size:17px; } .box .sub { color:var(--text2); font-size:12px; margin-bottom:16px; }
   .box table .bad { border-color:var(--danger); background:#fef2f2; }
   .box table input, .box table select { width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; }
@@ -273,9 +276,12 @@
   // 화이트/블랙 전환 — 선택은 브라우저에 기억
   (() => {
     const box = document.getElementById('login'), btn = document.getElementById('theme-toggle');
-    const apply = t => { box.toggleAttribute('data-theme', false); if (t === 'light') box.setAttribute('data-theme', 'light'); const label = t === 'light' ? '블랙으로 보기' : '화이트로 보기'; btn.textContent = t === 'light' ? '🌙' : '☀️'; btn.title = label; btn.setAttribute('aria-label', label); };
+    // 로그인 화면은 기본 블랙, 접수 화면은 기본 화이트 — 한 번 고르면 둘 다 그 색
+    const apply = t => { box.toggleAttribute('data-theme', false); if (t === 'light') box.setAttribute('data-theme', 'light'); document.documentElement.toggleAttribute('data-theme', false); if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); const label = t === 'light' ? '블랙으로 보기' : '화이트로 보기'; btn.textContent = t === 'light' ? '🌙' : '☀️'; btn.title = label; btn.setAttribute('aria-label', label); };
     try { apply(localStorage.getItem('shop_login_theme')); } catch (e) {}
-    btn.onclick = () => { const t = box.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; apply(t); try { localStorage.setItem('shop_login_theme', t); } catch (e) {} };
+    const set = t => { apply(t); try { localStorage.setItem('shop_login_theme', t); } catch (e) {} };
+    btn.onclick = () => set(box.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    document.addEventListener('click', e => { if (e.target.closest('#app-theme')) set(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
   })();
   // 마우스 스포트라이트(아티팩트 히어로와 같음)
   (() => {
@@ -304,6 +310,7 @@
   </div>
   <div class="me">
     <div class="me-row"><div><div class="me-name" id="me-id"></div><div class="me-role" id="me-role"></div></div></div>
+    <button class="side-btn" id="app-theme"></button>
     <button class="side-btn" id="pw-open">비밀번호 변경</button>
     <button class="side-btn out" id="logout">로그아웃</button>
   </div>
@@ -587,7 +594,7 @@ const rankPopup = (title, sub, r) => {
   const to = (Math.floor((Date.now() + KST) / DAY) + 1) * DAY - KST;
   const m = document.createElement('div');
   m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
-  m.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#111827);border-radius:14px;padding:22px;width:640px;max-width:100%;max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+  m.innerHTML = `<div style="background:var(--panel);color:var(--text);border-radius:14px;padding:22px;width:640px;max-width:100%;max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700">${esc(title)}</div><div style="font-size:12px;opacity:.6;margin-top:2px">${esc(sub)}</div></div>
       <button class="rp-x" style="border:none;background:none;font-size:20px;cursor:pointer;color:inherit;line-height:1">×</button></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:13px">지표</b><div class="rp-tabs" style="display:flex;gap:4px"></div></div>
@@ -620,7 +627,7 @@ const rankPopup = (title, sub, r) => {
         <polyline points="${P.map(p => `${X(p.t).toFixed(1)},${Y(p.k).toFixed(1)}`).join(' ')}" fill="none" stroke="#8b5cf6" stroke-width="2"/>
         ${P.map(p => `<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.k).toFixed(1)}" r="3" fill="#8b5cf6"/>`).join('')}
         <circle class="rp-act" r="5" fill="#8b5cf6" visibility="hidden"/></svg>
-        <div class="rp-tip" style="position:absolute;display:none;pointer-events:none;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;padding:6px 9px;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.08)"></div>`;
+        <div class="rp-tip" style="position:absolute;display:none;pointer-events:none;background:var(--panel);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.08)"></div>`;
       // 그래프 안 어디든 마우스 = 가장 가까운 측정 시각의 순위(세로선·점·말풍선)
       const svg = el.querySelector('svg'), cur = el.querySelector('.rp-cur'), act = el.querySelector('.rp-act'), tip = el.querySelector('.rp-tip');
       svg.onmousemove = e => {
