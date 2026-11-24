@@ -673,6 +673,8 @@ const rankCells = (uid, no) => {
 // URL 칸(링크, 네이버 주소만) — 상품·원부 공용
 const urlCell = (u, w, empty) => `<td><span class="pname" style="max-width:${w}px">${safeUrl(u) ? `<a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--text2)">${esc(u)}</a>` : u ? esc(u) : empty}</span></td>`;
 const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test((u || '').trim());
+// 원부 URL = 네이버 가격비교 주소만(확장이 catalog 뒤 숫자를 원부 MID로 읽고, 다른 값이면 등록을 거절)
+const parseOmid = v => ((v || '').trim().match(/^https:\/\/search\.shopping\.naver\.com\/catalog\/(\d{6,})/i) || [])[1] || '';
 function parseMid(v) {
   v = (v || '').trim();
   if (/^\d{6,}$/.test(v)) return v;
@@ -886,7 +888,7 @@ $('ed-save').onclick = () => busy($('ed-save'), async () => {
     }
     if (!it.kw || !it.url) throw new Error(`${seqNo(editing[i])}번: 키워드와 상품 URL을 모두 입력해 주세요.`);
     if (!parseMid(it.url)) throw new Error(`${seqNo(editing[i])}번: 네이버 상품 URL 또는 MID를 확인해 주세요.`);
-    if (it.ourl && !parseMid(it.ourl)) throw new Error(`${seqNo(editing[i])}번: 원부 URL을 확인해 주세요.`);
+    if (it.ourl && !parseOmid(it.ourl)) throw new Error(`${seqNo(editing[i])}번: 원부 URL은 가격비교 주소(search.shopping.naver.com/catalog/…)만 넣어 주세요.`);
   }
   const r = await api('/shop-slots', { items });
   $('m-edit').classList.remove('show');
@@ -906,7 +908,7 @@ function orderErr(r) {
   if (!r.kw) return '키워드 누락';
   if (r.kw.length > 50) return '키워드 50자 초과';
   if (!parseMid(r.url)) return r.url ? '네이버 상품 URL이 아님' : 'URL 누락';
-  if (r.ourl && !parseMid(r.ourl)) return '원부 URL 확인';
+  if (r.ourl && !parseOmid(r.ourl)) return '원부 URL은 가격비교 주소만';
     if (r.start !== today() && r.start !== addDays(today(), 1)) return '시작일은 당일·익일만';
   if (!Number.isInteger(r.days) || r.days < 1 || r.days > TERM_DAYS) return `일수는 1~${TERM_DAYS}만`;
   if (!Number.isInteger(r.daily) || r.daily < MIN_DAILY) return `일 목표 최소 ${MIN_DAILY}개`;
@@ -934,7 +936,7 @@ function orSync() {
     const r = rows[i];
     tr.querySelector('.or-n').textContent = i + 1;
     tr.querySelector('.or-url').classList.toggle('bad', !!r.url && !parseMid(r.url));
-      tr.querySelector('.or-ourl').classList.toggle('bad', !!r.ourl && !parseMid(r.ourl));
+      tr.querySelector('.or-ourl').classList.toggle('bad', !!r.ourl && !parseOmid(r.ourl));
     tr.querySelector('.or-daily').classList.toggle('bad', !Number.isInteger(r.daily) || r.daily < MIN_DAILY);
     tr.querySelector('.or-amt').textContent = errs[i] || !ok ? '-' : won(orderAmt(r)) + '원';
   });
