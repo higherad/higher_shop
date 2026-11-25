@@ -1288,5 +1288,22 @@ document.querySelectorAll('.nav').forEach(n => n.onclick = () => {
 setInterval(render, 60e3);  // 자정이 지나면 종료 상태 갱신
 lucide.createIcons();
 </script>
+<script>
+// 날짜 표시 yy-mm-dd — 화면 글자의 20yy-mm-dd만 줄임(DB 값·엑셀·입력칸 값·코드 비교는 yyyy-mm-dd 그대로).
+// higher index.html·tools date-short.js와 같은 코드
+(() => {
+  const LONG_DATE = /(?<!\d)20(\d\d-\d\d-\d\d)(?!\d)/g, HAS_LONG_DATE = /(?<!\d)20\d\d-\d\d-\d\d(?!\d)/;
+  const SKIP_DATE = 'script,style,textarea,[contenteditable]';
+  const shortenText = n => { if (HAS_LONG_DATE.test(n.data) && !n.parentElement?.closest(SKIP_DATE)) n.data = n.data.replace(LONG_DATE, '$1'); };
+  const shortenDates = root => {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) shortenText(n);
+  };
+  shortenDates(document.body);
+  new MutationObserver(ms => ms.forEach(m => m.type === 'characterData' ? shortenText(m.target)
+    : m.addedNodes.forEach(n => n.nodeType === 3 ? shortenText(n) : n.nodeType === 1 && shortenDates(n))))
+    .observe(document.body, { childList: true, subtree: true, characterData: true });
+})();
+</script>
 </body>
 </html>
